@@ -324,11 +324,11 @@ export const MonthCalendarView: React.FC<MonthCalendarViewProps> = ({
       </div>
 
       {/* 🗓️ 月曆網格與拖曳框選控制 */}
-      <div className="bg-slate-900/80 border border-slate-800 p-3 sm:p-4 rounded-3xl space-y-3">
+      <div className="bg-slate-900/80 border border-slate-800 p-2.5 sm:p-4 rounded-2xl sm:rounded-3xl space-y-2.5 sm:space-y-3 mx-auto w-full max-w-[97%] sm:max-w-none">
         <div className="flex flex-wrap items-center justify-between gap-2 text-xs text-slate-400">
           <div className="flex items-center gap-2">
             <span className="font-bold text-slate-300">月曆記帳分佈</span>
-            <span className="text-[11px] text-slate-500">
+            <span className="text-[11px] text-slate-500 hidden sm:inline">
               {isDragging && hasMovedDuringDrag
                 ? `🔄 正在拖曳框選：已選取 ${draggingRangeDates?.size || 0} 天`
                 : '(點選或按住滑鼠拖曳連續框選)'}
@@ -340,35 +340,35 @@ export const MonthCalendarView: React.FC<MonthCalendarViewProps> = ({
             <button
               type="button"
               onClick={handleSelectAllPeriodDays}
-              className={`px-2 py-0.5 rounded-lg text-[11px] font-bold transition border ${
+              className={`px-2 py-0.5 rounded-lg text-[10px] sm:text-[11px] font-bold transition border ${
                 selectedDates.length === periodDays.length
                   ? 'bg-emerald-600 border-emerald-500 text-white'
                   : 'bg-slate-800 border-slate-700 text-slate-300 hover:text-emerald-400'
               }`}
             >
-              {selectedDates.length === periodDays.length ? '✓ 已全選' : `全選當月 (${periodDays.length}天)`}
+              {selectedDates.length === periodDays.length ? '✓ 已全選' : `全選 (${periodDays.length}天)`}
             </button>
             <button
               type="button"
               onClick={handleSelectActiveDaysOnly}
-              className="px-2 py-0.5 rounded-lg text-[11px] font-bold bg-slate-800 border border-slate-700 text-slate-300 hover:text-emerald-400 transition"
+              className="px-2 py-0.5 rounded-lg text-[10px] sm:text-[11px] font-bold bg-slate-800 border border-slate-700 text-slate-300 hover:text-emerald-400 transition"
             >
-              只選有支出日
+              只選有支出
             </button>
             {selectedDates.length > 0 && (
               <button
                 type="button"
                 onClick={() => setSelectedSubDates([])}
-                className="px-2 py-0.5 rounded-lg text-[11px] text-slate-400 hover:text-rose-400 underline transition"
+                className="px-2 py-0.5 rounded-lg text-[10px] sm:text-[11px] text-slate-400 hover:text-rose-400 underline transition"
               >
-                清除選取 (看全月)
+                看全月
               </button>
             )}
           </div>
         </div>
 
         {/* 星期抬頭 */}
-        <div className="grid grid-cols-7 gap-1 text-center text-xs font-bold text-slate-400 pb-1">
+        <div className="grid grid-cols-7 gap-0.5 sm:gap-1 text-center text-[10px] sm:text-xs font-bold text-slate-400 pb-0.5 sm:pb-1">
           {WEEK_DAYS.map((wd) => (
             <span key={wd} className={wd === '日' || wd === '六' ? 'text-amber-400/80' : ''}>
               {wd}
@@ -376,14 +376,11 @@ export const MonthCalendarView: React.FC<MonthCalendarViewProps> = ({
           ))}
         </div>
 
-        {/* 日期網格 */}
-        <div
-          className="grid grid-cols-7 gap-1 sm:gap-1.5 touch-none"
-          onTouchMove={handleTouchMove}
-        >
+        {/* 日期網格 (加入 touch-pan-y 確保手機直向滑動極度順暢不卡死) */}
+        <div className="grid grid-cols-7 gap-1 sm:gap-1.5 touch-pan-y">
           {/* 前置空白格 */}
           {Array.from({ length: firstDayOfWeek }).map((_, i) => (
-            <div key={`empty-${i}`} className="h-16 sm:h-20 rounded-2xl bg-slate-950/20" />
+            <div key={`empty-${i}`} className="h-11 sm:h-20 rounded-xl sm:rounded-2xl bg-slate-950/20" />
           ))}
 
           {/* 各日期格子 */}
@@ -400,10 +397,10 @@ export const MonthCalendarView: React.FC<MonthCalendarViewProps> = ({
               <div
                 key={dateStr}
                 data-month-day-idx={index}
+                onClick={() => handleToggleDate(dateStr)}
                 onMouseDown={() => handleDayMouseDown(index)}
                 onMouseEnter={() => handleDayMouseEnter(index)}
-                onTouchStart={() => handleDayMouseDown(index)}
-                className={`h-16 sm:h-20 p-1.5 rounded-2xl border-2 flex flex-col justify-between text-left transition-colors relative cursor-pointer select-none group ${
+                className={`h-11 sm:h-20 p-1 sm:p-1.5 rounded-xl sm:rounded-2xl border sm:border-2 flex flex-col justify-between text-left transition-colors relative cursor-pointer select-none group ${
                   isSelected
                     ? 'border-emerald-500 bg-emerald-950/70 shadow-md shadow-emerald-950/40'
                     : isDragging && !isSelected
@@ -415,9 +412,9 @@ export const MonthCalendarView: React.FC<MonthCalendarViewProps> = ({
               >
                 {/* 頂部：日期數字與今天標記 */}
                 <div className="flex items-center justify-between w-full pointer-events-none">
-                  <div className="flex items-center gap-1">
+                  <div className="flex items-center gap-0.5 sm:gap-1">
                     <span
-                      className={`text-xs font-mono font-black ${
+                      className={`text-[10px] sm:text-xs font-mono font-black ${
                         isSelected
                           ? 'text-emerald-300'
                           : isToday
@@ -428,7 +425,7 @@ export const MonthCalendarView: React.FC<MonthCalendarViewProps> = ({
                       {d.dayNum}
                     </span>
                     {monthStartDay > 1 && d.dayNum === 1 && (
-                      <span className="text-[9px] text-slate-500 font-bold">
+                      <span className="text-[8px] sm:text-[9px] text-slate-500 font-bold">
                         {d.monthNum}月
                       </span>
                     )}
@@ -436,25 +433,25 @@ export const MonthCalendarView: React.FC<MonthCalendarViewProps> = ({
 
                   {/* 勾選徽章或今天圓點 */}
                   {isSelected ? (
-                    <span className="w-3.5 h-3.5 rounded-full bg-emerald-500 text-slate-950 flex items-center justify-center font-bold text-[8px] shadow animate-in zoom-in-75 duration-100">
+                    <span className="w-3 h-3 sm:w-3.5 sm:h-3.5 rounded-full bg-emerald-500 text-slate-950 flex items-center justify-center font-bold text-[7px] sm:text-[8px] shadow animate-in zoom-in-75 duration-100">
                       ✓
                     </span>
                   ) : isToday ? (
                     <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 shadow-sm shadow-emerald-400/80" />
                   ) : dayTxs.length > 0 ? (
-                    <span className="text-[9px] font-mono text-slate-500">{dayTxs.length}筆</span>
+                    <span className="text-[8px] sm:text-[9px] font-mono text-slate-500">{dayTxs.length}筆</span>
                   ) : null}
                 </div>
 
                 {/* 底部：花費金額標籤 */}
                 {daySum > 0 ? (
                   <div className="w-full pointer-events-none">
-                    <span className="text-[9px] sm:text-[10px] font-mono font-bold text-emerald-400 block truncate">
+                    <span className="text-[8px] sm:text-[10px] font-mono font-bold text-emerald-400 block truncate">
                       ${daySum >= 1000 ? `${(daySum / 1000).toFixed(1)}k` : daySum}
                     </span>
                   </div>
                 ) : (
-                  <div className="w-full h-3 pointer-events-none" />
+                  <div className="w-full h-2 sm:h-3 pointer-events-none" />
                 )}
               </div>
             );
