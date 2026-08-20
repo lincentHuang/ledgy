@@ -8,6 +8,7 @@ import {
   CreditCard,
   DollarSign,
   Wallet,
+  PiggyBank,
   ShieldAlert,
   X,
   Check,
@@ -123,13 +124,7 @@ export const OverviewCards: React.FC = () => {
     .filter((t) => t.type === 'expense')
     .reduce((sum, t) => sum + (Number(t.amount) || 0), 0);
 
-  const totalIncome = targetTransactions
-    .filter((t) => t.type === 'income')
-    .reduce((sum, t) => sum + (Number(t.amount) || 0), 0);
-
-  const netBalance = totalIncome - totalExpense;
-
-  // 4. 預算計算 (支援全域預算或複選標籤合併之個別預算，支援 key 與 name 雙向對應)
+  // 4. 預算分配計算 (支援全域預算或複選標籤合併之個別預算，支援 key 與 name 雙向對應)
   const currentTagBudgets =
     activeLedger === 'household' ? household?.tagBudgets : user?.tagBudgets;
 
@@ -152,10 +147,43 @@ export const OverviewCards: React.FC = () => {
   // 判斷該標籤是否有個別設定預算；若篩選標籤且未個別配置，預算應為 0 (而非 fallback 全域總預算)
   const hasTagBudgetSet = isTagFiltered ? Boolean(specificTagBudget && specificTagBudget > 0) : true;
   const monthlyBudget = isTagFiltered ? (specificTagBudget || 0) : defaultMonthlyBudget;
-
   const weeklyBudget = Math.round(monthlyBudget / 4);
 
-  const effectiveBudget = viewMode === 'week' ? weeklyBudget : monthlyBudget;
+  // 歷史總預算計算 (依據交易涵蓋的月份數、自訂天數或已選天數計算)
+  let historyMonthsCount = 1;
+  let historyBudget = monthlyBudget;
+  let historyBudgetDesc = `累計 1 個月預算額度 (每月 NT$ ${monthlyBudget.toLocaleString()})`;
+
+  if (isDateRangeFiltered && dateRangeFilter?.startDate && dateRangeFilter?.endDate) {
+    const days = Math.max(1, Math.round((new Date(dateRangeFilter.endDate).getTime() - new Date(dateRangeFilter.startDate).getTime()) / 86400000) + 1);
+    historyBudget = Math.round((monthlyBudget / 30) * days);
+    historyBudgetDesc = `篩選區間共 ${days} 天預算額度`;
+  } else if (isSubDatesActive) {
+    const days = selectedSubDates.length;
+    historyBudget = Math.round((monthlyBudget / 30) * days);
+    historyBudgetDesc = `已選 ${days} 天預算額度`;
+  } else {
+    // 統計所有已記錄交易橫跨的不同月份 (例如 2026-07, 2026-08)
+    const distinctMonths = Array.from(
+      new Set(
+        filteredTransactions
+          .map((tx) => tx.date.substring(0, 7))
+          .filter((m) => Boolean(m) && m.length === 7)
+      )
+    );
+    historyMonthsCount = Math.max(1, distinctMonths.length);
+    historyBudget = historyMonthsCount * monthlyBudget;
+    historyBudgetDesc = `累計 ${historyMonthsCount} 個月預算額度 (每月 NT$ ${monthlyBudget.toLocaleString()})`;
+  }
+
+  const effectiveBudget =
+    viewMode === 'list'
+      ? historyBudget
+      : viewMode === 'week'
+      ? weeklyBudget
+      : monthlyBudget;
+
+  const savedMoney = effectiveBudget - totalExpense;
   const remainingBudget = effectiveBudget > 0 ? Math.max(0, effectiveBudget - totalExpense) : 0;
   const budgetUsagePercent =
     effectiveBudget > 0
@@ -196,6 +224,12 @@ export const OverviewCards: React.FC = () => {
 
   const getBudgetTitle = () => {
     const prefix = getFilterPrefix();
+    if (viewMode === 'list') {
+      if (isDateRangeFiltered && dateRangeFilter) return `${prefix}區間總預算`;
+      if (isSubDatesActive) return `${prefix}已選 ${selectedSubDates.length} 天總預算`;
+      if (activeLedger === 'household') return `${prefix}群組歷史總預算`;
+      return `${prefix}歷史總預算`;
+    }
     if (activeLedger === 'household') {
       if (viewMode === 'week') return `${prefix}群組週預算`;
       return `${prefix}群組月預算`;
@@ -204,30 +238,20 @@ export const OverviewCards: React.FC = () => {
     return `${prefix}月目標預算`;
   };
 
-  const getRemainingBudgetTitle = () => {
+  const getSavedMoneyTitle = () => {
     const prefix = getFilterPrefix();
+    if (viewMode === 'list') {
+      if (isDateRangeFiltered && dateRangeFilter) return `${prefix}區間省下的錢`;
+      if (isSubDatesActive) return `${prefix}已選天數省下的錢`;
+      if (activeLedger === 'household') return `${prefix}群組歷史省下的錢`;
+      return `${prefix}歷史省下的錢`;
+    }
     if (activeLedger === 'household') {
       if (viewMode === 'week') return `${prefix}群組週預算剩餘`;
       return `${prefix}群組月預算剩餘`;
     }
     if (viewMode === 'week') return `${prefix}週預算剩餘`;
     return `${prefix}月預算剩餘`;
-  };
-
-  const getIncomeTitle = () => {
-    const prefix = getFilterPrefix();
-    if (isSubDatesActive) return `${prefix}已選 ${selectedSubDates.length} 天總收入`;
-    if (viewMode === 'list') return `${prefix}歷史總收入`;
-    if (viewMode === 'week') return `${prefix}本週總收入`;
-    return `${prefix}本月總收入`;
-  };
-
-  const getNetBalanceTitle = () => {
-    const prefix = getFilterPrefix();
-    if (isSubDatesActive) return `${prefix}已選 ${selectedSubDates.length} 天淨結餘`;
-    if (viewMode === 'list') return `${prefix}歷史淨結餘`;
-    if (viewMode === 'week') return `${prefix}本週淨結餘`;
-    return `${prefix}本月淨結餘`;
   };
 
   const getExpenseMobileLabel = () => {
@@ -239,13 +263,13 @@ export const OverviewCards: React.FC = () => {
   };
 
   const getMiddleMobileLabel = () => {
-    if (viewMode === 'list') return activeTags.length > 0 ? `${activeTags.map((t) => '#' + t).join(' ')} 收入` : '歷史收入';
+    if (viewMode === 'list') return activeTags.length > 0 ? `${activeTags.map((t) => '#' + t).join(' ')} 總預算` : '歷史總預算';
     return activeTags.length > 0 ? `${activeTags.map((t) => '#' + t).join(' ')} 預算` : viewMode === 'week' ? '本週預算' : '本月預算';
   };
 
   const getRightMobileLabel = () => {
-    if (viewMode === 'list') return activeTags.length > 0 ? `${activeTags.map((t) => '#' + t).join(' ')} 結餘` : '歷史結餘';
-    return activeTags.length > 0 ? `${activeTags.map((t) => '#' + t).join(' ')} 剩餘` : viewMode === 'week' ? '預算剩餘' : '預算剩餘';
+    if (viewMode === 'list') return activeTags.length > 0 ? `${activeTags.map((t) => '#' + t).join(' ')} 省下` : '歷史省下';
+    return activeTags.length > 0 ? `${activeTags.map((t) => '#' + t).join(' ')} 剩餘` : '預算剩餘';
   };
 
   // 尋找異常交易 (重複扣款等)
@@ -351,33 +375,25 @@ export const OverviewCards: React.FC = () => {
             </p>
           </div>
 
-          {/* 2. 中間欄：週/月模式為「本週/月目標預算」，列表模式為「歷史收入」 */}
+          {/* 2. 中間欄：週/月模式為「本週/月目標預算」，列表模式為「歷史總預算」 */}
           <div className="px-1.5">
             <p className="text-[10px] font-bold text-slate-400">{getMiddleMobileLabel()}</p>
             <p className="text-xs font-black text-emerald-400 font-mono mt-0.5 truncate">
-              {viewMode === 'list' ? `$${totalIncome.toLocaleString()}` : `$${effectiveBudget.toLocaleString()}`}
+              ${effectiveBudget.toLocaleString()}
             </p>
           </div>
 
-          {/* 3. 右側欄：週/月模式為「預算剩餘」，列表模式為「歷史淨結餘」 */}
+          {/* 3. 右側欄：週/月模式為「預算剩餘」，列表模式為「歷史省下」 */}
           <div className="px-1.5">
             <p className="text-[10px] font-bold text-slate-400">{getRightMobileLabel()}</p>
             <p
               className={`text-xs font-black font-mono mt-0.5 truncate ${
-                viewMode === 'list'
-                  ? netBalance >= 0
-                    ? 'text-slate-200'
-                    : 'text-rose-400'
-                  : remainingBudget > 0
-                  ? 'text-emerald-400'
-                  : 'text-rose-400'
+                savedMoney >= 0 ? 'text-emerald-400' : 'text-rose-400'
               }`}
             >
-              {viewMode === 'list'
-                ? netBalance >= 0
-                  ? `+$${netBalance.toLocaleString()}`
-                  : `-$${Math.abs(netBalance).toLocaleString()}`
-                : `$${remainingBudget.toLocaleString()}`}
+              {savedMoney >= 0
+                ? `+$${savedMoney.toLocaleString()}`
+                : `-$${Math.abs(savedMoney).toLocaleString()}`}
             </p>
           </div>
         </div>
@@ -429,107 +445,75 @@ export const OverviewCards: React.FC = () => {
           </div>
         </Card>
 
-        {/* 2. 中間欄卡片：週/月模式為「本週/月目標預算」，列表模式為「歷史總收入」 */}
-        {viewMode === 'list' ? (
-          <Card variant="panel" padding="md" className="space-y-2">
-            <div className="flex justify-between items-start">
-              <span className="text-xs font-semibold text-slate-400">{getIncomeTitle()}</span>
-              <div className="p-2 rounded-2xl bg-emerald-950/60 text-emerald-400 border border-emerald-900/50">
-                <TrendingUp className="w-4 h-4" />
-              </div>
+        {/* 2. 中間欄卡片：目標預算 / 歷史總預算 */}
+        <Card variant="panel" padding="md" className="space-y-2">
+          <div className="flex justify-between items-start">
+            <span className="text-xs font-semibold text-slate-400">{getBudgetTitle()}</span>
+            <div className="p-2 rounded-2xl bg-emerald-950/60 text-emerald-400 border border-emerald-900/50">
+              <DollarSign className="w-4 h-4" />
             </div>
-            <div>
-              <span className="text-2xl font-black tracking-tight text-emerald-400 font-mono">
-                NT$ {totalIncome.toLocaleString()}
-              </span>
-            </div>
-            <p className="text-[11px] text-slate-400 pt-1">
-              含歷史累計薪資、獎金與發票中獎
-            </p>
-          </Card>
-        ) : (
-          <Card variant="panel" padding="md" className="space-y-2">
-            <div className="flex justify-between items-start">
-              <span className="text-xs font-semibold text-slate-400">{getBudgetTitle()}</span>
-              <div className="p-2 rounded-2xl bg-emerald-950/60 text-emerald-400 border border-emerald-900/50">
-                <DollarSign className="w-4 h-4" />
-              </div>
-            </div>
-            <div>
-              <span
-                className={`text-2xl font-black tracking-tight font-mono ${
-                  effectiveBudget > 0 ? 'text-emerald-400' : 'text-slate-400'
-                }`}
-              >
-                NT$ {effectiveBudget.toLocaleString()}
-              </span>
-            </div>
-            <p className="text-[11px] text-slate-400 pt-1">
-              {isTagFiltered
-                ? hasTagBudgetSet
-                  ? '🏷️ 已依標籤預算總表配置專屬額度'
-                  : '此標籤尚未設定預算 (可至設定配置)'
-                : `由每月總預算 NT$ ${defaultMonthlyBudget.toLocaleString()} 計算`}
-            </p>
-          </Card>
-        )}
+          </div>
+          <div>
+            <span
+              className={`text-2xl font-black tracking-tight font-mono ${
+                effectiveBudget > 0 ? 'text-emerald-400' : 'text-slate-400'
+              }`}
+            >
+              NT$ {effectiveBudget.toLocaleString()}
+            </span>
+          </div>
+          <p className="text-[11px] text-slate-400 pt-1">
+            {viewMode === 'list'
+              ? historyBudgetDesc
+              : isTagFiltered
+              ? hasTagBudgetSet
+                ? '🏷️ 已依標籤預算總表配置專屬額度'
+                : '此標籤尚未設定預算 (可至設定配置)'
+              : `由每月總預算 NT$ ${defaultMonthlyBudget.toLocaleString()} 計算`}
+          </p>
+        </Card>
 
-        {/* 3. 右側欄卡片：週/月模式為「本週/月預算剩餘」，列表模式為「歷史淨結餘」 */}
-        {viewMode === 'list' ? (
-          <Card variant="panel" padding="md" className="space-y-2">
-            <div className="flex justify-between items-start">
-              <span className="text-xs font-semibold text-slate-400">{getNetBalanceTitle()}</span>
-              <div className="p-2 rounded-2xl bg-sky-950/60 text-sky-400 border border-sky-900/50">
-                <CreditCard className="w-4 h-4" />
-              </div>
+        {/* 3. 右側欄卡片：歷史省下的錢 / 本週/月預算剩餘 */}
+        <Card variant="panel" padding="md" className="space-y-2">
+          <div className="flex justify-between items-start">
+            <span className="text-xs font-semibold text-slate-400">{getSavedMoneyTitle()}</span>
+            <div className={`p-2 rounded-2xl border ${
+              savedMoney >= 0
+                ? 'bg-emerald-950/60 text-emerald-400 border-emerald-900/50'
+                : 'bg-rose-950/60 text-rose-400 border-rose-900/50'
+            }`}>
+              <PiggyBank className="w-4 h-4" />
             </div>
-            <div>
-              <span
-                className={`text-2xl font-black tracking-tight font-mono ${
-                  netBalance >= 0 ? 'text-slate-100' : 'text-rose-400'
-                }`}
-              >
-                NT$ {netBalance.toLocaleString()}
-              </span>
-            </div>
-            <p className="text-[11px] text-slate-400 pt-1">
-              {netBalance >= 0 ? '歷史累計淨資產結餘' : '歷史累計支出大於收入'}
-            </p>
-          </Card>
-        ) : (
-          <Card variant="panel" padding="md" className="space-y-2">
-            <div className="flex justify-between items-start">
-              <span className="text-xs font-semibold text-slate-400">{getRemainingBudgetTitle()}</span>
-              <div className="p-2 rounded-2xl bg-sky-950/60 text-sky-400 border border-sky-900/50">
-                <Wallet className="w-4 h-4" />
-              </div>
-            </div>
-            <div>
-              <span
-                className={`text-2xl font-black tracking-tight font-mono ${
-                  effectiveBudget === 0
-                    ? 'text-slate-400'
-                    : remainingBudget > 0
-                    ? 'text-slate-100'
-                    : 'text-rose-400'
-                }`}
-              >
-                NT$ {remainingBudget.toLocaleString()}
-              </span>
-            </div>
-            <p className="text-[11px] text-slate-400 pt-1">
-              {isTagFiltered && !hasTagBudgetSet
-                ? totalExpense > 0
-                  ? `本月累計支出 NT$ ${totalExpense.toLocaleString()}`
-                  : '尚未設定獨立預算上限'
-                : totalExpense > effectiveBudget
-                ? `⚠️ 已超支 NT$ ${(totalExpense - effectiveBudget).toLocaleString()}`
-                : budgetUsagePercent >= 80
-                ? `⚠️ 接近上限 (剩餘 ${100 - budgetUsagePercent}%)`
-                : `財務健康，剩餘 ${100 - budgetUsagePercent}% 額度`}
-            </p>
-          </Card>
-        )}
+          </div>
+          <div>
+            <span
+              className={`text-2xl font-black tracking-tight font-mono ${
+                effectiveBudget === 0 && viewMode !== 'list'
+                  ? 'text-slate-400'
+                  : savedMoney >= 0
+                  ? 'text-slate-100'
+                  : 'text-rose-400'
+              }`}
+            >
+              NT$ {savedMoney.toLocaleString()}
+            </span>
+          </div>
+          <p className="text-[11px] text-slate-400 pt-1">
+            {viewMode === 'list'
+              ? savedMoney >= 0
+                ? `🎉 累計省下 NT$ ${savedMoney.toLocaleString()}，支出控制在預算內`
+                : `⚠️ 累計已超支 NT$ ${Math.abs(savedMoney).toLocaleString()}`
+              : isTagFiltered && !hasTagBudgetSet
+              ? totalExpense > 0
+                ? `本月累計支出 NT$ ${totalExpense.toLocaleString()}`
+                : '尚未設定獨立預算上限'
+              : totalExpense > effectiveBudget
+              ? `⚠️ 已超支 NT$ ${(totalExpense - effectiveBudget).toLocaleString()}`
+              : budgetUsagePercent >= 80
+              ? `⚠️ 接近上限 (剩餘 ${100 - budgetUsagePercent}%)`
+              : `財務健康，剩餘 ${100 - budgetUsagePercent}% 額度`}
+          </p>
+        </Card>
       </div>
     </div>
   );
