@@ -61,7 +61,23 @@ export class AuthService {
     try {
       const stored = localStorage.getItem(STORAGE_KEYS.ACTIVE_SESSION);
       if (stored) {
-        return JSON.parse(stored);
+        const parsed = JSON.parse(stored);
+        // 若為舊版示範帳號 (陳威廷/林怡君/訪客)，自動清除並強制導回登入頁
+        if (
+          !parsed ||
+          !parsed.uid ||
+          parsed.provider === 'guest' ||
+          parsed.uid === 'user_tw_01' ||
+          parsed.uid === 'user_tw_02' ||
+          parsed.email === 'chen.wei@example.com' ||
+          parsed.email === 'yichun.lin@example.com' ||
+          parsed.email === 'guest@aiexpense.tw'
+        ) {
+          localStorage.removeItem(STORAGE_KEYS.ACTIVE_SESSION);
+          localStorage.removeItem(STORAGE_KEYS.USERS_DB);
+          return null;
+        }
+        return parsed;
       }
       return null;
     } catch {
