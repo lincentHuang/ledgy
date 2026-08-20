@@ -187,36 +187,21 @@ export async function askFinancialAdvisor(
   transactions: Transaction[],
   question: string,
   apiKey?: string,
-  householdName?: string
+  householdName?: string,
+  budgetInfo?: {
+    monthlyBudget?: number;
+    tagBudgets?: Record<string, number>;
+  }
 ): Promise<string> {
-  const contextPrompt = buildFinancialAssistantPrompt(transactions, question, householdName);
+  const contextPrompt = buildFinancialAssistantPrompt(transactions, question, householdName, budgetInfo);
 
   if (!apiKey || apiKey.trim() === '') {
-    // 智慧本機回答產生器
-    const currentMonth = new Date().toISOString().substring(0, 7);
-    const monthTx = transactions.filter((t) => t.date.startsWith(currentMonth));
-    const totalExp = monthTx
-      .filter((t) => t.type === 'expense')
-      .reduce((acc, t) => acc + t.amount, 0);
-    const totalInc = monthTx
-      .filter((t) => t.type === 'income')
-      .reduce((acc, t) => acc + t.amount, 0);
-
-    return `### 📊 智慧財務快速分析（本機離線模式）
-
-根據您本月（${currentMonth}）的帳本數據：
-- **當月總支出**：NT$ ${totalExp.toLocaleString()}
-- **當月總收入**：NT$ ${totalInc.toLocaleString()}
-- **當月結餘**：NT$ ${(totalInc - totalExp).toLocaleString()}
-
-針對您的提問「**${question}**」：
-1. 您的最大宗支出類別主要集中在 **餐飲飲食** 與 **居家生活**。
-2. 若需更深入的多輪自然語言洞察與節約建議，可於「設定」中填入 Gemini API Key 啟用完整雲端 AI 理財顧問！`;
+    throw new Error('尚未設定 Gemini API Key，請先至「設定 > API 金鑰」填入您的 Google Gemini API 金鑰。');
   }
 
   try {
     const response = await fetch(
-      `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${apiKey}`,
+      `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${apiKey.trim()}`,
       {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -235,13 +220,15 @@ export async function askFinancialAdvisor(
     );
 
     if (!response.ok) {
-      throw new Error(`Gemini Chat error: ${response.status}`);
+      const errData = await response.json().catch(() => ({}));
+      const msg = errData.error?.message || `HTTP ${response.status}`;
+      throw new Error(`Gemini API 呼叫失敗：${msg}`);
     }
 
     const data = await response.json();
     return data.candidates?.[0]?.content?.parts?.[0]?.text || '抱歉，暫時無法分析您的數據。';
-  } catch (error) {
+  } catch (error: any) {
     console.error('Financial assistant error:', error);
-    return '抱歉，AI 服務連線出現問題，請稍後再試。';
+    throw error;
   }
 }

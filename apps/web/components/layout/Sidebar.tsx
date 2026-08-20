@@ -451,19 +451,50 @@ export const Sidebar: React.FC<SidebarProps> = ({
             <p className="px-2 pb-1 text-[10px] font-bold text-slate-400 uppercase tracking-wider">
               系統與 AI 工具
             </p>
-            <button
-              onClick={() => {
-                onOpenAssistant();
-                onClose();
-              }}
-              className="w-full flex items-center justify-between px-3 py-2.5 rounded-2xl hover:bg-slate-800 text-slate-300 transition font-medium"
-            >
-              <div className="flex items-center gap-2.5">
-                <Sparkles className="w-4 h-4 text-teal-400" />
-                <span>AI 理財顧問諮詢</span>
+            {user?.geminiApiKey && user.geminiApiKey.trim() ? (
+              <button
+                onClick={() => {
+                  onOpenAssistant();
+                  onClose();
+                }}
+                className="w-full flex items-center justify-between px-3 py-2.5 rounded-2xl hover:bg-emerald-950/40 border border-transparent hover:border-emerald-800/50 text-slate-200 hover:text-emerald-300 transition font-medium group"
+              >
+                <div className="flex items-center gap-2.5">
+                  <div className="p-1 rounded-lg bg-emerald-500/20 text-emerald-400 group-hover:scale-110 transition-transform">
+                    <Sparkles className="w-4 h-4" />
+                  </div>
+                  <span>AI 理財顧問諮詢</span>
+                </div>
+                <span className="text-[10px] px-1.5 py-0.5 rounded-full bg-emerald-950 text-emerald-400 border border-emerald-800/80 font-mono">
+                  已啟用
+                </span>
+              </button>
+            ) : (
+              <div className="p-2 rounded-2xl bg-slate-900/60 border border-slate-800/80 space-y-1.5">
+                <button
+                  disabled
+                  className="w-full flex items-center justify-between px-2 py-1.5 rounded-xl text-slate-500 cursor-not-allowed font-medium opacity-75 text-xs"
+                  title="尚未設定 Gemini API 金鑰"
+                >
+                  <div className="flex items-center gap-2">
+                    <Sparkles className="w-3.5 h-3.5 text-slate-600" />
+                    <span>AI 理財顧問 (未啟用)</span>
+                  </div>
+                  <span className="text-[10px] px-1.5 py-0.5 rounded bg-slate-800 text-slate-400 border border-slate-700">
+                    需 API Key
+                  </span>
+                </button>
+                <button
+                  onClick={() => handleOpenPersonal('ai')}
+                  className="w-full text-[11px] text-emerald-400 hover:text-emerald-300 text-left px-2 py-1 rounded-lg hover:bg-emerald-950/30 flex items-center justify-between font-medium transition"
+                >
+                  <span className="flex items-center gap-1">
+                    <Key className="w-3 h-3 text-emerald-400" /> 前往設定填入 API Key
+                  </span>
+                  <ChevronRight className="w-3 h-3 opacity-70" />
+                </button>
               </div>
-              <ChevronRight className="w-3.5 h-3.5 opacity-60" />
-            </button>
+            )}
           </div>
         </div>
 

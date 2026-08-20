@@ -7,7 +7,6 @@ import { Sidebar } from '../components/layout/Sidebar';
 import { BottomNav, MainTabType } from '../components/layout/BottomNav';
 import { TransactionList } from '../components/dashboard/TransactionList';
 import { FamilyView } from '../components/family/FamilyView';
-import { AnalyticsView } from '../components/dashboard/AnalyticsView';
 import { PersonalSettingsView, PersonalTabType } from '../components/settings/PersonalSettingsView';
 import { GroupSettingsView, GroupTabType } from '../components/settings/GroupSettingsView';
 import { BarcodeModal } from '../components/modals/BarcodeModal';
@@ -141,10 +140,7 @@ export default function Home() {
               <FamilyView onOpenQuickInput={() => setIsQuickInputOpen(true)} />
             )}
 
-            {/* 4. 股票式走勢報表 */}
-            {currentTab === 'analytics' && <AnalyticsView />}
-
-            {/* 5. 👤 個人設定頁面 (獨立切換完整頁面) */}
+            {/* 4. 👤 個人設定頁面 (獨立切換完整頁面) */}
             {currentTab === 'personal-settings' && (
               <PersonalSettingsView
                 activeTab={personalTab}

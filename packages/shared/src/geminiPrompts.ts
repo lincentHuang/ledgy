@@ -524,51 +524,65 @@ export function buildReceiptOcrPrompt(): string {
 export function buildFinancialAssistantPrompt(
   transactions: Transaction[],
   userPrompt: string,
-  householdName?: string
+  householdName?: string,
+  budgetInfo?: {
+    monthlyBudget?: number;
+    tagBudgets?: Record<string, number>;
+  }
 ): string {
   const currentMonth = new Date().toISOString().substring(0, 7);
   const thisMonthTx = transactions.filter(t => t.date.startsWith(currentMonth));
 
   let totalExpense = 0;
-  let totalIncome = 0;
-  const categoryMap: Record<string, number> = {};
+  const tagExpenseMap: Record<string, number> = {};
 
   thisMonthTx.forEach(t => {
     if (t.type === 'expense') {
       totalExpense += t.amount;
-      const cat = t.categoryName || t.categoryId;
-      categoryMap[cat] = (categoryMap[cat] || 0) + t.amount;
-    } else if (t.type === 'income') {
-      totalIncome += t.amount;
+      const tag = t.tags?.[0] || t.categoryName || t.categoryId || '未歸類';
+      tagExpenseMap[tag] = (tagExpenseMap[tag] || 0) + t.amount;
     }
   });
 
-  const topCategories = Object.entries(categoryMap)
+  const monthlyBudget = budgetInfo?.monthlyBudget || 35000;
+  const savedMoney = monthlyBudget - totalExpense;
+  const budgetUsagePercent = Math.round((totalExpense / (monthlyBudget || 1)) * 100);
+
+  const topCategories = Object.entries(tagExpenseMap)
     .sort((a, b) => b[1] - a[1])
-    .map(([cat, amt]) => `- ${cat}: NT$ ${amt.toLocaleString()} (${Math.round((amt / (totalExpense || 1)) * 100)}%)`)
+    .map(([cat, amt]) => {
+      const tagBudget = budgetInfo?.tagBudgets?.[cat];
+      const tagBudgetStr = tagBudget ? ` (標籤預算 NT$ ${tagBudget.toLocaleString()}，已用 ${Math.round((amt / tagBudget) * 100)}%)` : '';
+      return `- #${cat}: NT$ ${amt.toLocaleString()} (${Math.round((amt / (totalExpense || 1)) * 100)}%)${tagBudgetStr}`;
+    })
     .join('\n');
 
-  const recentTxList = transactions.slice(0, 15).map(t => 
-    `- [${t.date}] ${t.title} (${t.categoryName || t.categoryId}) NT$ ${t.amount} [${t.paymentMethod}] ${t.ledgerType === 'household' ? '【家庭公用】' : ''}`
+  const recentTxList = transactions.slice(0, 20).map(t => 
+    `- [${t.date}] ${t.title || '消費'} (${(t.tags || []).join(', ') || t.categoryName || '未歸類'}) NT$ ${t.amount.toLocaleString()} [${t.paymentMethod || '一般'}] ${t.ledgerType === 'household' ? '【公帳】' : '【私帳】'}${t.isAnomaly ? ' ⚠️[疑似重複扣款]' : ''}`
   ).join('\n');
 
-  return `你是一位溫暖、專業且精通台灣生活與個人財務規劃的「AI 智慧財務理財顧問」。
+  return `你是一位頂尖、專業且精通台灣生活與個人財務規劃的「AI 智慧財務與預算分配顧問」。
 你有權存取使用者的本地/家庭帳本資料，請根據以下真實財務數據回答使用者的問題，並給予具體、客觀且有溫度的財務洞察與省錢建議。
 
-【當前帳本摘要 (當月 ${currentMonth})】：
-- 當月總支出：NT$ ${totalExpense.toLocaleString()}
-- 當月總收入：NT$ ${totalIncome.toLocaleString()}
-- 當月淨結餘：NT$ ${(totalIncome - totalExpense).toLocaleString()}
-${householdName ? `- 所在家庭空間：${householdName}` : ''}
+【當前帳本與預算分配摘要 (${currentMonth} 當月)】：
+- 當月目標總預算：NT$ ${monthlyBudget.toLocaleString()}
+- 當月累積總支出：NT$ ${totalExpense.toLocaleString()}
+- 當月累計省下金額：NT$ ${savedMoney.toLocaleString()} ${savedMoney >= 0 ? '（在預算內正常控制）' : '（⚠️ 已超出預算）'}
+- 預算消耗進度：${budgetUsagePercent}%
+${householdName ? `- 所在家庭空間：${householdName}` : '- 所在空間：個人私帳'}
 
-【支出分類排行】：
+【支出分類/標籤排行】：
 ${topCategories || '無紀錄'}
 
-【最近 15 筆消費明細】：
+【最近 20 筆消費明細】：
 ${recentTxList || '無近期紀錄'}
 
 【使用者提問】：
 ${userPrompt}
 
-請給出條理分明、親切易懂的回答（可以使用 Markdown 列表與粗體），並在回答中主動提及實際數據與比例！`;
+【回答準則】：
+1. 語氣溫暖鼓勵、條理清晰，以精準的繁體中文（台灣慣用詞彙：新台幣、外食、外送、手搖飲、捷運、超商等）回答。
+2. 主動引用上述真實財務數據、百分比與預算消耗進度，給予使用者一目了然的分析。
+3. 針對提問提供具體可行、貼近台灣生活的省錢節流建議或消費習慣優化策略。
+4. 使用 Markdown 格式排版（粗體、列表、條列分點），讓排版賞心悅目。`;
 }

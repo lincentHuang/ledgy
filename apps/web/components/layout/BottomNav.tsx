@@ -1,10 +1,10 @@
 'use client';
 
 import React from 'react';
-import { LayoutDashboard, Plus, TrendingUp, Mic } from 'lucide-react';
+import { LayoutDashboard, Plus, Settings, Mic } from 'lucide-react';
 import { Button } from '../ui';
 
-export type MainTabType = 'overview' | 'invoices' | 'family' | 'analytics' | 'settings' | 'personal-settings' | 'group-settings';
+export type MainTabType = 'overview' | 'invoices' | 'family' | 'settings' | 'personal-settings' | 'group-settings';
 
 interface BottomNavProps {
   currentTab: MainTabType;
@@ -56,17 +56,17 @@ export const BottomNav: React.FC<BottomNavProps> = ({
             <span className="text-[10px]">記帳</span>
           </button>
 
-          {/* 4. 📈 股票式走勢報表 */}
+          {/* 4. ⚙️ 個人設定 */}
           <button
-            onClick={() => onChangeTab('analytics')}
+            onClick={() => onChangeTab('personal-settings')}
             className={`flex flex-col items-center justify-center py-1 transition-all ${
-              currentTab === 'analytics'
+              currentTab === 'personal-settings'
                 ? 'text-emerald-400 font-bold'
                 : 'text-slate-400 hover:text-slate-200'
             }`}
           >
-            <TrendingUp className="w-5 h-5 mb-0.5" />
-            <span className="text-[10px]">走勢報表</span>
+            <Settings className="w-5 h-5 mb-0.5" />
+            <span className="text-[10px]">設定</span>
           </button>
         </div>
       </nav>
