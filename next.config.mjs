@@ -2,7 +2,7 @@
 const isExport = process.env.NEXT_EXPORT === 'true' || process.env.CAPACITOR_BUILD === 'true';
 
 const nextConfig = {
-  transpilePackages: ['@app/shared', 'lucide-react'],
+  transpilePackages: ['lucide-react'],
   reactStrictMode: true,
   trailingSlash: true,
   output: isExport ? 'export' : undefined,
