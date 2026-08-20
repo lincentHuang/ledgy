@@ -1,0 +1,35 @@
+{
+  "hosting": {
+    "public": "apps/web/out",
+    "ignore": [
+      "firebase.json",
+      "**/.*",
+      "**/node_modules/**"
+    ],
+    "rewrites": [
+      {
+        "source": "**",
+        "destination": "/index.html"
+      }
+    ]
+  },
+  "auth": {
+    "providers": {
+      "anonymous": true,
+      "emailPassword": true,
+      "googleSignIn": {
+        "oAuthBrandDisplayName": "Ledgy",
+        "authorizedRedirectUris": [
+          "http://localhost",
+          "http://localhost:3000",
+          "https://ledgy-be1e6.web.app",
+          "https://ledgy-be1e6.firebaseapp.com"
+        ]
+      }
+    }
+  },
+  "firestore": {
+    "rules": "firestore.rules",
+    "indexes": "firestore.indexes.json"
+  }
+}

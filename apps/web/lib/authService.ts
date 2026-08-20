@@ -1,0 +1,470 @@
+'use client';
+
+import { UserProfile } from '@app/shared';
+import {
+  signInWithEmailAndPassword,
+  createUserWithEmailAndPassword,
+  signInWithPopup,
+  GoogleAuthProvider,
+  signOut as fbSignOut,
+  updateProfile,
+  signInAnonymously,
+  onAuthStateChanged,
+  User as FirebaseUser,
+} from 'firebase/auth';
+import { getFirebaseServices } from './firebase';
+
+export interface AuthUser extends UserProfile {
+  provider: 'google' | 'apple' | 'line' | 'email' | 'guest';
+  token?: string;
+  createdAt: number;
+}
+
+const STORAGE_KEYS = {
+  USERS_DB: 'ai_expense_registered_users_v2',
+  ACTIVE_SESSION: 'ai_expense_active_session_v2',
+};
+
+// 預設示範帳號
+const INITIAL_REGISTERED_USERS: Record<string, { user: AuthUser; passwordHash: string }> = {
+  'chen.wei@example.com': {
+    user: {
+      uid: 'user_tw_01',
+      email: 'chen.wei@example.com',
+      displayName: '陳威廷',
+      photoURL: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150&auto=format&fit=crop&q=80',
+      defaultCarrierCode: '/AB1234+',
+      defaultPaymentMethod: 'LINE Pay',
+      activeHouseholdId: 'house_warm_family',
+      monthlyBudget: 35000,
+      provider: 'google',
+      createdAt: Date.now() - 30 * 86400000,
+      preferences: {
+        theme: 'system',
+        currency: 'NT$',
+        soundEnabled: true,
+        hapticEnabled: true,
+        autoDetectAnomaly: true,
+      },
+    },
+    passwordHash: 'password123',
+  },
+  'yichun.lin@example.com': {
+    user: {
+      uid: 'user_tw_02',
+      email: 'yichun.lin@example.com',
+      displayName: '林怡君',
+      photoURL: 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=150&auto=format&fit=crop&q=80',
+      defaultCarrierCode: '/XY9876-',
+      defaultPaymentMethod: '全支付/PX Pay',
+      activeHouseholdId: 'house_warm_family',
+      monthlyBudget: 30000,
+      provider: 'email',
+      createdAt: Date.now() - 25 * 86400000,
+      preferences: {
+        theme: 'light',
+        currency: 'NT$',
+        soundEnabled: true,
+        hapticEnabled: true,
+        autoDetectAnomaly: true,
+      },
+    },
+    passwordHash: 'password123',
+  },
+};
+
+const withTimeout = <T>(promise: Promise<T>, ms: number = 7000, errorMsg: string = '連線逾時，請確認網路連線或稍後再試'): Promise<T> => {
+  return Promise.race([
+    promise,
+    new Promise<T>((_, reject) => setTimeout(() => reject(new Error(errorMsg)), ms)),
+  ]);
+};
+
+export class AuthService {
+  private static getUsersDB(): Record<string, { user: AuthUser; passwordHash: string }> {
+    if (typeof window === 'undefined') return INITIAL_REGISTERED_USERS;
+    try {
+      const stored = localStorage.getItem(STORAGE_KEYS.USERS_DB);
+      if (!stored) {
+        localStorage.setItem(STORAGE_KEYS.USERS_DB, JSON.stringify(INITIAL_REGISTERED_USERS));
+        return INITIAL_REGISTERED_USERS;
+      }
+      return JSON.parse(stored);
+    } catch {
+      return INITIAL_REGISTERED_USERS;
+    }
+  }
+
+  private static saveUsersDB(db: Record<string, { user: AuthUser; passwordHash: string }>) {
+    if (typeof window === 'undefined') return;
+    localStorage.setItem(STORAGE_KEYS.USERS_DB, JSON.stringify(db));
+  }
+
+  public static getActiveSession(): AuthUser | null {
+    if (typeof window === 'undefined') return null;
+    try {
+      const stored = localStorage.getItem(STORAGE_KEYS.ACTIVE_SESSION);
+      if (stored) {
+        return JSON.parse(stored);
+      }
+      return null;
+    } catch {
+      return null;
+    }
+  }
+
+  public static saveActiveSession(user: AuthUser | null) {
+    if (typeof window === 'undefined') return;
+    if (user) {
+      localStorage.setItem(STORAGE_KEYS.ACTIVE_SESSION, JSON.stringify(user));
+    } else {
+      localStorage.removeItem(STORAGE_KEYS.ACTIVE_SESSION);
+    }
+  }
+
+  // 1. Email 密碼登入 (優先使用 Firebase Auth，若未配置則使用本機資料庫)
+  public static async loginWithEmail(email: string, password: string): Promise<AuthUser> {
+    const cleanEmail = email.trim().toLowerCase();
+    const { auth, isConfigured } = getFirebaseServices();
+
+    if (auth && isConfigured) {
+      try {
+        const userCred = await withTimeout(signInWithEmailAndPassword(auth, cleanEmail, password));
+        const fbUser = userCred.user;
+        const userWithToken: AuthUser = {
+          uid: fbUser.uid,
+          email: fbUser.email || cleanEmail,
+          displayName: fbUser.displayName || cleanEmail.split('@')[0],
+          photoURL: fbUser.photoURL || undefined,
+          defaultCarrierCode: '/AB1234+',
+          defaultPaymentMethod: 'LINE Pay',
+          monthlyBudget: 35000,
+          provider: 'email',
+          createdAt: Date.now(),
+          token: await fbUser.getIdToken(),
+          preferences: {
+            theme: 'system',
+            currency: 'NT$',
+            soundEnabled: true,
+            hapticEnabled: true,
+            autoDetectAnomaly: true,
+          },
+        };
+        this.saveActiveSession(userWithToken);
+        return userWithToken;
+      } catch (err: any) {
+        console.warn('Firebase Email login failed, checking fallback:', err.code);
+        if (err.code === 'auth/operation-not-allowed') {
+          throw new Error('Firebase 後台尚未啟用「電子郵件/密碼」登入功能，請先至 Firebase Console 的 Authentication > Sign-in method 將其「啟用」。');
+        }
+        if (err.code === 'auth/user-not-found' || err.code === 'auth/invalid-credential' || err.code === 'auth/wrong-password') {
+          // 檢查是否為本機預設示範帳號
+          const db = this.getUsersDB();
+          const account = db[cleanEmail];
+          if (account && account.passwordHash === password) {
+            this.saveActiveSession(account.user);
+            return account.user;
+          }
+          throw new Error('電子郵件或密碼不正確。');
+        }
+        throw new Error(err.message || '登入失敗');
+      }
+    }
+
+    // 本機 Fallback
+    const db = this.getUsersDB();
+    const account = db[cleanEmail];
+
+    if (!account) {
+      throw new Error('此電子郵件尚未註冊，請先點擊註冊帳號。');
+    }
+
+    if (account.passwordHash !== password) {
+      throw new Error('密碼不正確，請重新輸入。');
+    }
+
+    const userWithToken: AuthUser = {
+      ...account.user,
+      token: `session_tok_${Date.now()}_${Math.random().toString(36).substring(2, 8)}`,
+    };
+
+    this.saveActiveSession(userWithToken);
+    return userWithToken;
+  }
+
+  // 2. Email 註冊新帳號
+  public static async registerWithEmail(
+    email: string,
+    password: string,
+    displayName: string,
+    carrierCode = '/AB1234+'
+  ): Promise<AuthUser> {
+    const cleanEmail = email.trim().toLowerCase();
+    const { auth, isConfigured } = getFirebaseServices();
+
+    if (password.length < 6) {
+      throw new Error('密碼長度至少需要 6 個字元。');
+    }
+
+    if (auth && isConfigured) {
+      try {
+        const userCred = await withTimeout(createUserWithEmailAndPassword(auth, cleanEmail, password));
+        const fbUser = userCred.user;
+        await updateProfile(fbUser, { displayName: displayName.trim() || cleanEmail.split('@')[0] });
+
+        const newUser: AuthUser = {
+          uid: fbUser.uid,
+          email: fbUser.email || cleanEmail,
+          displayName: displayName.trim() || cleanEmail.split('@')[0],
+          defaultCarrierCode: carrierCode.trim().toUpperCase(),
+          defaultPaymentMethod: 'LINE Pay',
+          monthlyBudget: 35000,
+          provider: 'email',
+          createdAt: Date.now(),
+          token: await fbUser.getIdToken(),
+          preferences: {
+            theme: 'system',
+            currency: 'NT$',
+            soundEnabled: true,
+            hapticEnabled: true,
+            autoDetectAnomaly: true,
+          },
+        };
+        this.saveActiveSession(newUser);
+        return newUser;
+      } catch (err: any) {
+        console.error('Firebase register error:', err);
+        if (err.code === 'auth/operation-not-allowed') {
+          throw new Error('Firebase 後台尚未啟用「電子郵件/密碼」功能，請先至 Firebase Console 的 Authentication > Sign-in method 將其「啟用」。');
+        }
+        if (err.code === 'auth/email-already-in-use') {
+          throw new Error('該電子郵件已被註冊，請直接點擊「會員登入」。');
+        }
+        if (err.code === 'auth/invalid-email') {
+          throw new Error('電子郵件格式不正確。');
+        }
+        if (err.code === 'auth/weak-password') {
+          throw new Error('密碼強度不足，長度至少需要 6 個字元。');
+        }
+        throw new Error(err.message || '註冊失敗');
+      }
+    }
+
+    // 本機 Fallback
+    const db = this.getUsersDB();
+    if (db[cleanEmail]) {
+      throw new Error('該電子郵件已被註冊，請直接登入。');
+    }
+
+    const uid = `user_${Date.now()}_${Math.random().toString(36).substring(2, 6)}`;
+    const newUser: AuthUser = {
+      uid,
+      email: cleanEmail,
+      displayName: displayName.trim() || cleanEmail.split('@')[0],
+      defaultCarrierCode: carrierCode.trim().toUpperCase(),
+      defaultPaymentMethod: 'LINE Pay',
+      monthlyBudget: 35000,
+      provider: 'email',
+      createdAt: Date.now(),
+      token: `session_tok_${Date.now()}`,
+      preferences: {
+        theme: 'system',
+        currency: 'NT$',
+        soundEnabled: true,
+        hapticEnabled: true,
+        autoDetectAnomaly: true,
+      },
+    };
+
+    db[cleanEmail] = {
+      user: newUser,
+      passwordHash: password,
+    };
+
+    this.saveUsersDB(db);
+    this.saveActiveSession(newUser);
+    return newUser;
+  }
+
+  // 3. Google SSO 登入 (Firebase GoogleAuthProvider)
+  public static async loginWithGoogle(): Promise<AuthUser> {
+    const { auth, isConfigured } = getFirebaseServices();
+
+    if (auth && isConfigured) {
+      try {
+        const provider = new GoogleAuthProvider();
+        provider.setCustomParameters({ prompt: 'select_account' });
+        const res = await withTimeout(
+          signInWithPopup(auth, provider),
+          12000,
+          'Google 登入連線逾時，若在手機 App 內請確認是否已授權彈窗或請使用 Email 登入。'
+        );
+        const fbUser = res.user;
+
+        const user: AuthUser = {
+          uid: fbUser.uid,
+          email: fbUser.email || `google_${fbUser.uid}@gmail.com`,
+          displayName: fbUser.displayName || 'Google 用戶',
+          photoURL: fbUser.photoURL || undefined,
+          defaultCarrierCode: '/GG8888+',
+          defaultPaymentMethod: 'Google Pay',
+          monthlyBudget: 35000,
+          provider: 'google',
+          token: await fbUser.getIdToken(),
+          createdAt: Date.now(),
+          preferences: {
+            theme: 'system',
+            currency: 'NT$',
+            soundEnabled: true,
+            hapticEnabled: true,
+            autoDetectAnomaly: true,
+          },
+        };
+
+        this.saveActiveSession(user);
+        return user;
+      } catch (err: any) {
+        console.error('Firebase Google Sign-In error:', err);
+        if (err.code === 'auth/operation-not-allowed') {
+          throw new Error('Firebase 後台尚未啟用「Google」登入提供者，請先至 Firebase Console 的 Authentication > Sign-in method 將其「啟用」。');
+        }
+        if (err.code === 'auth/popup-blocked') {
+          throw new Error('Google 登入彈窗已被瀏覽器封鎖，請允許彈窗或改用 Email 登入。');
+        }
+        if (err.code === 'auth/unauthorized-domain') {
+          throw new Error('未授權的網域名稱，請在 Firebase 控制台 Authorized Domains 新增此網域。');
+        }
+        throw new Error(err.message || 'Google 登入失敗');
+      }
+    }
+
+    // 本機 Fallback
+    const uid = `user_google_${Date.now()}`;
+    const email = `google.user_${Math.random().toString(36).substring(2, 6)}@gmail.com`;
+    const user: AuthUser = {
+      uid,
+      email,
+      displayName: 'Google 雲端用戶',
+      photoURL: 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=150&auto=format&fit=crop&q=80',
+      defaultCarrierCode: '/GG8888+',
+      defaultPaymentMethod: 'Google Pay',
+      monthlyBudget: 40000,
+      provider: 'google',
+      token: `google_oauth_${Date.now()}`,
+      createdAt: Date.now(),
+      preferences: {
+        theme: 'system',
+        currency: 'NT$',
+        soundEnabled: true,
+        hapticEnabled: true,
+        autoDetectAnomaly: true,
+      },
+    };
+
+    const db = this.getUsersDB();
+    db[email] = { user, passwordHash: 'sso_auth_token' };
+    this.saveUsersDB(db);
+    this.saveActiveSession(user);
+    return user;
+  }
+
+  // 4. Apple SSO 登入
+  public static async loginWithApple(): Promise<AuthUser> {
+    const uid = `user_apple_${Date.now()}`;
+    const email = `privaterelay.appleid_${Math.random().toString(36).substring(2, 6)}@icloud.com`;
+    const user: AuthUser = {
+      uid,
+      email,
+      displayName: 'Apple ID 用戶',
+      defaultCarrierCode: '/AP9999+',
+      defaultPaymentMethod: 'Apple Pay',
+      monthlyBudget: 35000,
+      provider: 'apple',
+      token: `apple_jwt_${Date.now()}`,
+      createdAt: Date.now(),
+    };
+
+    const db = this.getUsersDB();
+    db[email] = { user, passwordHash: 'sso_apple_token' };
+    this.saveUsersDB(db);
+    this.saveActiveSession(user);
+    return user;
+  }
+
+  // 5. LINE SSO 登入
+  public static async loginWithLine(): Promise<AuthUser> {
+    const uid = `user_line_${Date.now()}`;
+    const email = `line.member_${Math.random().toString(36).substring(2, 6)}@line.me`;
+    const user: AuthUser = {
+      uid,
+      email,
+      displayName: 'LINE 好友用戶',
+      photoURL: 'https://images.unsplash.com/photo-1570295999919-56ceb5ecca61?w=150&auto=format&fit=crop&q=80',
+      defaultCarrierCode: '/LN7777+',
+      defaultPaymentMethod: 'LINE Pay',
+      monthlyBudget: 30000,
+      provider: 'line',
+      token: `line_sso_${Date.now()}`,
+      createdAt: Date.now(),
+    };
+
+    const db = this.getUsersDB();
+    db[email] = { user, passwordHash: 'sso_line_token' };
+    this.saveUsersDB(db);
+    this.saveActiveSession(user);
+    return user;
+  }
+
+  // 6. 訪客快速試用 (支援 Firebase 匿名驗證)
+  public static async loginAsGuest(): Promise<AuthUser> {
+    const { auth, isConfigured } = getFirebaseServices();
+
+    if (auth && isConfigured) {
+      try {
+        const res = await signInAnonymously(auth);
+        const fbUser = res.user;
+        const guestUser: AuthUser = {
+          uid: fbUser.uid,
+          email: 'guest@aiexpense.tw',
+          displayName: '訪客試用體驗',
+          defaultCarrierCode: '/TW0000+',
+          defaultPaymentMethod: '現金',
+          isAnonymous: true,
+          monthlyBudget: 20000,
+          provider: 'guest',
+          token: await fbUser.getIdToken(),
+          createdAt: Date.now(),
+        };
+        this.saveActiveSession(guestUser);
+        return guestUser;
+      } catch (err) {
+        console.warn('Firebase anonymous auth failed:', err);
+      }
+    }
+
+    const guestUser: AuthUser = {
+      uid: `guest_${Date.now()}`,
+      email: 'guest@aiexpense.tw',
+      displayName: '訪客試用體驗',
+      defaultCarrierCode: '/TW0000+',
+      defaultPaymentMethod: '現金',
+      isAnonymous: true,
+      monthlyBudget: 20000,
+      provider: 'guest',
+      createdAt: Date.now(),
+    };
+    this.saveActiveSession(guestUser);
+    return guestUser;
+  }
+
+  // 7. 登出 (同時清除 Firebase Auth Session 與 Local Storage)
+  public static async logout() {
+    const { auth } = getFirebaseServices();
+    if (auth) {
+      try {
+        await fbSignOut(auth);
+      } catch {}
+    }
+    this.saveActiveSession(null);
+  }
+}

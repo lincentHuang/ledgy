@@ -1,0 +1,34 @@
+{
+  "expo": {
+    "name": "AI 智慧記帳",
+    "slug": "ai-expense-tracker",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "userInterfaceStyle": "automatic",
+    "scheme": "aiexpense",
+    "ios": {
+      "supportsTablet": true,
+      "bundleIdentifier": "com.aiexpense.taiwan",
+      "infoPlist": {
+        "NSCameraUsageDescription": "需要相機權限以掃描台灣電子發票 QR Code 與拍攝收據",
+        "NSMicrophoneUsageDescription": "需要麥克風權限以進行 AI 語音記帳"
+      }
+    },
+    "android": {
+      "package": "com.aiexpense.taiwan",
+      "permissions": [
+        "CAMERA",
+        "RECORD_AUDIO"
+      ]
+    },
+    "plugins": [
+      "expo-router",
+      [
+        "expo-camera",
+        {
+          "cameraPermission": "需要相機權限以掃描電子發票 QR Code"
+        }
+      ]
+    ]
+  }
+}

@@ -1,0 +1,41 @@
+{
+  "name": "taiwan-ai-expense-tracker-monorepo",
+  "version": "1.0.0",
+  "private": true,
+  "workspaces": [
+    "packages/*",
+    "apps/*"
+  ],
+  "resolutions": {
+    "react": "^18.3.1",
+    "react-dom": "^18.3.1",
+    "@types/react": "^18.3.12",
+    "@types/react-dom": "^18.3.1"
+  },
+  "scripts": {
+    "dev": "yarn workspace ai-expense-tracker-web dev",
+    "web": "yarn workspace ai-expense-tracker-web dev",
+    "dev:web": "yarn workspace ai-expense-tracker-web dev",
+    "build": "yarn workspace ai-expense-tracker-web build",
+    "build:web": "yarn workspace ai-expense-tracker-web build",
+    "build:export": "yarn workspace ai-expense-tracker-web build:export",
+    "deploy": "yarn build:export && npx -y firebase-tools@latest deploy --only hosting",
+    "cap:sync": "yarn workspace ai-expense-tracker-web cap:sync",
+    "cap:ios": "yarn workspace ai-expense-tracker-web cap:ios",
+    "cap:android": "yarn workspace ai-expense-tracker-web cap:android",
+    "start:web": "yarn workspace ai-expense-tracker-web start",
+    "build:shared": "yarn workspace @app/shared build",
+    "test:shared": "yarn workspace @app/shared test"
+  },
+  "keywords": [
+    "ai-expense-tracker",
+    "taiwan-invoice",
+    "nextjs",
+    "expo",
+    "react-native",
+    "tailwind",
+    "yarn"
+  ],
+  "author": "",
+  "license": "MIT"
+}
