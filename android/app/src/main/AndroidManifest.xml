@@ -22,6 +22,14 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
 
+            <!-- 支援 zhizhangkun://* Deep Link -->
+            <intent-filter>
+                <action android:name="android.intent.action.VIEW" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <category android:name="android.intent.category.BROWSABLE" />
+                <data android:scheme="zhizhangkun" />
+            </intent-filter>
+
         </activity>
 
         <provider
@@ -33,6 +41,45 @@
                 android:name="android.support.FILE_PROVIDER_PATHS"
                 android:resource="@xml/file_paths"></meta-data>
         </provider>
+
+        <!-- 🧾 載具條碼小工具 -->
+        <receiver
+            android:name=".BarcodeWidgetProvider"
+            android:label="@string/widget_barcode_name"
+            android:exported="true">
+            <intent-filter>
+                <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
+            </intent-filter>
+            <meta-data
+                android:name="android.appwidget.provider"
+                android:resource="@xml/widget_barcode_info" />
+        </receiver>
+
+        <!-- 💰 預算進度卡小工具 -->
+        <receiver
+            android:name=".BudgetWidgetProvider"
+            android:label="@string/widget_budget_name"
+            android:exported="true">
+            <intent-filter>
+                <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
+            </intent-filter>
+            <meta-data
+                android:name="android.appwidget.provider"
+                android:resource="@xml/widget_budget_info" />
+        </receiver>
+
+        <!-- ⚡ 快捷記帳小工具 -->
+        <receiver
+            android:name=".QuickActionWidgetProvider"
+            android:label="@string/widget_quick_action_name"
+            android:exported="true">
+            <intent-filter>
+                <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
+            </intent-filter>
+            <meta-data
+                android:name="android.appwidget.provider"
+                android:resource="@xml/widget_quick_action_info" />
+        </receiver>
     </application>
 
     <!-- Permissions -->

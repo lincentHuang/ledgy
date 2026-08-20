@@ -4,4 +4,7 @@
     <string name="title_activity_main">智帳君 AI 記帳</string>
     <string name="package_name">com.zhizhangkun.app</string>
     <string name="custom_url_scheme">com.zhizhangkun.app</string>
+    <string name="widget_barcode_name">載具條碼 (智帳君)</string>
+    <string name="widget_budget_name">預算進度卡 (智帳君)</string>
+    <string name="widget_quick_action_name">快捷記帳 (智帳君)</string>
 </resources>

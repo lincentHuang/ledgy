@@ -1,0 +1,55 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/widget_barcode_root"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    android:background="@drawable/widget_card_bg"
+    android:padding="12dp"
+    android:gravity="center">
+
+    <!-- 頂部標題列 -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:gravity="center_vertical"
+        android:layout_marginBottom="6dp">
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="🧾 智帳君 · 手機載具"
+            android:textColor="#94A3B8"
+            android:textSize="11sp"
+            android:textStyle="bold" />
+    </LinearLayout>
+
+    <!-- 白色條碼區塊 (方便超商掃描槍辨識) -->
+    <FrameLayout
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1"
+        android:background="@drawable/widget_barcode_bg"
+        android:padding="4dp">
+
+        <ImageView
+            android:id="@+id/widget_barcode_img"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:scaleType="fitCenter"
+            android:contentDescription="手機條碼" />
+    </FrameLayout>
+
+    <!-- 載具代碼文字 -->
+    <TextView
+        android:id="@+id/widget_carrier_code_text"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="/AB1234+"
+        android:textColor="#10B981"
+        android:textSize="13sp"
+        android:textStyle="bold"
+        android:fontFamily="monospace"
+        android:layout_marginTop="4dp" />
+</LinearLayout>
