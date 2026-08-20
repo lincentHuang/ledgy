@@ -459,33 +459,31 @@ export const MonthCalendarView: React.FC<MonthCalendarViewProps> = ({
         </div>
       </div>
 
-      {/* 📌 交易明細清單卡片 */}
-      <div className="bg-slate-900/90 border border-slate-800 p-4 rounded-3xl space-y-3 animate-in fade-in">
-        <div className="flex items-center justify-between border-b border-slate-800 pb-2.5">
+      {/* 📌 交易明細清單 (直接自然展開排版，無多餘外層卡片包裹) */}
+      <div className="space-y-2.5 pt-1 animate-in fade-in">
+        <div className="flex items-center justify-between px-1">
           <div className="flex items-center gap-2">
             <CalendarIcon className="w-4 h-4 text-emerald-400" />
-            <div>
-              <h3 className="text-xs font-bold text-slate-200">
-                {selectedDates.length > 0
-                  ? `已選取 ${selectedDates.length} 天明細`
-                  : '當期全部支出明細'}
-                （{displayTransactions.length} 筆）
-              </h3>
-            </div>
+            <h3 className="text-xs font-bold text-slate-300">
+              {selectedDates.length > 0
+                ? `已選取 ${selectedDates.length} 天明細`
+                : '當期全部支出明細'}
+              <span className="text-slate-500 font-normal ml-1">（{displayTransactions.length} 筆）</span>
+            </h3>
           </div>
 
           {selectedDates.length > 0 && (
             <button
               onClick={() => setSelectedSubDates([])}
-              className="text-xs text-slate-400 hover:text-white px-2.5 py-1 rounded-xl bg-slate-800 hover:bg-slate-700 transition"
+              className="text-xs text-emerald-400 hover:text-emerald-300 font-medium px-2.5 py-1 rounded-xl bg-emerald-950/60 border border-emerald-800/60 hover:bg-emerald-900/60 transition"
             >
-              查看當期全部
+              查看全月
             </button>
           )}
         </div>
 
         {displayTransactions.length === 0 ? (
-          <div className="py-8 text-center text-slate-500 text-xs">
+          <div className="py-10 text-center text-slate-500 text-xs bg-slate-900/40 border border-slate-800/60 rounded-2xl">
             <p>選取的期間尚無任何記帳記錄</p>
             <button
               onClick={onOpenQuickInput}
@@ -495,7 +493,7 @@ export const MonthCalendarView: React.FC<MonthCalendarViewProps> = ({
             </button>
           </div>
         ) : (
-          <div className="space-y-2 max-h-96 overflow-y-auto pr-1">
+          <div className="space-y-1.5 sm:space-y-2">
             {displayTransactions.map((tx) => {
               const isSelected = selectedTxIds?.includes(tx.id);
               return (
@@ -508,12 +506,12 @@ export const MonthCalendarView: React.FC<MonthCalendarViewProps> = ({
                       onEditTransaction(tx);
                     }
                   }}
-                  className={`flex items-center justify-between p-3 rounded-2xl transition cursor-pointer border ${
+                  className={`flex items-center justify-between p-2.5 sm:p-3 rounded-2xl transition cursor-pointer border ${
                     isBatchMode
                       ? isSelected
                         ? 'bg-emerald-950/40 border-emerald-500/50'
                         : 'bg-slate-900/40 border-slate-800/60 hover:border-slate-700'
-                      : 'bg-slate-800/60 hover:bg-slate-800 border-slate-700/60 hover:border-slate-600 active:scale-[0.99]'
+                      : 'bg-slate-900/80 hover:bg-slate-900 border-slate-800/80 hover:border-slate-700 active:scale-[0.99]'
                   }`}
                 >
                   <div className="flex items-center gap-2.5 min-w-0">
