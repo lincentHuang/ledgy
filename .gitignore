@@ -40,6 +40,7 @@ Thumbs.db
 .tempmediaStorage/
 .user_uploaded/
 .claude/
+.agents/
 
 # Capacitor & Native Builds
 # iOS
