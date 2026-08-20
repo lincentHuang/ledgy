@@ -374,34 +374,14 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   // 1. 初始化與載入 (Client-side hydration safe)
   useEffect(() => {
     try {
-      let active = AuthService.getActiveSession();
-      if (!active) {
-        // 若無現存 Session，預設建立示範帳號確保刷新時直接進入私帳記帳，避免白屏卡死
-        const defaultUser: AuthUser = {
-          uid: 'user_tw_01',
-          email: 'chen.wei@example.com',
-          displayName: '陳威廷',
-          photoURL: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150&auto=format&fit=crop&q=80',
-          defaultCarrierCode: '/AB1234+',
-          defaultPaymentMethod: 'LINE Pay',
-          activeHouseholdId: undefined,
-          monthlyBudget: 35000,
-          provider: 'guest',
-          createdAt: Date.now(),
-          preferences: {
-            theme: 'system',
-            currency: 'NT$',
-            soundEnabled: true,
-            hapticEnabled: true,
-            autoDetectAnomaly: true,
-          },
-        };
-        AuthService.saveActiveSession(defaultUser);
-        active = defaultUser;
+      const active = AuthService.getActiveSession();
+      if (active) {
+        setUser(active);
+        setIsAuthenticated(true);
+      } else {
+        setIsAuthenticated(false);
       }
-
-      setUser(active);
-      setIsAuthenticated(true);
+      setIsAuthReady(true);
 
       // 載入群組列表
       const storedHouseholds = localStorage.getItem(STORAGE_KEYS.HOUSEHOLDS);

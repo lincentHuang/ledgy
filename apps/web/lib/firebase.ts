@@ -8,6 +8,7 @@ import {
   indexedDBLocalPersistence,
   browserLocalPersistence,
   inMemoryPersistence,
+  browserPopupRedirectResolver,
   Auth,
 } from 'firebase/auth';
 
@@ -99,6 +100,7 @@ export const getFirebaseServices = () => {
       try {
         auth = initializeAuth(app, {
           persistence: [indexedDBLocalPersistence, browserLocalPersistence, inMemoryPersistence],
+          popupRedirectResolver: browserPopupRedirectResolver,
         });
       } catch {
         auth = getAuth(app);

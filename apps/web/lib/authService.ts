@@ -6,6 +6,7 @@ import {
   createUserWithEmailAndPassword,
   signInWithPopup,
   GoogleAuthProvider,
+  browserPopupRedirectResolver,
   signOut as fbSignOut,
   updateProfile,
   signInAnonymously,
@@ -15,7 +16,7 @@ import {
 import { getFirebaseServices } from './firebase';
 
 export interface AuthUser extends UserProfile {
-  provider: 'google' | 'apple' | 'line' | 'email' | 'guest';
+  provider: 'google' | 'email';
   token?: string;
   createdAt: number;
 }
@@ -25,53 +26,8 @@ const STORAGE_KEYS = {
   ACTIVE_SESSION: 'ai_expense_active_session_v2',
 };
 
-// 預設示範帳號
-const INITIAL_REGISTERED_USERS: Record<string, { user: AuthUser; passwordHash: string }> = {
-  'chen.wei@example.com': {
-    user: {
-      uid: 'user_tw_01',
-      email: 'chen.wei@example.com',
-      displayName: '陳威廷',
-      photoURL: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150&auto=format&fit=crop&q=80',
-      defaultCarrierCode: '/AB1234+',
-      defaultPaymentMethod: 'LINE Pay',
-      activeHouseholdId: 'house_warm_family',
-      monthlyBudget: 35000,
-      provider: 'google',
-      createdAt: Date.now() - 30 * 86400000,
-      preferences: {
-        theme: 'system',
-        currency: 'NT$',
-        soundEnabled: true,
-        hapticEnabled: true,
-        autoDetectAnomaly: true,
-      },
-    },
-    passwordHash: 'password123',
-  },
-  'yichun.lin@example.com': {
-    user: {
-      uid: 'user_tw_02',
-      email: 'yichun.lin@example.com',
-      displayName: '林怡君',
-      photoURL: 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=150&auto=format&fit=crop&q=80',
-      defaultCarrierCode: '/XY9876-',
-      defaultPaymentMethod: '全支付/PX Pay',
-      activeHouseholdId: 'house_warm_family',
-      monthlyBudget: 30000,
-      provider: 'email',
-      createdAt: Date.now() - 25 * 86400000,
-      preferences: {
-        theme: 'light',
-        currency: 'NT$',
-        soundEnabled: true,
-        hapticEnabled: true,
-        autoDetectAnomaly: true,
-      },
-    },
-    passwordHash: 'password123',
-  },
-};
+// 初始使用者資料庫
+const INITIAL_REGISTERED_USERS: Record<string, { user: AuthUser; passwordHash: string }> = {};
 
 const withTimeout = <T>(promise: Promise<T>, ms: number = 7000, errorMsg: string = '連線逾時，請確認網路連線或稍後再試'): Promise<T> => {
   return Promise.race([
@@ -295,9 +251,9 @@ export class AuthService {
         const provider = new GoogleAuthProvider();
         provider.setCustomParameters({ prompt: 'select_account' });
         const res = await withTimeout(
-          signInWithPopup(auth, provider),
-          12000,
-          'Google 登入連線逾時，若在手機 App 內請確認是否已授權彈窗或請使用 Email 登入。'
+          signInWithPopup(auth, provider, browserPopupRedirectResolver),
+          20000,
+          'Google 登入連線逾時，請確認是否已允許彈窗或改用 Email 登入。'
         );
         const fbUser = res.user;
 
@@ -368,96 +324,7 @@ export class AuthService {
     return user;
   }
 
-  // 4. Apple SSO 登入
-  public static async loginWithApple(): Promise<AuthUser> {
-    const uid = `user_apple_${Date.now()}`;
-    const email = `privaterelay.appleid_${Math.random().toString(36).substring(2, 6)}@icloud.com`;
-    const user: AuthUser = {
-      uid,
-      email,
-      displayName: 'Apple ID 用戶',
-      defaultCarrierCode: '/AP9999+',
-      defaultPaymentMethod: 'Apple Pay',
-      monthlyBudget: 35000,
-      provider: 'apple',
-      token: `apple_jwt_${Date.now()}`,
-      createdAt: Date.now(),
-    };
-
-    const db = this.getUsersDB();
-    db[email] = { user, passwordHash: 'sso_apple_token' };
-    this.saveUsersDB(db);
-    this.saveActiveSession(user);
-    return user;
-  }
-
-  // 5. LINE SSO 登入
-  public static async loginWithLine(): Promise<AuthUser> {
-    const uid = `user_line_${Date.now()}`;
-    const email = `line.member_${Math.random().toString(36).substring(2, 6)}@line.me`;
-    const user: AuthUser = {
-      uid,
-      email,
-      displayName: 'LINE 好友用戶',
-      photoURL: 'https://images.unsplash.com/photo-1570295999919-56ceb5ecca61?w=150&auto=format&fit=crop&q=80',
-      defaultCarrierCode: '/LN7777+',
-      defaultPaymentMethod: 'LINE Pay',
-      monthlyBudget: 30000,
-      provider: 'line',
-      token: `line_sso_${Date.now()}`,
-      createdAt: Date.now(),
-    };
-
-    const db = this.getUsersDB();
-    db[email] = { user, passwordHash: 'sso_line_token' };
-    this.saveUsersDB(db);
-    this.saveActiveSession(user);
-    return user;
-  }
-
-  // 6. 訪客快速試用 (支援 Firebase 匿名驗證)
-  public static async loginAsGuest(): Promise<AuthUser> {
-    const { auth, isConfigured } = getFirebaseServices();
-
-    if (auth && isConfigured) {
-      try {
-        const res = await signInAnonymously(auth);
-        const fbUser = res.user;
-        const guestUser: AuthUser = {
-          uid: fbUser.uid,
-          email: 'guest@aiexpense.tw',
-          displayName: '訪客試用體驗',
-          defaultCarrierCode: '/TW0000+',
-          defaultPaymentMethod: '現金',
-          isAnonymous: true,
-          monthlyBudget: 20000,
-          provider: 'guest',
-          token: await fbUser.getIdToken(),
-          createdAt: Date.now(),
-        };
-        this.saveActiveSession(guestUser);
-        return guestUser;
-      } catch (err) {
-        console.warn('Firebase anonymous auth failed:', err);
-      }
-    }
-
-    const guestUser: AuthUser = {
-      uid: `guest_${Date.now()}`,
-      email: 'guest@aiexpense.tw',
-      displayName: '訪客試用體驗',
-      defaultCarrierCode: '/TW0000+',
-      defaultPaymentMethod: '現金',
-      isAnonymous: true,
-      monthlyBudget: 20000,
-      provider: 'guest',
-      createdAt: Date.now(),
-    };
-    this.saveActiveSession(guestUser);
-    return guestUser;
-  }
-
-  // 7. 登出 (同時清除 Firebase Auth Session 與 Local Storage)
+  // 4. 登出 (同時清除 Firebase Auth Session 與 Local Storage)
   public static async logout() {
     const { auth } = getFirebaseServices();
     if (auth) {

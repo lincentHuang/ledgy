@@ -17,8 +17,6 @@ import {
   User,
   AlertCircle,
   Loader2,
-  Zap,
-  CheckCircle2,
 } from 'lucide-react';
 
 import { PrivacyPolicyModal } from '../legal/PrivacyPolicyModal';
@@ -26,11 +24,11 @@ import { PrivacyPolicyModal } from '../legal/PrivacyPolicyModal';
 export const WelcomeView: React.FC = () => {
   const { loginWithUser } = useAppStore();
 
-  const [activeTab, setActiveTab] = useState<'login' | 'register' | 'demo'>('login');
+  const [activeTab, setActiveTab] = useState<'login' | 'register'>('login');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [displayName, setDisplayName] = useState('');
-  const [carrierCode, setCarrierCode] = useState('/AB1234+');
+  const [carrierCode, setCarrierCode] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [errorMsg, setErrorMsg] = useState('');
@@ -70,7 +68,7 @@ export const WelcomeView: React.FC = () => {
         email,
         password,
         displayName,
-        carrierCode
+        carrierCode || '/AB1234+'
       );
       loginWithUser(user);
     } catch (err: any) {
@@ -80,31 +78,17 @@ export const WelcomeView: React.FC = () => {
     }
   };
 
-  const handleSSO = async (provider: 'google' | 'apple' | 'line' | 'guest') => {
+  const handleGoogleSSO = async () => {
     setIsLoading(true);
     setErrorMsg('');
     try {
-      let user: AuthUser;
-      if (provider === 'google') user = await AuthService.loginWithGoogle();
-      else if (provider === 'apple') user = await AuthService.loginWithApple();
-      else if (provider === 'line') user = await AuthService.loginWithLine();
-      else user = await AuthService.loginAsGuest();
-
+      const user = await AuthService.loginWithGoogle();
       loginWithUser(user);
     } catch (err: any) {
-      setErrorMsg(err.message || '第三方登入失敗');
+      setErrorMsg(err.message || 'Google 登入失敗');
     } finally {
       setIsLoading(false);
     }
-  };
-
-  const handleDemoLogin = (role: 'chen' | 'lin') => {
-    setIsLoading(true);
-    const targetEmail = role === 'chen' ? 'chen.wei@example.com' : 'yichun.lin@example.com';
-    AuthService.loginWithEmail(targetEmail, 'password123')
-      .then((u) => loginWithUser(u))
-      .catch((err) => setErrorMsg(err.message || '登入失敗'))
-      .finally(() => setIsLoading(false));
   };
 
   return (
@@ -178,7 +162,7 @@ export const WelcomeView: React.FC = () => {
           </div>
 
           <div className="rounded-3xl bg-slate-900/90 border border-slate-800 p-6 sm:p-7 shadow-2xl backdrop-blur-xl">
-            {/* 標籤頁切換 (會員登入 / 免費註冊 / 示範帳號) */}
+            {/* 標籤頁切換 (會員登入 / 免費註冊) */}
             <div className="flex gap-1 p-1 bg-slate-800/80 rounded-2xl mb-5 text-xs font-semibold">
               <button
                 onClick={() => {
@@ -206,19 +190,6 @@ export const WelcomeView: React.FC = () => {
               >
                 免費註冊
               </button>
-              <button
-                onClick={() => {
-                  setActiveTab('demo');
-                  setErrorMsg('');
-                }}
-                className={`flex-1 py-2 rounded-xl transition ${
-                  activeTab === 'demo'
-                    ? 'bg-emerald-600 text-white font-bold shadow'
-                    : 'text-slate-400 hover:text-slate-200'
-                }`}
-              >
-                示範帳號
-              </button>
             </div>
 
             {/* 錯誤提示 */}
@@ -232,30 +203,33 @@ export const WelcomeView: React.FC = () => {
             {/* 1. 會員登入 */}
             {activeTab === 'login' && (
               <div className="space-y-4 text-left">
-                {/* 快速第三方登入按鈕 */}
-                <div className="grid grid-cols-3 gap-2">
-                  <button
-                    onClick={() => handleSSO('google')}
-                    disabled={isLoading}
-                    className="py-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 border border-slate-700 text-xs font-semibold flex items-center justify-center gap-1.5 transition active:scale-95 text-slate-200"
-                  >
-                    Google
-                  </button>
-                  <button
-                    onClick={() => handleSSO('line')}
-                    disabled={isLoading}
-                    className="py-2.5 rounded-xl bg-[#06C755]/15 hover:bg-[#06C755]/25 border border-[#06C755]/30 text-[#06C755] text-xs font-bold flex items-center justify-center gap-1.5 transition active:scale-95"
-                  >
-                    LINE
-                  </button>
-                  <button
-                    onClick={() => handleSSO('apple')}
-                    disabled={isLoading}
-                    className="py-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 border border-slate-700 text-xs font-semibold flex items-center justify-center gap-1.5 transition active:scale-95 text-slate-200"
-                  >
-                    Apple
-                  </button>
-                </div>
+                {/* 快速 Google SSO 登入按鈕 */}
+                <button
+                  type="button"
+                  onClick={handleGoogleSSO}
+                  disabled={isLoading}
+                  className="w-full py-2.5 px-4 rounded-2xl bg-white hover:bg-slate-100 text-slate-900 border border-slate-200 text-xs font-bold flex items-center justify-center gap-2.5 transition active:scale-[0.98] shadow-sm"
+                >
+                  <svg className="w-4 h-4 flex-shrink-0" viewBox="0 0 24 24">
+                    <path
+                      fill="#4285F4"
+                      d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"
+                    />
+                    <path
+                      fill="#34A853"
+                      d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"
+                    />
+                    <path
+                      fill="#FBBC05"
+                      d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.06H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.94l2.85-2.22.81-.63z"
+                    />
+                    <path
+                      fill="#EA4335"
+                      d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.06l3.66 2.84c.87-2.6 3.3-4.52 6.16-4.52z"
+                    />
+                  </svg>
+                  <span>使用 Google 帳號快速登入</span>
+                </button>
 
                 <div className="relative my-3 text-center">
                   <div className="absolute inset-0 flex items-center">
@@ -277,7 +251,7 @@ export const WelcomeView: React.FC = () => {
                         type="email"
                         value={email}
                         onChange={(e) => setEmail(e.target.value)}
-                        placeholder="chen.wei@example.com"
+                        placeholder="name@example.com"
                         className="w-full pl-9 pr-3 py-2.5 rounded-xl border border-slate-700 bg-slate-800 text-xs text-slate-100 placeholder:text-slate-500 focus:ring-2 focus:ring-emerald-500 outline-none"
                       />
                     </div>
@@ -293,7 +267,7 @@ export const WelcomeView: React.FC = () => {
                         type={showPassword ? 'text' : 'password'}
                         value={password}
                         onChange={(e) => setPassword(e.target.value)}
-                        placeholder="輸入您的密碼 (示範: password123)"
+                        placeholder="輸入您的密碼"
                         className="w-full pl-9 pr-10 py-2.5 rounded-xl border border-slate-700 bg-slate-800 text-xs text-slate-100 placeholder:text-slate-500 focus:ring-2 focus:ring-emerald-500 outline-none"
                       />
                       <button
@@ -321,16 +295,6 @@ export const WelcomeView: React.FC = () => {
                     )}
                   </button>
                 </form>
-
-                <div className="pt-1 text-center">
-                  <button
-                    type="button"
-                    onClick={() => handleSSO('guest')}
-                    className="text-xs text-slate-400 hover:text-emerald-400 underline transition"
-                  >
-                    ⚡ 免註冊，以訪客身分快速試用
-                  </button>
-                </div>
               </div>
             )}
 
@@ -417,60 +381,6 @@ export const WelcomeView: React.FC = () => {
                   {isLoading ? <Loader2 className="w-4 h-4 animate-spin" /> : '立即註冊並登入'}
                 </button>
               </form>
-            )}
-
-            {/* 3. 示範帳號一鍵體驗 */}
-            {activeTab === 'demo' && (
-              <div className="space-y-3 text-left">
-                <div className="p-3 rounded-2xl bg-emerald-950/40 border border-emerald-900/60">
-                  <p className="text-xs text-emerald-300 font-bold flex items-center gap-1.5">
-                    <Zap className="w-3.5 h-3.5" />
-                    免註冊，點擊任一示範帳號立即體驗：
-                  </p>
-                </div>
-
-                <button
-                  onClick={() => handleDemoLogin('chen')}
-                  disabled={isLoading}
-                  className="w-full p-3 rounded-2xl bg-slate-800/80 hover:bg-slate-800 border border-slate-700 hover:border-emerald-500/50 flex items-center justify-between transition group text-left"
-                >
-                  <div className="flex items-center gap-3">
-                    <div className="w-9 h-9 rounded-full bg-emerald-500/20 text-emerald-400 flex items-center justify-center font-bold text-xs border border-emerald-500/30">
-                      陳
-                    </div>
-                    <div>
-                      <p className="font-bold text-xs text-slate-100 group-hover:text-emerald-400 transition">
-                        陳威廷 (科技工程師)
-                      </p>
-                      <p className="text-[10px] font-mono text-slate-400">
-                        載具：/AB1234+ • 常用 LINE Pay
-                      </p>
-                    </div>
-                  </div>
-                  <ArrowRight className="w-4 h-4 text-slate-400 group-hover:text-emerald-400 transition" />
-                </button>
-
-                <button
-                  onClick={() => handleDemoLogin('lin')}
-                  disabled={isLoading}
-                  className="w-full p-3 rounded-2xl bg-slate-800/80 hover:bg-slate-800 border border-slate-700 hover:border-teal-500/50 flex items-center justify-between transition group text-left"
-                >
-                  <div className="flex items-center gap-3">
-                    <div className="w-9 h-9 rounded-full bg-teal-500/20 text-teal-400 flex items-center justify-center font-bold text-xs border border-teal-500/30">
-                      林
-                    </div>
-                    <div>
-                      <p className="font-bold text-xs text-slate-100 group-hover:text-teal-400 transition">
-                        林怡君 (UI/UX 設計師)
-                      </p>
-                      <p className="text-[10px] font-mono text-slate-400">
-                        載具：/XY9876- • 常用 全支付
-                      </p>
-                    </div>
-                  </div>
-                  <ArrowRight className="w-4 h-4 text-slate-400 group-hover:text-teal-400 transition" />
-                </button>
-              </div>
             )}
 
             {/* 隱私權政策與服務條款小字宣告 */}
