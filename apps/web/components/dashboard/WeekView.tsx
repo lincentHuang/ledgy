@@ -15,6 +15,7 @@ import {
   Wallet,
   Users,
   Check,
+  SlidersHorizontal,
 } from 'lucide-react';
 
 interface WeekViewProps {
@@ -46,6 +47,17 @@ export const WeekView: React.FC<WeekViewProps> = ({
 
   const selectedDates = selectedSubDates; // 空陣列代表預設檢視整週全部
   const weekStartDay = user.preferences?.weekStartDay ?? 1; // 0 = 週日, 1 = 週一 (預設), 6 = 週六
+
+  const weekCardRef = React.useRef<HTMLDivElement>(null);
+  const [isRangeAdjustMode, setIsRangeAdjustMode] = useState(false);
+
+  const handleToggleRangeAdjustMode = () => {
+    const next = !isRangeAdjustMode;
+    setIsRangeAdjustMode(next);
+    if (next) {
+      weekCardRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+  };
 
   // 計算週起始日到結束日的 7 天日期範圍
   const getWeekDates = (offset: number, startDayOfWeek: number) => {
@@ -283,19 +295,35 @@ export const WeekView: React.FC<WeekViewProps> = ({
       </div>
 
       {/* 📊 7 天柱狀分析與拖曳框選功能 */}
-      <div className="bg-slate-900/80 border border-slate-800 p-4 rounded-3xl space-y-3">
+      <div
+        ref={weekCardRef}
+        className="bg-slate-900/80 border border-slate-800 p-4 rounded-3xl space-y-3 w-full scroll-mt-4"
+      >
         <div className="flex flex-wrap items-center justify-between gap-2 text-xs text-slate-400 mb-1">
           <div className="flex items-center gap-2">
             <span className="font-bold text-slate-300">本週 7 天支出趨勢</span>
-            <span className="text-[11px] text-slate-500">
+            <span className="text-[11px] text-slate-500 hidden sm:inline">
               {isDragging && hasMovedDuringDrag
                 ? `🔄 正在拖曳選取：已選取 ${draggingRangeDates?.size || 0} 天`
                 : '(點選或按住滑鼠拖曳連續框選)'}
             </span>
           </div>
 
-          {/* 快速全選 / 複選按鈕組 */}
-          <div className="flex items-center gap-1.5">
+          {/* 快速全選 / 複選 / 調整範圍按鈕組 */}
+          <div className="flex flex-wrap items-center gap-1.5">
+            <button
+              type="button"
+              onClick={handleToggleRangeAdjustMode}
+              className={`px-2.5 py-1 rounded-xl text-[11px] font-bold transition-all flex items-center gap-1 shadow-sm ${
+                isRangeAdjustMode
+                  ? 'bg-emerald-500 text-slate-950 ring-2 ring-emerald-400 ring-offset-2 ring-offset-slate-950 font-black animate-pulse'
+                  : 'bg-emerald-950/80 border border-emerald-700/80 text-emerald-300 hover:bg-emerald-900/80'
+              }`}
+            >
+              <SlidersHorizontal className="w-3.5 h-3.5" />
+              <span>{isRangeAdjustMode ? '✓ 完成範圍調整' : '調整範圍 (滑動框選)'}</span>
+            </button>
+
             <button
               type="button"
               onClick={handleSelectAllDays}
@@ -326,9 +354,30 @@ export const WeekView: React.FC<WeekViewProps> = ({
           </div>
         </div>
 
+        {/* 🎯 調整範圍模式鎖定提示橫幅 */}
+        {isRangeAdjustMode && (
+          <div className="flex items-center justify-between p-2.5 rounded-xl bg-emerald-950/90 border border-emerald-600/80 text-emerald-200 text-xs animate-in fade-in">
+            <span className="flex items-center gap-1.5 font-medium">
+              <span className="w-2 h-2 rounded-full bg-emerald-400 animate-ping" />
+              <span>
+                <strong>滑動框選模式中</strong>：畫面已鎖定滾動，請在格子上滑動連選多日。
+              </span>
+            </span>
+            <button
+              type="button"
+              onClick={handleToggleRangeAdjustMode}
+              className="px-2.5 py-1 rounded-lg bg-emerald-500 text-slate-950 font-bold hover:bg-emerald-400 transition ml-2 flex-shrink-0 shadow-sm"
+            >
+              完成
+            </button>
+          </div>
+        )}
+
         <div
-          className="grid grid-cols-7 gap-1 sm:gap-2 pt-4 pb-1 touch-none"
-          onTouchMove={handleTouchMove}
+          className={`grid grid-cols-7 gap-1 sm:gap-2 pt-4 pb-1 ${
+            isRangeAdjustMode ? 'touch-none select-none' : 'touch-pan-y'
+          }`}
+          onTouchMove={isRangeAdjustMode ? handleTouchMove : undefined}
         >
           {dailyAmounts.map((d, index) => {
             const heightPercent = Math.max(Math.round((d.sum / maxDayAmount) * 100), 8);
@@ -341,9 +390,18 @@ export const WeekView: React.FC<WeekViewProps> = ({
               <div
                 key={d.dateStr}
                 data-week-day-idx={index}
+                onClick={() => {
+                  if (!isRangeAdjustMode) {
+                    handleToggleDay(d.dateStr);
+                  }
+                }}
                 onMouseDown={() => handleDayMouseDown(index)}
                 onMouseEnter={() => handleDayMouseEnter(index)}
-                onTouchStart={() => handleDayMouseDown(index)}
+                onTouchStart={() => {
+                  if (isRangeAdjustMode) {
+                    handleDayMouseDown(index);
+                  }
+                }}
                 className={`flex flex-col items-center justify-end p-1 sm:p-2 rounded-2xl border-2 transition-colors group relative cursor-pointer select-none ${
                   isSelected
                     ? 'bg-emerald-950/80 border-emerald-500 shadow-md shadow-emerald-950/40'

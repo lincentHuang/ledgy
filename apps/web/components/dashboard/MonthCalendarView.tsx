@@ -13,6 +13,7 @@ import {
   X,
   Plus,
   Check,
+  SlidersHorizontal,
 } from 'lucide-react';
 
 interface MonthCalendarViewProps {
@@ -49,6 +50,17 @@ export const MonthCalendarView: React.FC<MonthCalendarViewProps> = ({
 
   const weekStartDay = user.preferences?.weekStartDay ?? 1; // 0 = 週日, 1 = 週一 (預設), 6 = 週六
   const monthStartDay = user.preferences?.monthStartDay ?? 1; // 1 ~ 28
+
+  const calendarCardRef = React.useRef<HTMLDivElement>(null);
+  const [isRangeAdjustMode, setIsRangeAdjustMode] = useState(false);
+
+  const handleToggleRangeAdjustMode = () => {
+    const next = !isRangeAdjustMode;
+    setIsRangeAdjustMode(next);
+    if (next) {
+      calendarCardRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+  };
 
   const handlePrevMonth = () => {
     setSelectedSubDates([]);
@@ -324,7 +336,10 @@ export const MonthCalendarView: React.FC<MonthCalendarViewProps> = ({
       </div>
 
       {/* 🗓️ 月曆網格與拖曳框選控制 */}
-      <div className="bg-slate-900/80 border border-slate-800 p-2.5 sm:p-4 rounded-2xl sm:rounded-3xl space-y-2.5 sm:space-y-3 mx-auto w-full max-w-[97%] sm:max-w-none">
+      <div
+        ref={calendarCardRef}
+        className="bg-slate-900/80 border border-slate-800 p-3 sm:p-4 rounded-2xl sm:rounded-3xl space-y-3 w-full scroll-mt-4"
+      >
         <div className="flex flex-wrap items-center justify-between gap-2 text-xs text-slate-400">
           <div className="flex items-center gap-2">
             <span className="font-bold text-slate-300">月曆記帳分佈</span>
@@ -335,8 +350,21 @@ export const MonthCalendarView: React.FC<MonthCalendarViewProps> = ({
             </span>
           </div>
 
-          {/* 快速全選 / 複選按鈕組 */}
-          <div className="flex items-center gap-1.5">
+          {/* 操作按鈕組：調整範圍、全選、只選有支出、清除 */}
+          <div className="flex flex-wrap items-center gap-1.5">
+            <button
+              type="button"
+              onClick={handleToggleRangeAdjustMode}
+              className={`px-2.5 py-1 rounded-xl text-[11px] font-bold transition-all flex items-center gap-1 shadow-sm ${
+                isRangeAdjustMode
+                  ? 'bg-emerald-500 text-slate-950 ring-2 ring-emerald-400 ring-offset-2 ring-offset-slate-950 font-black animate-pulse'
+                  : 'bg-emerald-950/80 border border-emerald-700/80 text-emerald-300 hover:bg-emerald-900/80'
+              }`}
+            >
+              <SlidersHorizontal className="w-3.5 h-3.5" />
+              <span>{isRangeAdjustMode ? '✓ 完成範圍調整' : '調整範圍 (滑動框選)'}</span>
+            </button>
+
             <button
               type="button"
               onClick={handleSelectAllPeriodDays}
@@ -367,6 +395,25 @@ export const MonthCalendarView: React.FC<MonthCalendarViewProps> = ({
           </div>
         </div>
 
+        {/* 🎯 調整範圍模式鎖定提示橫幅 */}
+        {isRangeAdjustMode && (
+          <div className="flex items-center justify-between p-2.5 rounded-xl bg-emerald-950/90 border border-emerald-600/80 text-emerald-200 text-xs animate-in fade-in">
+            <span className="flex items-center gap-1.5 font-medium">
+              <span className="w-2 h-2 rounded-full bg-emerald-400 animate-ping" />
+              <span>
+                <strong>滑動框選模式中</strong>：畫面已鎖定滾動，請在格子上滑動連選多日。
+              </span>
+            </span>
+            <button
+              type="button"
+              onClick={handleToggleRangeAdjustMode}
+              className="px-2.5 py-1 rounded-lg bg-emerald-500 text-slate-950 font-bold hover:bg-emerald-400 transition ml-2 flex-shrink-0 shadow-sm"
+            >
+              完成
+            </button>
+          </div>
+        )}
+
         {/* 星期抬頭 */}
         <div className="grid grid-cols-7 gap-0.5 sm:gap-1 text-center text-[10px] sm:text-xs font-bold text-slate-400 pb-0.5 sm:pb-1">
           {WEEK_DAYS.map((wd) => (
@@ -376,11 +423,16 @@ export const MonthCalendarView: React.FC<MonthCalendarViewProps> = ({
           ))}
         </div>
 
-        {/* 日期網格 (加入 touch-pan-y 確保手機直向滑動極度順暢不卡死) */}
-        <div className="grid grid-cols-7 gap-1 sm:gap-1.5 touch-pan-y">
+        {/* 日期網格：若在調整範圍模式則鎖定 touch-none，平時為 touch-pan-y */}
+        <div
+          className={`grid grid-cols-7 gap-1 sm:gap-1.5 ${
+            isRangeAdjustMode ? 'touch-none select-none' : 'touch-pan-y'
+          }`}
+          onTouchMove={isRangeAdjustMode ? handleTouchMove : undefined}
+        >
           {/* 前置空白格 */}
           {Array.from({ length: firstDayOfWeek }).map((_, i) => (
-            <div key={`empty-${i}`} className="h-11 sm:h-20 rounded-xl sm:rounded-2xl bg-slate-950/20" />
+            <div key={`empty-${i}`} className="h-12 sm:h-20 rounded-xl sm:rounded-2xl bg-slate-950/20" />
           ))}
 
           {/* 各日期格子 */}
@@ -397,10 +449,19 @@ export const MonthCalendarView: React.FC<MonthCalendarViewProps> = ({
               <div
                 key={dateStr}
                 data-month-day-idx={index}
-                onClick={() => handleToggleDate(dateStr)}
+                onClick={() => {
+                  if (!isRangeAdjustMode) {
+                    handleToggleDate(dateStr);
+                  }
+                }}
                 onMouseDown={() => handleDayMouseDown(index)}
                 onMouseEnter={() => handleDayMouseEnter(index)}
-                className={`h-11 sm:h-20 p-1 sm:p-1.5 rounded-xl sm:rounded-2xl border sm:border-2 flex flex-col justify-between text-left transition-colors relative cursor-pointer select-none group ${
+                onTouchStart={() => {
+                  if (isRangeAdjustMode) {
+                    handleDayMouseDown(index);
+                  }
+                }}
+                className={`h-12 sm:h-20 p-1 sm:p-1.5 rounded-xl sm:rounded-2xl border sm:border-2 flex flex-col justify-between text-left transition-colors relative cursor-pointer select-none group ${
                   isSelected
                     ? 'border-emerald-500 bg-emerald-950/70 shadow-md shadow-emerald-950/40'
                     : isDragging && !isSelected
@@ -506,23 +567,21 @@ export const MonthCalendarView: React.FC<MonthCalendarViewProps> = ({
                       onEditTransaction(tx);
                     }
                   }}
-                  className={`flex items-center justify-between p-2.5 sm:p-3 rounded-2xl transition cursor-pointer border ${
-                    isBatchMode
+                  className={`flex items-center justify-between p-2.5 sm:p-3 rounded-2xl transition cursor-pointer border ${isBatchMode
                       ? isSelected
                         ? 'bg-emerald-950/40 border-emerald-500/50'
                         : 'bg-slate-900/40 border-slate-800/60 hover:border-slate-700'
                       : 'bg-slate-900/80 hover:bg-slate-900 border-slate-800/80 hover:border-slate-700 active:scale-[0.99]'
-                  }`}
+                    }`}
                 >
                   <div className="flex items-center gap-2.5 min-w-0">
                     {/* 批次模式勾選框 */}
                     {isBatchMode && (
                       <div
-                        className={`w-4 h-4 rounded-lg flex items-center justify-center transition border ${
-                          isSelected
+                        className={`w-4 h-4 rounded-lg flex items-center justify-center transition border ${isSelected
                             ? 'bg-emerald-500 border-emerald-400 text-slate-950 font-bold'
                             : 'border-slate-700 bg-slate-800'
-                        }`}
+                          }`}
                       >
                         {isSelected && <Check className="w-3 h-3 stroke-[3]" />}
                       </div>
