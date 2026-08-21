@@ -9,11 +9,11 @@ import { PersonalSettingsView, PersonalTabType, GroupSettingsView, GroupTabType 
 import { BarcodeModal, InvoiceScannerModal } from '@/blocks/invoice-scanner';
 import { QuickInputModal } from '@/blocks/transactions';
 import { FinancialChatModal } from '@/blocks/ai-consultant';
-import { UserProfileModal, WelcomeView } from '@/blocks/auth';
+import { UserProfileModal, WelcomeView, OnboardingWizardModal } from '@/blocks/auth';
 import { VoiceInputModal } from '@/blocks/voice-input';
 
 export default function Home() {
-  const { isAuthenticated, isAuthReady, pullFromCloud } = useAppStore();
+  const { user, isAuthenticated, isAuthReady, pullFromCloud } = useAppStore();
   const [currentTab, setCurrentTab] = useState<MainTabType>('overview');
 
   // Sidebar & Modal States
@@ -188,6 +188,12 @@ export default function Home() {
       <UserProfileModal
         isOpen={isProfileOpen}
         onClose={() => setIsProfileOpen(false)}
+      />
+
+      {/* 🌟 註冊/初次使用 4 步驟設定精靈 (基本資料/載具 -> 食衣住行標籤 -> 總預算與標籤預算 -> AI 助理) */}
+      <OnboardingWizardModal
+        isOpen={Boolean(isAuthenticated && user && !user.hasCompletedOnboarding)}
+        onComplete={() => {}}
       />
     </div>
   );

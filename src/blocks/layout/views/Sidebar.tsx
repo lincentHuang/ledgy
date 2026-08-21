@@ -484,7 +484,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
                   </span>
                 </button>
                 <button
-                  onClick={() => handleOpenPersonal('ai')}
+                  onClick={() => handleOpenPersonal('general')}
                   className="w-full text-[11px] text-emerald-400 hover:text-emerald-300 text-left px-2 py-1 rounded-lg hover:bg-emerald-950/30 flex items-center justify-between font-medium transition"
                 >
                   <span className="flex items-center gap-1">

@@ -50,23 +50,10 @@ export const DEFAULT_GROUP_TAG_ITEMS: TagItem[] = [
 export const DEFAULT_GROUP_TAGS = DEFAULT_GROUP_TAG_ITEMS.map((t) => t.name);
 
 export const DEFAULT_TAG_ITEMS: TagItem[] = [
-  { id: 'tag_food_breakfast', name: '餐飲·早餐' },
-  { id: 'tag_food_lunch', name: '餐飲·午餐' },
-  { id: 'tag_food_dinner', name: '餐飲·晚餐' },
-  { id: 'tag_food_afternoon_tea', name: '餐飲·下午茶' },
-  { id: 'tag_food_drink_coffee', name: '餐飲·飲料咖啡' },
-  { id: 'tag_grocery_food', name: '生鮮食材' },
-  { id: 'tag_home_daily', name: '居家·日用品' },
-  { id: 'tag_home_utility', name: '居家·水電瓦斯' },
-  { id: 'tag_traffic_fuel', name: '交通·加油' },
-  { id: 'tag_traffic_transit', name: '交通·捷運公車' },
-  { id: 'tag_traffic_taxi', name: '交通·計程車' },
-  { id: 'tag_shopping_beauty', name: '購物·美妝保養' },
-  { id: 'tag_shopping_clothing', name: '購物·服飾鞋包' },
-  { id: 'tag_ent_movie', name: '休閒娛樂·電影展覽' },
-  { id: 'tag_medical_health', name: '醫療健康·藥品保健' },
-  { id: 'tag_personal_exclusive', name: '個人專用' },
-  { id: 'tag_fixed_expense', name: '固定支出' },
+  { id: 'tag_food', name: '食' },
+  { id: 'tag_clothing', name: '衣' },
+  { id: 'tag_housing', name: '住' },
+  { id: 'tag_transport', name: '行' },
   { id: 'tag_uncategorized', name: '未歸類' },
 ];
 
@@ -1241,6 +1228,11 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       AuthService.saveActiveSession(updated as AuthUser);
       return updated;
     });
+    if (profile.tagItems) {
+      setAvailableTagItems(profile.tagItems);
+      localStorage.setItem(STORAGE_KEYS.TAG_ITEMS, JSON.stringify(profile.tagItems));
+      localStorage.setItem(STORAGE_KEYS.TAGS, JSON.stringify(profile.tagItems.map((t) => t.name)));
+    }
   };
 
   const syncToCloud = async () => {

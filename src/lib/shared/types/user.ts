@@ -21,6 +21,8 @@ export interface UserProfile {
   tagBudgets?: Record<string, number>;
   tagItems?: import('./expense').TagItem[];
   isAnonymous?: boolean;
+  hasCompletedOnboarding?: boolean;
+  paymentMethods?: string[];
   preferences?: UserPreferences;
 }
 
