@@ -403,7 +403,7 @@ export const VoiceInputModal: React.FC<VoiceInputModalProps> = ({ isOpen, onClos
         <div className="relative my-2 flex items-center justify-center">
           <button
             onClick={isListening ? stopListening : startListening}
-            className={`w-18 h-18 sm:w-20 sm:h-20 rounded-3xl flex items-center justify-center shadow-xl transition-all active:scale-95 ${
+            className={`w-16 h-16 sm:w-20 sm:h-20 rounded-3xl flex items-center justify-center shadow-xl transition-all active:scale-95 ${
               isListening
                 ? 'bg-rose-600 text-white shadow-rose-600/30 ring-4 ring-rose-500/30'
                 : 'bg-emerald-600 hover:bg-emerald-500 text-white shadow-emerald-600/30 ring-4 ring-slate-800'

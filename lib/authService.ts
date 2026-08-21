@@ -267,8 +267,8 @@ export class AuthService {
         const provider = new GoogleAuthProvider();
         provider.setCustomParameters({ prompt: 'select_account' });
         const res = await withTimeout(
-          signInWithPopup(auth, provider, browserPopupRedirectResolver),
-          20000,
+          signInWithPopup(auth, provider),
+          30000,
           'Google 登入連線逾時，請確認是否已允許彈窗或改用 Email 登入。'
         );
         const fbUser = res.user;
@@ -297,14 +297,22 @@ export class AuthService {
         return user;
       } catch (err: any) {
         console.error('Firebase Google Sign-In error:', err);
+        const errMsg = err?.message || '';
+
+        if (err.code === 'auth/popup-closed-by-user' || err.code === 'auth/cancelled-popup-request') {
+          throw new Error('Google 登入視窗已關閉。');
+        }
         if (err.code === 'auth/operation-not-allowed') {
-          throw new Error('Firebase 後台尚未啟用「Google」登入提供者，請先至 Firebase Console 的 Authentication > Sign-in method 將其「啟用」。');
+          throw new Error('Firebase 後台尚未啟用「Google」登入提供者，請至 Firebase Console 的 Authentication > Sign-in method 啟用 Google 登入。');
         }
         if (err.code === 'auth/popup-blocked') {
-          throw new Error('Google 登入彈窗已被瀏覽器封鎖，請允許彈窗或改用 Email 登入。');
+          throw new Error('Google 登入彈窗已被瀏覽器封鎖，請在網址列允許彈出視窗。');
         }
         if (err.code === 'auth/unauthorized-domain') {
-          throw new Error('未授權的網域名稱，請在 Firebase 控制台 Authorized Domains 新增此網域。');
+          throw new Error('未授權的網域名稱，請在 Firebase 控制台 Authorized Domains 新增 localhost。');
+        }
+        if (errMsg.includes('Database is closing') || errMsg.includes('closing/hidden')) {
+          throw new Error('瀏覽器快取連線刷新中，請重新整理網頁 (F5) 後再次登入即可。');
         }
         throw new Error(err.message || 'Google 登入失敗');
       }

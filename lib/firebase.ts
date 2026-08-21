@@ -99,7 +99,7 @@ export const getFirebaseServices = () => {
     if (!auth) {
       try {
         auth = initializeAuth(app, {
-          persistence: [indexedDBLocalPersistence, browserLocalPersistence, inMemoryPersistence],
+          persistence: [browserLocalPersistence, inMemoryPersistence],
           popupRedirectResolver: browserPopupRedirectResolver,
         });
       } catch {
