@@ -225,12 +225,14 @@ export const OnboardingWizardView: React.FC<OnboardingWizardViewProps> = ({
               <ArrowLeft className="w-4 h-4" />
             </button>
           )}
-          <div className="flex items-center gap-2">
-            <div className="w-9 h-9 rounded-xl bg-gradient-to-tr from-emerald-600 to-teal-500 flex items-center justify-center shadow-md shadow-emerald-500/20 font-black text-white">
-              <Sparkles className="w-5 h-5" />
-            </div>
+          <div className="flex items-center gap-2.5">
+            <img
+              src="/logo.png"
+              alt="智帳君 Ledgy"
+              className="w-9 h-9 rounded-xl object-cover shadow-md shadow-emerald-500/20 border border-emerald-500/30"
+            />
             <div>
-              <h1 className="text-sm font-black text-white leading-tight">智帳君 AI 記帳</h1>
+              <h1 className="text-sm font-black text-white leading-tight">智帳君 Ledgy</h1>
               <p className="text-[10px] text-emerald-400 font-bold">新手專屬設定精靈</p>
             </div>
           </div>

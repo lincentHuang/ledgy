@@ -1,7 +1,7 @@
 <?xml version='1.0' encoding='utf-8'?>
 <resources>
-    <string name="app_name">智帳君 AI 記帳</string>
-    <string name="title_activity_main">智帳君 AI 記帳</string>
+    <string name="app_name">智帳君 Ledgy</string>
+    <string name="title_activity_main">智帳君 Ledgy</string>
     <string name="package_name">com.zhizhangkun.app</string>
     <string name="custom_url_scheme">com.zhizhangkun.app</string>
     <string name="widget_barcode_name">載具條碼 (智帳君)</string>

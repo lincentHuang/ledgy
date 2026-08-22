@@ -1,0 +1,98 @@
+{
+  "name": "智帳君 Ledgy - AI 智能發票與記帳管家",
+  "short_name": "智帳君",
+  "description": "專為台灣打造的 AI 智慧發票載具與家庭記帳 App",
+  "id": "/",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "display_override": [
+    "standalone",
+    "minimal-ui",
+    "window-controls-overlay"
+  ],
+  "orientation": "portrait-primary",
+  "background_color": "#020617",
+  "theme_color": "#020617",
+  "lang": "zh-TW",
+  "dir": "ltr",
+  "categories": [
+    "finance",
+    "productivity",
+    "utilities"
+  ],
+  "icons": [
+    {
+      "src": "/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "/apple-touch-icon.png",
+      "sizes": "180x180",
+      "type": "image/png"
+    },
+    {
+      "src": "/favicon.png",
+      "sizes": "48x48",
+      "type": "image/png"
+    }
+  ],
+  "shortcuts": [
+    {
+      "name": "語音自然記帳",
+      "short_name": "語音記帳",
+      "description": "一鍵開啟 AI 語音說話記帳",
+      "url": "/?action=voice",
+      "icons": [
+        {
+          "src": "/icon-192.png",
+          "sizes": "192x192"
+        }
+      ]
+    },
+    {
+      "name": "掃描統一發票",
+      "short_name": "掃描發票",
+      "description": "掃描發票雙 QR Code 自動登錄與對獎",
+      "url": "/?action=scanner",
+      "icons": [
+        {
+          "src": "/icon-192.png",
+          "sizes": "192x192"
+        }
+      ]
+    },
+    {
+      "name": "出示手機載具",
+      "short_name": "手機載具",
+      "description": "結帳一鍵出示高對比載具條碼",
+      "url": "/?action=barcode",
+      "icons": [
+        {
+          "src": "/icon-192.png",
+          "sizes": "192x192"
+        }
+      ]
+    },
+    {
+      "name": "快速手動記帳",
+      "short_name": "快速記帳",
+      "description": "開啟極速金額與品項輸入視窗",
+      "url": "/?action=quick-input",
+      "icons": [
+        {
+          "src": "/icon-192.png",
+          "sizes": "192x192"
+        }
+      ]
+    }
+  ]
+}

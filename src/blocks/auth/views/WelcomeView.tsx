@@ -21,6 +21,7 @@ import {
 
 import { PrivacyPolicyModal } from '@/blocks/legal/views/PrivacyPolicyModal';
 import { OnboardingWizardView } from './OnboardingWizardView';
+import { PwaInstallPrompt } from '@/blocks/layout/views/PwaInstallPrompt';
 
 export const WelcomeView: React.FC = () => {
   const { loginWithUser } = useAppStore();
@@ -90,12 +91,19 @@ export const WelcomeView: React.FC = () => {
         {/* 電腦版左側：品牌視覺與核心特色 */}
         <div className="hidden lg:block lg:col-span-7 space-y-6 text-left">
           <div className="space-y-3">
-            <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-emerald-950/80 border border-emerald-800/80 text-emerald-400 text-xs font-bold tracking-wide">
-              <Sparkles className="w-3.5 h-3.5" />
-              台灣在地化 • 智慧發票載具記帳
+            <div className="flex items-center gap-3">
+              <img
+                src="/logo.png"
+                alt="智帳君 Ledgy"
+                className="w-12 h-12 rounded-2xl object-cover shadow-lg shadow-emerald-600/30 border border-emerald-500/30"
+              />
+              <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-emerald-950/80 border border-emerald-800/80 text-emerald-400 text-xs font-bold tracking-wide">
+                <Sparkles className="w-3.5 h-3.5" />
+                台灣在地化 • 智慧發票載具記帳
+              </div>
             </div>
             <h1 className="text-3xl sm:text-4xl font-black tracking-tight text-white leading-tight">
-              智帳君 <span className="text-emerald-400">AI 記帳</span>
+              智帳君 <span className="text-emerald-400">Ledgy</span>
             </h1>
             <p className="text-sm text-slate-400 leading-relaxed max-w-lg">
               手機條碼載具快速出示、發票雙 QR 掃描自動對獎、家庭公帳智慧平帳，讓每一次記帳都無比輕鬆。
@@ -142,10 +150,12 @@ export const WelcomeView: React.FC = () => {
         <div className="lg:col-span-5 w-full max-w-md mx-auto">
           {/* 手機版頂部 Logo */}
           <div className="lg:hidden text-center mb-4 space-y-1">
-            <div className="w-11 h-11 rounded-2xl bg-gradient-to-tr from-emerald-600 to-teal-500 flex items-center justify-center mx-auto shadow-lg shadow-emerald-600/30">
-              <Sparkles className="w-5 h-5 text-white" />
-            </div>
-            <h1 className="text-xl font-black text-white tracking-tight">智帳君 AI 記帳</h1>
+            <img
+              src="/logo.png"
+              alt="智帳君 Ledgy"
+              className="w-12 h-12 rounded-2xl object-cover mx-auto shadow-lg shadow-emerald-600/30 border border-emerald-500/30 mb-2"
+            />
+            <h1 className="text-xl font-black text-white tracking-tight">智帳君 Ledgy</h1>
             <p className="text-xs text-slate-400">台灣在地化 • 智慧發票載具記帳</p>
           </div>
 
@@ -318,6 +328,9 @@ export const WelcomeView: React.FC = () => {
         onClose={() => setShowPolicyModal(false)}
         defaultTab={policyTab}
       />
+
+      {/* 📲 PWA 桌面捷徑 / 加入主畫面引導提示 */}
+      <PwaInstallPrompt />
     </main>
   );
 };

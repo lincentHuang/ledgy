@@ -2,7 +2,7 @@ import type { CapacitorConfig } from '@capacitor/cli';
 
 const config: CapacitorConfig = {
   appId: 'com.zhizhangkun.app',
-  appName: '智帳君 AI 記帳',
+  appName: '智帳君 Ledgy',
   webDir: 'out',
   server: {
     androidScheme: 'https',

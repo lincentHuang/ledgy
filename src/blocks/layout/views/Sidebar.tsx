@@ -101,14 +101,16 @@ export const Sidebar: React.FC<SidebarProps> = ({
           {/* Logo & Close for Mobile */}
           <div className="flex items-center justify-between pb-2 border-b border-slate-800/80">
             <div className="flex items-center gap-2.5">
-              <div className="w-8 h-8 rounded-2xl bg-gradient-to-tr from-emerald-600 to-teal-500 flex items-center justify-center text-white font-black text-sm shadow-md shadow-emerald-600/30">
-                AI
-              </div>
+              <img
+                src="/logo.png"
+                alt="智帳君 Ledgy"
+                className="w-8 h-8 rounded-xl object-cover shadow-md shadow-emerald-600/30 border border-emerald-500/30"
+              />
               <div>
                 <h1 className="font-extrabold text-sm text-white tracking-tight leading-none">
-                  AI 語音記帳
+                  智帳君 <span className="text-emerald-400">Ledgy</span>
                 </h1>
-                <p className="text-[10px] text-slate-400 mt-0.5">專業個人與群組記帳</p>
+                <p className="text-[10px] text-slate-400 mt-0.5">AI 智慧發票與記帳管家</p>
               </div>
             </div>
 

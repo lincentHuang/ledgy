@@ -2,7 +2,7 @@
 
 import React, { useState } from 'react';
 import { useAppStore } from '@/lib/store';
-import { Header, Sidebar, BottomNav, MainTabType, PullToRefresh } from '@/blocks/layout';
+import { Header, Sidebar, BottomNav, MainTabType, PullToRefresh, PwaInstallPrompt } from '@/blocks/layout';
 import { TransactionList } from '@/blocks/dashboard';
 import { FamilyView } from '@/blocks/family-ledger';
 import { PersonalSettingsView, PersonalTabType, GroupSettingsView, GroupTabType } from '@/blocks/settings';
@@ -195,6 +195,9 @@ export default function Home() {
         isOpen={Boolean(isAuthenticated && user && !user.hasCompletedOnboarding)}
         onComplete={() => {}}
       />
+
+      {/* 📲 PWA 桌面捷徑 / 加入主畫面引導提示 */}
+      <PwaInstallPrompt />
     </div>
   );
 }
