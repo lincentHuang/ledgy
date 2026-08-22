@@ -527,23 +527,44 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     }
   }, [learningEngine]);
 
-  // 🔄 即時監聽與自動同步 Cloud Firestore 帳目數據 (跨裝置即時同步)
+  // 🔄 即時監聽與自動同步 Cloud Firestore 帳目與個人資料數據 (跨裝置即時同步)
   useEffect(() => {
     if (!isAuthReady || !user.uid) return;
 
     const { isConfigured } = getFirebaseServices();
     if (!isConfigured) return;
 
-    // 建立 Firestore onSnapshot 即時監聽器 (手機記帳，電腦端即時更新；電腦記帳，手機即時更新)
-    const unsubscribe = FirestoreService.subscribeToUserTransactions(user.uid, (cloudTx) => {
+    // 1. 建立 Firestore onSnapshot 即時監聽器 (交易明細)
+    const unsubscribeTx = FirestoreService.subscribeToUserTransactions(user.uid, (cloudTx) => {
       if (cloudTx && cloudTx.length > 0) {
         setTransactions(cloudTx);
         localStorage.setItem(STORAGE_KEYS.TRANSACTIONS, JSON.stringify(cloudTx));
       }
     });
 
+    // 2. 建立 Firestore onSnapshot 即時監聽器 (個人檔案：標籤庫、預算、設定精靈狀態)
+    const unsubscribeUser = FirestoreService.subscribeToUserProfile(user.uid, (cloudUser) => {
+      if (cloudUser) {
+        setUser((prev) => {
+          const merged = { ...prev, ...cloudUser };
+          AuthService.saveActiveSession(merged as AuthUser);
+          return merged;
+        });
+        if (cloudUser.tagItems && Array.isArray(cloudUser.tagItems) && cloudUser.tagItems.length > 0) {
+          setAvailableTagItems(cloudUser.tagItems);
+          localStorage.setItem(STORAGE_KEYS.TAG_ITEMS, JSON.stringify(cloudUser.tagItems));
+          localStorage.setItem(STORAGE_KEYS.TAGS, JSON.stringify(cloudUser.tagItems.map((t) => t.name)));
+        }
+        if (cloudUser.paymentMethods && Array.isArray(cloudUser.paymentMethods) && cloudUser.paymentMethods.length > 0) {
+          setPaymentMethods(cloudUser.paymentMethods);
+          localStorage.setItem(STORAGE_KEYS.PAYMENT_METHODS, JSON.stringify(cloudUser.paymentMethods));
+        }
+      }
+    });
+
     return () => {
-      if (unsubscribe) unsubscribe();
+      if (unsubscribeTx) unsubscribeTx();
+      if (unsubscribeUser) unsubscribeUser();
     };
   }, [isAuthReady, user.uid, activeHouseholdId]);
 
@@ -991,6 +1012,10 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     const updated = [...paymentMethods, clean];
     setPaymentMethods(updated);
     localStorage.setItem(STORAGE_KEYS.PAYMENT_METHODS, JSON.stringify(updated));
+    if (user.uid) {
+      FirestoreService.saveUserProfile({ ...user, paymentMethods: updated });
+      CloudApiClient.saveUserProfile({ ...user, paymentMethods: updated });
+    }
   };
 
   const removePaymentMethod = (name: string) => {
@@ -1001,6 +1026,10 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     const updated = paymentMethods.filter((p) => p !== name);
     setPaymentMethods(updated);
     localStorage.setItem(STORAGE_KEYS.PAYMENT_METHODS, JSON.stringify(updated));
+    if (user.uid) {
+      FirestoreService.saveUserProfile({ ...user, paymentMethods: updated });
+      CloudApiClient.saveUserProfile({ ...user, paymentMethods: updated });
+    }
   };
 
   const updatePaymentMethod = (oldName: string, newName: string) => {
@@ -1014,6 +1043,10 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     );
     setTransactions(updatedTx);
     localStorage.setItem(STORAGE_KEYS.TRANSACTIONS, JSON.stringify(updatedTx));
+    if (user.uid) {
+      FirestoreService.saveUserProfile({ ...user, paymentMethods: updated });
+      CloudApiClient.saveUserProfile({ ...user, paymentMethods: updated });
+    }
   };
 
   // 個人標籤分類操作 (支援永久 key / ID 綁定與更名自動連動)
@@ -1031,6 +1064,10 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     setAvailableTagItems(updated);
     localStorage.setItem(STORAGE_KEYS.TAG_ITEMS, JSON.stringify(updated));
     localStorage.setItem(STORAGE_KEYS.TAGS, JSON.stringify(updated.map((t) => t.name)));
+    if (user.uid) {
+      FirestoreService.saveUserProfile({ ...user, tagItems: updated });
+      CloudApiClient.saveUserProfile({ ...user, tagItems: updated });
+    }
   };
 
   const removeCustomTag = (tagOrKey: string) => {
@@ -1038,6 +1075,10 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     setAvailableTagItems(updated);
     localStorage.setItem(STORAGE_KEYS.TAG_ITEMS, JSON.stringify(updated));
     localStorage.setItem(STORAGE_KEYS.TAGS, JSON.stringify(updated.map((t) => t.name)));
+    if (user.uid) {
+      FirestoreService.saveUserProfile({ ...user, tagItems: updated });
+      CloudApiClient.saveUserProfile({ ...user, tagItems: updated });
+    }
   };
 
   const updateCustomTag = (oldTagOrKey: string, newTag: string) => {
@@ -1057,6 +1098,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     localStorage.setItem(STORAGE_KEYS.TAGS, JSON.stringify(updatedTagItems.map((t) => t.name)));
 
     // 2. 連動更新個人標籤預算 (Key 和 Name 雙向更新，確保更名後預算不遺失)
+    let nextTagBudgets = user.tagBudgets;
     if (user.tagBudgets) {
       const updatedBudgets = { ...user.tagBudgets };
       const oldBudget = updatedBudgets[tagKey] ?? updatedBudgets[oldName];
@@ -1064,8 +1106,14 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         updatedBudgets[clean] = oldBudget;
         updatedBudgets[tagKey] = oldBudget;
         delete updatedBudgets[oldName];
+        nextTagBudgets = updatedBudgets;
         updateUserProfile({ tagBudgets: updatedBudgets });
       }
+    }
+
+    if (user.uid) {
+      FirestoreService.saveUserProfile({ ...user, tagItems: updatedTagItems, tagBudgets: nextTagBudgets });
+      CloudApiClient.saveUserProfile({ ...user, tagItems: updatedTagItems, tagBudgets: nextTagBudgets });
     }
 
     // 3. 連動更新私帳既有所有交易中的標籤名稱與永久 tagIds (全面找回與同步)
@@ -1131,6 +1179,10 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     setAvailableTagItems(updatedItems);
     localStorage.setItem(STORAGE_KEYS.TAG_ITEMS, JSON.stringify(updatedItems));
     localStorage.setItem(STORAGE_KEYS.TAGS, JSON.stringify(updatedItems.map((t) => t.name)));
+    if (user.uid) {
+      FirestoreService.saveUserProfile({ ...user, tagItems: updatedItems });
+      CloudApiClient.saveUserProfile({ ...user, tagItems: updatedItems });
+    }
   };
 
   const loginWithUser = (authUser: AuthUser) => {
@@ -1157,23 +1209,71 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       });
     }
 
-    // 載入該使用者專屬真實交易 (優先從 Cloud Firestore 拉取)
+    // 載入該使用者專屬真實交易與雲端個人資料 (優先從 Cloud Firestore 拉取)
     const { isConfigured } = getFirebaseServices();
     if (isConfigured) {
       FirestoreService.pullFromCloud(authUser.uid, authUser.activeHouseholdId).then((data) => {
-        if (data && data.transactions && data.transactions.length > 0) {
-          setTransactions(data.transactions);
-          localStorage.setItem(STORAGE_KEYS.TRANSACTIONS, JSON.stringify(data.transactions));
-        } else {
-          CloudApiClient.getTransactions(authUser.uid, authUser.activeHouseholdId).then((serverTx) => {
-            if (serverTx && serverTx.length > 0) {
-              setTransactions(serverTx);
-              localStorage.setItem(STORAGE_KEYS.TRANSACTIONS, JSON.stringify(serverTx));
+        if (data) {
+          if (data.user) {
+            setUser((prev) => {
+              const merged = { ...prev, ...data.user };
+              AuthService.saveActiveSession(merged as AuthUser);
+              return merged;
+            });
+            if (data.user.paymentMethods && Array.isArray(data.user.paymentMethods) && data.user.paymentMethods.length > 0) {
+              setPaymentMethods(data.user.paymentMethods);
+              localStorage.setItem(STORAGE_KEYS.PAYMENT_METHODS, JSON.stringify(data.user.paymentMethods));
             }
-          });
+          } else {
+            // 雲端尚無 profile 時，立即上傳當前 authUser
+            FirestoreService.saveUserProfile({
+              ...authUser,
+              tagItems: availableTagItems,
+              paymentMethods,
+            });
+          }
+
+          if (data.tagItems && Array.isArray(data.tagItems) && data.tagItems.length > 0) {
+            setAvailableTagItems(data.tagItems);
+            localStorage.setItem(STORAGE_KEYS.TAG_ITEMS, JSON.stringify(data.tagItems));
+            localStorage.setItem(STORAGE_KEYS.TAGS, JSON.stringify(data.tagItems.map((t) => t.name)));
+          }
+
+          if (data.transactions && data.transactions.length > 0) {
+            setTransactions(data.transactions);
+            localStorage.setItem(STORAGE_KEYS.TRANSACTIONS, JSON.stringify(data.transactions));
+          } else {
+            CloudApiClient.getTransactions(authUser.uid, authUser.activeHouseholdId).then((serverTx) => {
+              if (serverTx && serverTx.length > 0) {
+                setTransactions(serverTx);
+                localStorage.setItem(STORAGE_KEYS.TRANSACTIONS, JSON.stringify(serverTx));
+              }
+            });
+          }
         }
       });
     } else {
+      CloudApiClient.getUserProfile(authUser.uid).then((serverUser) => {
+        if (serverUser) {
+          setUser((prev) => {
+            const merged = { ...prev, ...serverUser };
+            AuthService.saveActiveSession(merged as AuthUser);
+            return merged;
+          });
+          if (serverUser.tagItems && Array.isArray(serverUser.tagItems) && serverUser.tagItems.length > 0) {
+            setAvailableTagItems(serverUser.tagItems);
+            localStorage.setItem(STORAGE_KEYS.TAG_ITEMS, JSON.stringify(serverUser.tagItems));
+            localStorage.setItem(STORAGE_KEYS.TAGS, JSON.stringify(serverUser.tagItems.map((t) => t.name)));
+          }
+          if (serverUser.paymentMethods && Array.isArray(serverUser.paymentMethods) && serverUser.paymentMethods.length > 0) {
+            setPaymentMethods(serverUser.paymentMethods);
+            localStorage.setItem(STORAGE_KEYS.PAYMENT_METHODS, JSON.stringify(serverUser.paymentMethods));
+          }
+        } else {
+          CloudApiClient.saveUserProfile({ ...authUser, tagItems: availableTagItems, paymentMethods });
+        }
+      });
+
       CloudApiClient.getTransactions(authUser.uid, authUser.activeHouseholdId).then((serverTx) => {
         const list = serverTx || [];
         setTransactions(list);
@@ -1223,15 +1323,35 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   };
 
   const updateUserProfile = (profile: Partial<UserProfile>) => {
+    let fullUpdated: UserProfile | null = null;
     setUser((prev) => {
       const updated = { ...prev, ...profile };
+      fullUpdated = updated;
       AuthService.saveActiveSession(updated as AuthUser);
       return updated;
     });
+
     if (profile.tagItems) {
       setAvailableTagItems(profile.tagItems);
       localStorage.setItem(STORAGE_KEYS.TAG_ITEMS, JSON.stringify(profile.tagItems));
       localStorage.setItem(STORAGE_KEYS.TAGS, JSON.stringify(profile.tagItems.map((t) => t.name)));
+    }
+
+    if (profile.paymentMethods) {
+      setPaymentMethods(profile.paymentMethods);
+      localStorage.setItem(STORAGE_KEYS.PAYMENT_METHODS, JSON.stringify(profile.paymentMethods));
+    }
+
+    // ☁️ 即時自動上傳與同步所有個人資料至 Cloud Firestore 與後端資料庫
+    const targetUser = fullUpdated || { ...user, ...profile };
+    if (targetUser && targetUser.uid) {
+      const payloadToSave: UserProfile = {
+        ...targetUser,
+        tagItems: profile.tagItems || availableTagItems,
+        paymentMethods: profile.paymentMethods || paymentMethods,
+      };
+      FirestoreService.saveUserProfile(payloadToSave);
+      CloudApiClient.saveUserProfile(payloadToSave);
     }
   };
 
@@ -1240,7 +1360,11 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       const { isConfigured } = getFirebaseServices();
       if (isConfigured) {
         return await FirestoreService.syncLocalToCloud({
-          user,
+          user: {
+            ...user,
+            tagItems: availableTagItems,
+            paymentMethods,
+          },
           households,
           transactions,
           invoices,

@@ -188,4 +188,16 @@ export class CloudApiClient {
       return null;
     }
   }
+
+  // 10. 使用者個人設定檔案操作
+  public static async getUserProfile(userId: string): Promise<UserProfile | null> {
+    return this.req<UserProfile>(`/api/users?userId=${userId}`);
+  }
+
+  public static async saveUserProfile(user: UserProfile): Promise<UserProfile | null> {
+    return this.req<UserProfile>('/api/users', {
+      method: 'POST',
+      body: JSON.stringify(user),
+    });
+  }
 }

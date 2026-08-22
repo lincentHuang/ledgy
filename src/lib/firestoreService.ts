@@ -326,4 +326,45 @@ export class FirestoreService {
       return null;
     }
   }
+
+  /**
+   * 9. 取得使用者個人設定檔案
+   */
+  public static async getUserProfile(userId: string): Promise<UserProfile | null> {
+    const { db, isConfigured } = getFirebaseServices();
+    if (!db || !isConfigured) return null;
+
+    try {
+      const snap = await getDoc(doc(db, 'users', userId));
+      if (snap.exists()) {
+        return snap.data() as UserProfile;
+      }
+      return null;
+    } catch (e) {
+      console.error('Firestore getUserProfile error:', e);
+      return null;
+    }
+  }
+
+  /**
+   * 10. 即時監聽使用者個人設定檔案 (跨裝置即時連動標籤、預算與個人資料)
+   */
+  public static subscribeToUserProfile(
+    userId: string,
+    onData: (user: UserProfile) => void
+  ): Unsubscribe | null {
+    const { db, isConfigured } = getFirebaseServices();
+    if (!db || !isConfigured) return null;
+
+    try {
+      return onSnapshot(doc(db, 'users', userId), (docSnap) => {
+        if (docSnap.exists()) {
+          onData(docSnap.data() as UserProfile);
+        }
+      });
+    } catch (e) {
+      console.error('Failed to subscribe to user profile:', e);
+      return null;
+    }
+  }
 }
