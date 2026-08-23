@@ -1,5 +1,6 @@
 import { DEFAULT_CATEGORIES, DEFAULT_PAYMENT_METHODS } from './defaultCategories';
 import { Transaction } from './types/expense';
+import { matchTagIntelligently } from './tagMatcher';
 
 export interface ParsedExpenseAIResult {
   title: string;
@@ -408,57 +409,12 @@ export function fallbackLocalRuleParser(text: string, existingTags?: string[]): 
     }
   }
 
-  // ================= 8. 嚴格對齊「當前現有標籤庫 (existingTags)」；無匹配則預設「未歸類」 =================
-  let finalTags: string[] = [];
+  // ================= 8. 智能對齊「現有標籤庫 (existingTags)」；無匹配則為「未歸類」 =================
+  let finalTags: string[] = ['未歸類'];
 
   if (existingTags && existingTags.length > 0) {
-    for (const rawTag of rawCandidateTags) {
-      // 1. 完全比對
-      if (existingTags.includes(rawTag)) {
-        finalTags.push(rawTag);
-        continue;
-      }
-      // 2. 語意部分匹配 (如 '午餐' -> '餐飲·午餐', '水電瓦斯' -> '居家·水電瓦斯' 或 '房租水電')
-      const matchedExisting = existingTags.find(
-        (et) => et.includes(rawTag) || rawTag.includes(et)
-      );
-      if (matchedExisting) {
-        finalTags.push(matchedExisting);
-      }
-    }
-
-    // 若根據主分類尋找對應現有標籤
-    if (finalTags.length === 0) {
-      if (categoryId === 'food') {
-        const foodTag = existingTags.find((t) => t.includes('餐飲') || t.includes('生鮮') || t.includes('聚餐'));
-        if (foodTag) finalTags.push(foodTag);
-      } else if (categoryId === 'housing') {
-        const houseTag = existingTags.find((t) => t.includes('居家') || t.includes('水電') || t.includes('房租') || t.includes('固定支出'));
-        if (houseTag) finalTags.push(houseTag);
-      } else if (categoryId === 'transport') {
-        const transTag = existingTags.find((t) => t.includes('交通') || t.includes('加油') || t.includes('旅遊'));
-        if (transTag) finalTags.push(transTag);
-      } else if (categoryId === 'shopping') {
-        const shopTag = existingTags.find((t) => t.includes('購物') || t.includes('採買'));
-        if (shopTag) finalTags.push(shopTag);
-      } else if (categoryId === 'medical') {
-        const medTag = existingTags.find((t) => t.includes('醫療'));
-        if (medTag) finalTags.push(medTag);
-      } else if (categoryId === 'entertainment') {
-        const entTag = existingTags.find((t) => t.includes('娛樂') || t.includes('展覽') || t.includes('住宿'));
-        if (entTag) finalTags.push(entTag);
-      }
-    }
-
-    // 嚴格過濾只保留現有標籤清單中的項目，且每筆記帳嚴格僅限單一標籤
-    finalTags = Array.from(new Set(finalTags)).filter((t) => existingTags.includes(t));
-
-    // 若無任何匹配現有標籤，嚴格設定為「未歸類」；若有多個僅取最精準的第一個
-    if (finalTags.length === 0) {
-      finalTags = ['未歸類'];
-    } else {
-      finalTags = [finalTags[0]];
-    }
+    const intelligentTag = matchTagIntelligently(raw, cleanTitle, merchant, existingTags);
+    finalTags = [intelligentTag];
   } else {
     finalTags = rawCandidateTags.length > 0 ? [rawCandidateTags[0]] : ['未歸類'];
   }

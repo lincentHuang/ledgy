@@ -95,19 +95,6 @@ export const VoiceInputModal: React.FC<VoiceInputModalProps> = ({ isOpen, onClos
     const singleTag =
       parsedResult.tags && parsedResult.tags.length > 0 ? [parsedResult.tags[0]] : ['未歸類'];
 
-    if (parsedResult.title) {
-      learningEngine.recordUserCorrection(
-        parsedResult.title,
-        parsedResult.merchant,
-        parsedResult.categoryId,
-        parsedResult.categoryName,
-        parsedResult.subCategory,
-        singleTag,
-        user.uid || 'user_tw_01',
-        parsedResult.ledgerType === 'household' ? (selectedHouseholdId || household?.id) : undefined
-      );
-    }
-
     addTransaction({
       userId: user.uid || 'user_tw_01',
       householdId:

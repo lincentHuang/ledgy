@@ -1484,6 +1484,26 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       updatedAt: now,
     };
 
+    // 🤖 自動學習：若有明確標籤（非未歸類），自動記錄至 AI 偏好關鍵字庫
+    if (singleTag[0] !== '未歸類' && (txData.title || txData.merchant)) {
+      const catId = txData.categoryId || 'other_expense';
+      const catObj = DEFAULT_CATEGORIES.find((c) => c.id === catId);
+      const savedRule = learningEngine.recordUserCorrection(
+        txData.title || '',
+        txData.merchant,
+        catId,
+        catObj ? catObj.name : (txData.categoryName || catId),
+        txData.subCategory,
+        singleTag,
+        user.uid,
+        household?.id
+      );
+      saveRules(learningEngine.getRules());
+      if (user.uid) {
+        FirestoreService.saveLearningRule(user.uid, savedRule);
+      }
+    }
+
     setTransactions((prev) => {
       const updated = [newTx, ...prev];
       localStorage.setItem(STORAGE_KEYS.TRANSACTIONS, JSON.stringify(updated));
@@ -1500,23 +1520,41 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       const target = prev.find((t) => t.id === id);
       if (!target) return prev;
 
-      if (
-        updateData.categoryId &&
-        updateData.categoryId !== target.categoryId &&
-        (target.merchant || target.title)
-      ) {
-        const catObj = DEFAULT_CATEGORIES.find((c) => c.id === updateData.categoryId);
-        learningEngine.recordUserCorrection(
+      const isTagChanged =
+        updateData.tags !== undefined &&
+        (updateData.tags.length === 0 ||
+          !target.tags ||
+          target.tags.length === 0 ||
+          target.tags[0] !== updateData.tags[0]);
+
+      const isCategoryChanged =
+        updateData.categoryId && updateData.categoryId !== target.categoryId;
+
+      // 🤖 自動學習：使用者修改標籤或分類時，立刻自動擴充該標籤的關鍵字學習規則
+      if ((isTagChanged || isCategoryChanged) && (target.merchant || target.title)) {
+        const catId = updateData.categoryId || target.categoryId || 'other_expense';
+        const catObj = DEFAULT_CATEGORIES.find((c) => c.id === catId);
+        const newTags =
+          updateData.tags !== undefined
+            ? updateData.tags.length > 0
+              ? [updateData.tags[0]]
+              : ['未歸類']
+            : target.tags || ['未歸類'];
+
+        const savedRule = learningEngine.recordUserCorrection(
           target.title,
           target.merchant,
-          updateData.categoryId,
-          catObj ? catObj.name : updateData.categoryId,
+          catId,
+          catObj ? catObj.name : catId,
           updateData.subCategory || target.subCategory,
-          updateData.tags || target.tags,
+          newTags,
           user.uid,
           household?.id
         );
         saveRules(learningEngine.getRules());
+        if (user.uid) {
+          FirestoreService.saveLearningRule(user.uid, savedRule);
+        }
       }
 
       const updated = prev.map((t) => {

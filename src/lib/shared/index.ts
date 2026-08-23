@@ -5,4 +5,5 @@ export * from './lottery';
 export * from './learningRules';
 export * from './settlement';
 export * from './geminiPrompts';
+export * from './tagMatcher';
 export * from './mockData';

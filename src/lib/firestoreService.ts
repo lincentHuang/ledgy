@@ -367,4 +367,21 @@ export class FirestoreService {
       return null;
     }
   }
+
+  /**
+   * 11. 儲存單一學習規則：users/{userId}/learning_rules/{ruleId}
+   */
+  public static async saveLearningRule(userId: string, rule: LearningRule): Promise<boolean> {
+    const { db, isConfigured } = getFirebaseServices();
+    if (!db || !isConfigured || !userId || !rule?.id) return false;
+
+    try {
+      const ref = doc(db, 'users', userId, 'learning_rules', rule.id);
+      await setDoc(ref, cleanForFirestore(rule), { merge: true });
+      return true;
+    } catch (e) {
+      console.error('Firestore saveLearningRule error:', e);
+      return false;
+    }
+  }
 }
