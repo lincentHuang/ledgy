@@ -8,6 +8,20 @@ export function NativeInitializer() {
     // 啟動原生狀態列與樣式
     Platform.initStatusBar();
 
+    // 💼 開發者數位版權與面試展示浮水印 Console 彩蛋
+    if (typeof window !== 'undefined' && !(window as any).__LEDGY_BANNER_SHOWN__) {
+      (window as any).__LEDGY_BANNER_SHOWN__ = true;
+      console.log(
+        `%c 🤖 智帳君 Ledgy v2.0 %c Technical Portfolio & AI Accounting Engine %c\n\n` +
+          `✨ 架構亮點: Clean Modular • Gemini 多模態 AI • 載具雙 QR Code 離線解碼 • 圖論 AA 債務沖銷\n` +
+          `👨‍💻 開發者: lincentHuang (黃鈴程) • https://github.com/lincentHuang/ledgy\n` +
+          `📜 版權授權: PolyForm Noncommercial License (面試評估與技術展示專用，禁止未授權商業部署)\n`,
+        'background: #059669; color: #ffffff; font-weight: 800; font-size: 12px; padding: 4px 8px; border-radius: 4px 0 0 4px;',
+        'background: #0f172a; color: #34d399; font-weight: 700; font-size: 12px; padding: 4px 8px; border-radius: 0 4px 4px 0; border: 1px solid #059669;',
+        'color: #94a3b8; font-size: 11px; line-height: 1.6;'
+      );
+    }
+
     // 🌐 註冊 PWA Service Worker (支援離線快取與秒開)
     if (typeof window !== 'undefined' && 'serviceWorker' in navigator) {
       window.addEventListener('load', () => {

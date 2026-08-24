@@ -209,6 +209,12 @@ yarn deploy
 
 ---
 
-## 📄 開源授權 (License)
+## 📄 授權與智慧財產權聲明 (License & Intellectual Property)
 
-本專案基於 **MIT License** 授權開源。
+本專案原始碼採用 **[PolyForm Noncommercial License 1.0.0](./LICENSE)** 授權：
+
+- 💼 **技術評估與面試展示**：歡迎面試官、工程師及技術愛好者進行原始碼審查、架構交流與個人非商業性學習。
+- 🚫 **商業用途與二次分發限制**：嚴禁任何未經原作者書面授權之商業化運營、公開託管、收費服務、抄襲轉載或二次發行。
+- 🛡️ **著作權歸屬**：本系統所有架構設計、核心債務沖銷演算法、提示詞工程架構及品牌資產（「智帳君 Ledgy」）均歸 **lincentHuang (黃鈴程)** 所有。
+
+Copyright (c) 2024-2026 lincentHuang. All Rights Reserved.

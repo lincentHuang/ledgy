@@ -1,0 +1,40 @@
+PolyForm Noncommercial License 1.0.0
+
+Copyright (c) 2024-2026 lincentHuang (黃鈴程). All rights reserved.
+
+Project: 智帳君 Ledgy - AI 智能發票與記帳管家
+Repository: https://github.com/lincentHuang/ledgy
+
+================================================================================
+TERMS AND CONDITIONS FOR USE, REPRODUCTION, AND DISTRIBUTION
+================================================================================
+
+1. Grant of License
+   Subject to the terms and conditions of this License, the Author hereby grants 
+   any person obtaining a copy of this software and associated documentation 
+   files (the "Software"), a worldwide, royalty-free, non-exclusive license to:
+   - Inspect, study, review, and evaluate the source code for technical demonstration,
+     portfolio evaluation, and recruitment purposes.
+   - Run the Software in a personal, non-commercial local development environment
+     for testing and educational exploration.
+
+2. Commercial Restrictions & Prohibitions
+   - You MAY NOT use, host, run, or deploy this Software or any modified version 
+     thereof for any commercial purpose, public-facing service, commercial distribution, 
+     or profit-generating activities without prior written permission from the Author.
+   - You MAY NOT re-host or publish this Software under another brand name or claim 
+     it as your original creation.
+
+3. Intellectual Property
+   All proprietary algorithms, prompt architectures, debt graph settlement engines, 
+   UI designs, and branding assets ("智帳君", "Ledgy") are the intellectual property 
+   of the original author.
+
+4. Disclaimer of Warranty
+   THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+   IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+   FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+   AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+   LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+   OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+   SOFTWARE.
