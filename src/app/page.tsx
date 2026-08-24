@@ -33,6 +33,7 @@ export default function Home() {
   const [personalTab, setPersonalTab] = useState<PersonalTabType>('payments');
   const [groupTab, setGroupTab] = useState<GroupTabType>('members');
   const [isProfileOpen, setIsProfileOpen] = useState(false);
+  const [isOnboardingManualOpen, setIsOnboardingManualOpen] = useState(false);
 
   // 🌟 智慧判斷是否需要跳出初次設定精靈：
   // 1. 帳號明確標記 hasCompletedOnboarding: true ➔ 否
@@ -132,6 +133,7 @@ export default function Home() {
         onOpenGroupSettings={handleOpenGroupSettings}
         onOpenAssistant={() => setIsAssistantOpen(true)}
         onOpenProfile={() => setIsProfileOpen(true)}
+        onOpenOnboarding={() => setIsOnboardingManualOpen(true)}
         personalTab={personalTab}
         groupTab={groupTab}
       />
@@ -237,10 +239,10 @@ export default function Home() {
         onClose={() => setIsProfileOpen(false)}
       />
 
-      {/* 🌟 註冊/初次使用 4 步驟設定精靈 (已設定過或老用戶絕不重複出現) */}
+      {/* 🌟 註冊/初次使用 4 步驟設定精靈 (支援手動點擊或新用戶自動彈出) */}
       <OnboardingWizardModal
-        isOpen={shouldShowOnboarding}
-        onComplete={() => {}}
+        isOpen={shouldShowOnboarding || isOnboardingManualOpen}
+        onComplete={() => setIsOnboardingManualOpen(false)}
       />
 
       {/* 📲 PWA 桌面捷徑 / 加入主畫面引導提示 */}

@@ -46,16 +46,29 @@ export const PwaInstallPrompt: React.FC = () => {
 
     window.addEventListener('beforeinstallprompt', handleBeforeInstall);
 
+    // 5. 監聽側邊欄或外部手動點擊「安裝在桌面 / 捷徑」事件
+    const handleOpenManual = () => {
+      setIsVisible(true);
+      if (isIosDevice) {
+        setShowIosGuide(true);
+      }
+    };
+    window.addEventListener('app-open-pwa-install', handleOpenManual);
+
     // 針對 iOS Safari，稍候 2 秒後優雅顯示引導
     if (isIosDevice) {
       const timer = setTimeout(() => {
         setIsVisible(true);
       }, 2500);
-      return () => clearTimeout(timer);
+      return () => {
+        clearTimeout(timer);
+        window.removeEventListener('app-open-pwa-install', handleOpenManual);
+      };
     }
 
     return () => {
       window.removeEventListener('beforeinstallprompt', handleBeforeInstall);
+      window.removeEventListener('app-open-pwa-install', handleOpenManual);
     };
   }, []);
 
@@ -78,10 +91,13 @@ export const PwaInstallPrompt: React.FC = () => {
         setIsVisible(false);
       }
       setDeferredPrompt(null);
+    } else {
+      // 桌面版或非 Android Chrome，顯示引導教學
+      setShowIosGuide(!showIosGuide);
     }
   };
 
-  if (isStandalone || !isVisible) return null;
+  if (!isVisible) return null;
 
   return (
     <div className="fixed bottom-20 left-4 right-4 sm:left-auto sm:right-6 sm:max-w-sm z-40 animate-in slide-in-from-bottom-5 duration-300">

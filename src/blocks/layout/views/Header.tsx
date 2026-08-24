@@ -92,135 +92,145 @@ export const Header: React.FC<HeaderProps> = ({
   return (
     <header className="flex-shrink-0 z-30 w-full glass-panel shadow-sm pt-safe transition-all duration-200">
       <div className="max-w-4xl mx-auto px-3 sm:px-4 py-2 sm:py-2.5 flex items-center justify-between gap-2">
-        {/* Left: Sidebar Hamburger + Brand Logo & Name (僅在手機/平板顯示；電腦版由左側常駐側邊欄顯示以避免 Logo 重複) */}
-        <div className="flex lg:hidden items-center gap-2">
+        {/* Left Section (靠左：手機/平板顯示 Logo 與漢堡鈕；電腦版顯示當前帳本狀態提示) */}
+        <div className="flex-1 flex items-center justify-start gap-2 min-w-0">
+          {/* Mobile hamburger */}
           <button
             onClick={onOpenSidebar}
-            className="p-2 rounded-xl bg-slate-800/80 hover:bg-slate-800 text-slate-300 hover:text-white border border-slate-700/80 transition active:scale-95 shadow-sm"
+            className="lg:hidden p-2 rounded-xl bg-slate-800/80 hover:bg-slate-800 text-slate-300 hover:text-white border border-slate-700/80 transition active:scale-95 shadow-sm shrink-0"
             title="開啟選單"
           >
             <Menu className="w-4 h-4 text-emerald-400" />
           </button>
 
-          <div className="flex items-center gap-2">
+          {/* Mobile Logo */}
+          <div className="flex lg:hidden items-center gap-1.5 truncate">
             <img
               src="/logo.png"
               alt="智帳君 Ledgy"
-              className="w-7 h-7 sm:w-8 sm:h-8 rounded-xl object-cover shadow-sm border border-emerald-500/30"
+              className="w-7 h-7 sm:w-8 sm:h-8 rounded-xl object-cover shadow-sm border border-emerald-500/30 shrink-0"
             />
-            <span className="font-extrabold text-sm sm:text-base tracking-tight text-white flex items-center gap-1">
+            <span className="font-extrabold text-sm sm:text-base tracking-tight text-white flex items-center gap-1 truncate">
               智帳君 <span className="text-emerald-400 font-black">Ledgy</span>
             </span>
           </div>
+
+          {/* Desktop Left: Current Ledger Badge / Status */}
+          <div className="hidden lg:flex items-center gap-2">
+            <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-slate-900/80 border border-slate-800 text-xs font-semibold text-slate-300 shadow-sm">
+              <span className={`w-2 h-2 rounded-full ${activeLedger === 'household' ? 'bg-purple-400 animate-pulse' : 'bg-emerald-400'}`} />
+              <span>{activeLedger === 'household' ? (household?.name ? `群組公帳 • ${household.name}` : '群組公帳') : '個人記帳私帳'}</span>
+            </div>
+          </div>
         </div>
 
-        {/* Center: Multi-Group & Ledger Switcher (只有在有加入/建立群組時才顯示切換選單) */}
-        {households.length > 0 ? (
-          <div className="relative" ref={dropdownRef}>
-            <button
-              onClick={() => setIsDropdownOpen(!isDropdownOpen)}
-              className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-slate-800/90 hover:bg-slate-800 border border-slate-700/80 text-xs font-bold text-slate-200 transition shadow-sm active:scale-95"
-              title="切換個人私帳或不同群組公帳"
-            >
-              {getLedgerIcon()}
-              <span className="text-[11px] sm:text-xs truncate max-w-[120px]">
-                {getLedgerName()}
-              </span>
-              <ChevronDown className="w-3 h-3 text-slate-400 opacity-70" />
-            </button>
+        {/* Center: Multi-Group & Ledger Switcher (絕對置中) */}
+        <div className="flex-shrink-0 flex items-center justify-center">
+          {households.length > 0 && (
+            <div className="relative" ref={dropdownRef}>
+              <button
+                onClick={() => setIsDropdownOpen(!isDropdownOpen)}
+                className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-slate-800/90 hover:bg-slate-800 border border-slate-700/80 text-xs font-bold text-slate-200 transition shadow-sm active:scale-95"
+                title="切換個人私帳或不同群組公帳"
+              >
+                {getLedgerIcon()}
+                <span className="text-[11px] sm:text-xs truncate max-w-[110px] sm:max-w-[140px]">
+                  {getLedgerName()}
+                </span>
+                <ChevronDown className="w-3 h-3 text-slate-400 opacity-70" />
+              </button>
 
-            {/* 下拉選單：個人私帳與複數群組 */}
-            {isDropdownOpen && (
-              <div className="absolute top-full mt-2 left-1/2 -translate-x-1/2 w-56 rounded-2xl bg-slate-900 border border-slate-700 shadow-2xl p-1.5 z-50 text-xs space-y-1 animate-in fade-in zoom-in-95">
-                {/* 1. 個人私帳選項 */}
-                <button
-                  onClick={() => {
-                    setActiveLedger('personal');
-                    setIsDropdownOpen(false);
-                  }}
-                  className={`w-full flex items-center justify-between px-3 py-2 rounded-xl transition border ${
-                    activeLedger === 'personal'
-                      ? 'bg-emerald-950/80 text-emerald-300 font-bold border-emerald-800/60'
-                      : 'border-transparent hover:bg-slate-800 text-slate-300'
-                  }`}
-                >
-                  <div className="flex items-center gap-2">
-                    <Wallet className="w-3.5 h-3.5 text-emerald-400" />
-                    <span>個人私帳</span>
-                  </div>
-                  {activeLedger === 'personal' && <Check className="w-3.5 h-3.5 text-emerald-400" />}
-                </button>
-
-                <div className="border-t border-slate-800 my-1 pt-1">
-                  <p className="px-2 py-1 text-[10px] font-bold text-slate-500 uppercase tracking-wider">
-                    我的記帳群組 ({households.length})
-                  </p>
-                </div>
-
-                {/* 2. 各個群組公帳選項 */}
-                {households.map((h) => {
-                  const isCurrent = activeLedger === 'household' && activeHouseholdId === h.id;
-                  return (
-                    <button
-                      key={h.id}
-                      onClick={() => {
-                        switchActiveHousehold(h.id);
-                        setActiveLedger('household');
-                        setIsDropdownOpen(false);
-                      }}
-                      className={`w-full flex items-center justify-between px-3 py-2 rounded-xl transition border ${
-                        isCurrent
-                          ? 'bg-purple-950/80 text-purple-300 font-bold border-purple-800/60'
-                          : 'border-transparent hover:bg-slate-800 text-slate-300'
-                      }`}
-                    >
-                      <div className="flex items-center gap-2 truncate">
-                        <Users className="w-3.5 h-3.5 text-purple-400 flex-shrink-0" />
-                        <span className="truncate">{h.name}</span>
-                      </div>
-                      {isCurrent && <Check className="w-3.5 h-3.5 text-purple-400 flex-shrink-0" />}
-                    </button>
-                  );
-                })}
-
-                {/* 3. 管理 / 建立新群組捷徑 */}
-                <div className="border-t border-slate-800 pt-1">
+              {/* 下拉選單：個人私帳與複數群組 */}
+              {isDropdownOpen && (
+                <div className="absolute top-full mt-2 left-1/2 -translate-x-1/2 w-56 rounded-2xl bg-slate-900 border border-slate-700 shadow-2xl p-1.5 z-50 text-xs space-y-1 animate-in fade-in zoom-in-95">
+                  {/* 1. 個人私帳選項 */}
                   <button
                     onClick={() => {
-                      onOpenGroupSettings('members');
+                      setActiveLedger('personal');
                       setIsDropdownOpen(false);
                     }}
-                    className="w-full flex items-center gap-2 px-3 py-1.5 rounded-xl hover:bg-slate-800 text-slate-400 hover:text-slate-200 transition text-[11px]"
+                    className={`w-full flex items-center justify-between px-3 py-2 rounded-xl transition border ${
+                      activeLedger === 'personal'
+                        ? 'bg-emerald-950/80 text-emerald-300 font-bold border-emerald-800/60'
+                        : 'border-transparent hover:bg-slate-800 text-slate-300'
+                    }`}
                   >
-                    <Plus className="w-3.5 h-3.5 text-purple-400" />
-                    <span>建立或加入新群組...</span>
+                    <div className="flex items-center gap-2">
+                      <Wallet className="w-3.5 h-3.5 text-emerald-400" />
+                      <span>個人私帳</span>
+                    </div>
+                    {activeLedger === 'personal' && <Check className="w-3.5 h-3.5 text-emerald-400" />}
                   </button>
-                </div>
-              </div>
-            )}
-          </div>
-        ) : (
-          <div />
-        )}
 
-        {/* Right: Invitations alert, Barcode & User Profile */}
-        <div className="flex items-center gap-1.5">
+                  <div className="border-t border-slate-800 my-1 pt-1">
+                    <p className="px-2 py-1 text-[10px] font-bold text-slate-500 uppercase tracking-wider">
+                      我的記帳群組 ({households.length})
+                    </p>
+                  </div>
+
+                  {/* 2. 各個群組公帳選項 */}
+                  {households.map((h) => {
+                    const isCurrent = activeLedger === 'household' && activeHouseholdId === h.id;
+                    return (
+                      <button
+                        key={h.id}
+                        onClick={() => {
+                          switchActiveHousehold(h.id);
+                          setActiveLedger('household');
+                          setIsDropdownOpen(false);
+                        }}
+                        className={`w-full flex items-center justify-between px-3 py-2 rounded-xl transition border ${
+                          isCurrent
+                            ? 'bg-purple-950/80 text-purple-300 font-bold border-purple-800/60'
+                            : 'border-transparent hover:bg-slate-800 text-slate-300'
+                        }`}
+                      >
+                        <div className="flex items-center gap-2 truncate">
+                          <Users className="w-3.5 h-3.5 text-purple-400 flex-shrink-0" />
+                          <span className="truncate">{h.name}</span>
+                        </div>
+                        {isCurrent && <Check className="w-3.5 h-3.5 text-purple-400 flex-shrink-0" />}
+                      </button>
+                    );
+                  })}
+
+                  {/* 3. 管理 / 建立新群組捷徑 */}
+                  <div className="border-t border-slate-800 pt-1">
+                    <button
+                      onClick={() => {
+                        onOpenGroupSettings('members');
+                        setIsDropdownOpen(false);
+                      }}
+                      className="w-full flex items-center gap-2 px-3 py-1.5 rounded-xl hover:bg-slate-800 text-slate-400 hover:text-slate-200 transition text-[11px]"
+                    >
+                      <Plus className="w-3.5 h-3.5 text-purple-400" />
+                      <span>建立或加入新群組...</span>
+                    </button>
+                  </div>
+                </div>
+              )}
+            </div>
+          )}
+        </div>
+
+        {/* Right: Invitations alert, Barcode & User Profile (靠右) */}
+        <div className="flex-1 flex items-center justify-end gap-1.5 min-w-0">
           {/* ✉️ 收到群組邀請通知按鈕 */}
           {incomingInvitations.length > 0 && (
             <button
               onClick={() => onOpenGroupSettings('members')}
-              className="flex items-center gap-1 px-2.5 py-1.5 rounded-xl bg-purple-950/90 text-purple-300 border border-purple-600/80 text-xs font-bold transition hover:bg-purple-900 active:scale-95 shadow-md shadow-purple-950/50"
+              className="flex items-center gap-1 px-2.5 py-1.5 rounded-xl bg-purple-950/90 text-purple-300 border border-purple-600/80 text-xs font-bold transition hover:bg-purple-900 active:scale-95 shadow-md shadow-purple-950/50 shrink-0"
               title="您有待回覆的群組邀請！"
             >
               <span className="w-2 h-2 rounded-full bg-purple-400 animate-pulse" />
-              <span>{incomingInvitations.length} 則群組邀請</span>
+              <span className="hidden sm:inline">{incomingInvitations.length} 則群組邀請</span>
             </button>
           )}
 
           {/* 手機條碼載具快捷鈕 */}
           <button
             onClick={onOpenBarcode}
-            className="flex items-center gap-1 px-2.5 py-1.5 rounded-xl bg-slate-800/80 hover:bg-slate-700 text-slate-200 border border-slate-700/80 transition text-xs font-mono font-bold active:scale-95"
+            className="flex items-center gap-1 px-2.5 py-1.5 rounded-xl bg-slate-800/80 hover:bg-slate-700 text-slate-200 border border-slate-700/80 transition text-xs font-mono font-bold active:scale-95 shrink-0"
             title="出示手機條碼載具"
           >
             <Barcode className="w-3.5 h-3.5 text-emerald-400" />
@@ -233,7 +243,7 @@ export const Header: React.FC<HeaderProps> = ({
           <button
             onClick={handleManualRefresh}
             disabled={isRefreshing}
-            className="relative p-2 rounded-xl bg-slate-800/80 hover:bg-slate-700 text-slate-300 hover:text-emerald-400 border border-slate-700/80 transition active:scale-95 shadow-sm"
+            className="relative p-2 rounded-xl bg-slate-800/80 hover:bg-slate-700 text-slate-300 hover:text-emerald-400 border border-slate-700/80 transition active:scale-95 shadow-sm shrink-0"
             title="重新整理並同步雲端最新資料"
           >
             <RefreshCw className={`w-3.5 h-3.5 ${isRefreshing ? 'animate-spin text-emerald-400' : ''}`} />
@@ -248,7 +258,7 @@ export const Header: React.FC<HeaderProps> = ({
           {isAuthenticated && (
             <button
               onClick={onOpenProfile}
-              className="p-0.5 rounded-full hover:ring-2 hover:ring-emerald-400 transition active:scale-95 relative"
+              className="p-0.5 rounded-full hover:ring-2 hover:ring-emerald-400 transition active:scale-95 relative shrink-0"
               title="個人檔案"
             >
               <div className="w-7 h-7 rounded-full bg-gradient-to-tr from-emerald-500 to-teal-400 text-slate-950 flex items-center justify-center font-bold text-xs shadow-sm">

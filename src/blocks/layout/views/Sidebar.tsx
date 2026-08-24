@@ -22,6 +22,8 @@ import {
   Brain,
   Download,
   Cloud,
+  Wand2,
+  Smartphone,
 } from 'lucide-react';
 import { MainTabType } from './BottomNav';
 import { PersonalTabType, GroupTabType } from '@/blocks/settings';
@@ -35,6 +37,7 @@ interface SidebarProps {
   onOpenGroupSettings: (tab?: GroupTabType) => void;
   onOpenAssistant: () => void;
   onOpenProfile: () => void;
+  onOpenOnboarding: () => void;
   personalTab?: PersonalTabType;
   groupTab?: GroupTabType;
 }
@@ -48,6 +51,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
   onOpenGroupSettings,
   onOpenAssistant,
   onOpenProfile,
+  onOpenOnboarding,
   personalTab = 'payments',
   groupTab = 'members',
 }) => {
@@ -496,6 +500,51 @@ export const Sidebar: React.FC<SidebarProps> = ({
                 </button>
               </div>
             )}
+
+            {/* 🌟 1. 初次使用設定精靈 */}
+            <button
+              onClick={() => {
+                onOpenOnboarding();
+                onClose();
+              }}
+              className="w-full flex items-center justify-between px-3 py-2.5 rounded-2xl hover:bg-emerald-950/40 border border-transparent hover:border-emerald-800/50 text-slate-200 hover:text-emerald-300 transition font-medium group"
+              title="重新開啟四步驟設定精靈"
+            >
+              <div className="flex items-center gap-2.5">
+                <div className="p-1 rounded-lg bg-emerald-500/20 text-emerald-400 group-hover:scale-110 transition-transform">
+                  <Wand2 className="w-4 h-4" />
+                </div>
+                <span>初次使用設定精靈</span>
+              </div>
+              <span className="text-[10px] px-2 py-0.5 rounded-full bg-slate-800 text-slate-400 border border-slate-700 font-medium">
+                重新引導
+              </span>
+            </button>
+
+            {/* 📲 2. 安裝在桌面 / 主畫面 (PWA 捷徑) */}
+            <button
+              onClick={() => {
+                if (typeof window !== 'undefined') {
+                  window.dispatchEvent(new CustomEvent('app-open-pwa-install'));
+                }
+                onClose();
+              }}
+              className="w-full flex items-center justify-between px-3 py-2.5 rounded-2xl hover:bg-teal-950/40 border border-transparent hover:border-teal-800/50 text-slate-200 hover:text-teal-300 transition font-medium group"
+              title="安裝 PWA 桌面捷徑至手機主畫面或電腦桌面"
+            >
+              <div className="flex items-center gap-2.5">
+                <div className="p-1 rounded-lg bg-teal-500/20 text-teal-400 group-hover:scale-110 transition-transform">
+                  <Smartphone className="w-4 h-4" />
+                </div>
+                <div className="text-left">
+                  <p className="text-xs font-semibold leading-tight">安裝在桌面 / 主畫面</p>
+                  <p className="text-[10px] text-slate-400">建立手機捷徑 App</p>
+                </div>
+              </div>
+              <span className="text-[10px] px-2 py-0.5 rounded-full bg-teal-950 text-teal-400 border border-teal-800/80 font-medium">
+                PWA 捷徑
+              </span>
+            </button>
           </div>
         </div>
 
