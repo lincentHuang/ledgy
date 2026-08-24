@@ -92,8 +92,8 @@ export const Header: React.FC<HeaderProps> = ({
   return (
     <header className="flex-shrink-0 z-30 w-full glass-panel shadow-sm pt-safe transition-all duration-200">
       <div className="max-w-4xl mx-auto px-3 sm:px-4 py-2 sm:py-2.5 flex items-center justify-between gap-2">
-        {/* Left: Sidebar Hamburger + Minimal Logo */}
-        <div className="flex items-center gap-2">
+        {/* Left: Sidebar Hamburger + Brand Logo & Name */}
+        <div className="flex items-center gap-2.5">
           <button
             onClick={onOpenSidebar}
             className="lg:hidden p-2 rounded-xl bg-slate-800/80 hover:bg-slate-800 text-slate-300 hover:text-white border border-slate-700/80 transition active:scale-95 shadow-sm"
@@ -102,9 +102,14 @@ export const Header: React.FC<HeaderProps> = ({
             <Menu className="w-4 h-4 text-emerald-400" />
           </button>
 
-          <div className="flex items-center gap-1.5">
-            <span className="font-extrabold text-sm sm:text-base tracking-tight text-white">
-              AI 記帳
+          <div className="flex items-center gap-2">
+            <img
+              src="/logo.png"
+              alt="智帳君 Ledgy"
+              className="w-7 h-7 sm:w-8 sm:h-8 rounded-xl object-cover shadow-sm border border-emerald-500/30"
+            />
+            <span className="font-extrabold text-sm sm:text-base tracking-tight text-white flex items-center gap-1">
+              智帳君 <span className="text-emerald-400 font-black">Ledgy</span>
             </span>
           </div>
         </div>

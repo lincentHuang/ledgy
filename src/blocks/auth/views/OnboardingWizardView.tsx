@@ -692,7 +692,7 @@ export const OnboardingWizardView: React.FC<OnboardingWizardViewProps> = ({
 
       {/* 底部 Footer */}
       <footer className="w-full max-w-3xl mx-auto px-4 py-4 text-center text-[11px] text-slate-500 z-10">
-        智帳君 AI 記帳 • 台灣在地化發票載具與家庭記帳
+        智帳君 Ledgy • 台灣在地化發票載具與家庭記帳
       </footer>
     </div>
   );

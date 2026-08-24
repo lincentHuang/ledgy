@@ -33,7 +33,7 @@ export const PrivacyPolicyModal: React.FC<PrivacyPolicyModalProps> = ({
               <h3 className="font-bold text-sm sm:text-base text-white">
                 {activeTab === 'privacy' ? '隱私權政策 (Privacy Policy)' : '服務條款 (Terms of Service)'}
               </h3>
-              <p className="text-[11px] text-slate-400">智帳君 AI 記帳 • 最後修訂日期：2026 年 8 月</p>
+              <p className="text-[11px] text-slate-400">智帳君 Ledgy • 最後修訂日期：2026 年 8 月</p>
             </div>
           </div>
 
@@ -79,7 +79,7 @@ export const PrivacyPolicyModal: React.FC<PrivacyPolicyModalProps> = ({
                   1. 我們蒐集的資訊與目的
                 </h4>
                 <p>
-                  當您使用「智帳君 AI 記帳」時，我們僅蒐集為提供個人與家庭記帳服務所必需的資訊：
+                  當您使用「智帳君 Ledgy」時，我們僅蒐集為提供個人與家庭記帳服務所必需的資訊：
                 </p>
                 <ul className="list-disc pl-5 space-y-1 text-slate-400">
                   <li><strong>帳號認證資訊</strong>：透過 Email/密碼 或 Google 授權登入時之 Email 與顯示暱稱。</li>
@@ -121,7 +121,7 @@ export const PrivacyPolicyModal: React.FC<PrivacyPolicyModalProps> = ({
               <section className="space-y-2">
                 <h4 className="font-bold text-sm text-white">1. 認知與接受條款</h4>
                 <p>
-                  當您註冊或開始使用「智帳君 AI 記帳」應用程式，即表示您已詳細閱讀、瞭解並同意接受本服務條款之所有內容。
+                  當您註冊或開始使用「智帳君 Ledgy」應用程式，即表示您已詳細閱讀、瞭解並同意接受本服務條款之所有內容。
                 </p>
               </section>
 
