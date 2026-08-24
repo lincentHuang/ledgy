@@ -118,6 +118,20 @@ export const OnboardingWizardModal: React.FC<OnboardingWizardModalProps> = ({
   const allocationPercent =
     monthlyBudget > 0 ? Math.min(100, Math.round((allocatedBudgetSum / monthlyBudget) * 100)) : 0;
 
+  // 略過設定 (永不再提示)
+  const handleSkip = () => {
+    updateUserProfile({
+      hasCompletedOnboarding: true,
+    });
+    if (typeof window !== 'undefined') {
+      if (user?.uid) {
+        localStorage.setItem(`has_completed_onboarding_${user.uid}`, 'true');
+      }
+      localStorage.setItem('ai_expense_has_completed_onboarding', 'true');
+    }
+    onComplete();
+  };
+
   // 完成所有步驟並儲存
   const handleFinishOnboarding = () => {
     updateUserProfile({
@@ -130,6 +144,12 @@ export const OnboardingWizardModal: React.FC<OnboardingWizardModalProps> = ({
       geminiApiKey: enableAi ? geminiApiKey.trim() : undefined,
       hasCompletedOnboarding: true,
     });
+    if (typeof window !== 'undefined') {
+      if (user?.uid) {
+        localStorage.setItem(`has_completed_onboarding_${user.uid}`, 'true');
+      }
+      localStorage.setItem('ai_expense_has_completed_onboarding', 'true');
+    }
     onComplete();
   };
 
@@ -139,8 +159,19 @@ export const OnboardingWizardModal: React.FC<OnboardingWizardModalProps> = ({
         {/* 背景氛圍光暈 */}
         <div className="absolute top-0 left-1/2 -translate-x-1/2 w-72 h-32 bg-emerald-500/15 rounded-full blur-3xl pointer-events-none" />
 
+        {/* 右上角關閉 / 略過按鈕 */}
+        <button
+          type="button"
+          onClick={handleSkip}
+          className="absolute top-4 right-4 p-2 rounded-full hover:bg-slate-800 text-slate-400 hover:text-white transition z-10"
+          title="略過設定精靈 (已設定過)"
+        >
+          <span className="text-xs font-bold mr-1 hidden sm:inline text-slate-400 hover:text-white">略過</span>
+          ✕
+        </button>
+
         {/* 頂部步驟進度列 */}
-        <div className="mb-6 space-y-3">
+        <div className="mb-6 space-y-3 pr-8 sm:pr-12">
           <div className="flex items-center justify-between">
             <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-emerald-950/80 border border-emerald-800/80 text-emerald-400 text-[11px] font-extrabold tracking-wide">
               <Sparkles className="w-3.5 h-3.5" />

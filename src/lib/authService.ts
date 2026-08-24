@@ -14,6 +14,7 @@ import {
   User as FirebaseUser,
 } from 'firebase/auth';
 import { getFirebaseServices } from './firebase';
+import { FirestoreService } from './firestoreService';
 
 export interface AuthUser extends UserProfile {
   provider: 'google' | 'email';
@@ -103,18 +104,38 @@ export class AuthService {
       try {
         const userCred = await withTimeout(signInWithEmailAndPassword(auth, cleanEmail, password));
         const fbUser = userCred.user;
+
+        let existingProfile = null;
+        try {
+          existingProfile = await FirestoreService.getUserProfile(fbUser.uid);
+        } catch (e) {
+          console.warn('Could not fetch existing profile from Firestore:', e);
+        }
+
+        const isLocalCompleted =
+          typeof window !== 'undefined' &&
+          (localStorage.getItem(`has_completed_onboarding_${fbUser.uid}`) === 'true' ||
+            localStorage.getItem('ai_expense_has_completed_onboarding') === 'true');
+
         const userWithToken: AuthUser = {
           uid: fbUser.uid,
           email: fbUser.email || cleanEmail,
-          displayName: fbUser.displayName || cleanEmail.split('@')[0],
-          photoURL: fbUser.photoURL || undefined,
-          defaultCarrierCode: '/AB1234+',
-          defaultPaymentMethod: 'LINE Pay',
-          monthlyBudget: 35000,
+          displayName: existingProfile?.displayName || fbUser.displayName || cleanEmail.split('@')[0],
+          photoURL: fbUser.photoURL || existingProfile?.photoURL || undefined,
+          defaultCarrierCode: existingProfile?.defaultCarrierCode || '/AB1234+',
+          defaultPaymentMethod: existingProfile?.defaultPaymentMethod || 'LINE Pay',
+          monthlyBudget: existingProfile?.monthlyBudget || 35000,
+          tagBudgets: existingProfile?.tagBudgets,
+          tagItems: existingProfile?.tagItems,
+          geminiApiKey: existingProfile?.geminiApiKey,
+          hasCompletedOnboarding:
+            existingProfile?.hasCompletedOnboarding !== undefined
+              ? existingProfile.hasCompletedOnboarding
+              : isLocalCompleted || true,
           provider: 'email',
-          createdAt: Date.now(),
+          createdAt: (existingProfile as any)?.createdAt || Date.now(),
           token: await fbUser.getIdToken(),
-          preferences: {
+          preferences: existingProfile?.preferences || {
             theme: 'system',
             currency: 'NT$',
             soundEnabled: true,
@@ -273,18 +294,37 @@ export class AuthService {
         );
         const fbUser = res.user;
 
+        let existingProfile = null;
+        try {
+          existingProfile = await FirestoreService.getUserProfile(fbUser.uid);
+        } catch (e) {
+          console.warn('Could not fetch existing profile from Firestore:', e);
+        }
+
+        const isLocalCompleted =
+          typeof window !== 'undefined' &&
+          (localStorage.getItem(`has_completed_onboarding_${fbUser.uid}`) === 'true' ||
+            localStorage.getItem('ai_expense_has_completed_onboarding') === 'true');
+
         const user: AuthUser = {
           uid: fbUser.uid,
           email: fbUser.email || `google_${fbUser.uid}@gmail.com`,
-          displayName: fbUser.displayName || 'Google 用戶',
-          photoURL: fbUser.photoURL || undefined,
-          defaultCarrierCode: '/GG8888+',
-          defaultPaymentMethod: 'Google Pay',
-          monthlyBudget: 35000,
+          displayName: existingProfile?.displayName || fbUser.displayName || 'Google 用戶',
+          photoURL: fbUser.photoURL || existingProfile?.photoURL || undefined,
+          defaultCarrierCode: existingProfile?.defaultCarrierCode || '/GG8888+',
+          defaultPaymentMethod: existingProfile?.defaultPaymentMethod || 'Google Pay',
+          monthlyBudget: existingProfile?.monthlyBudget || 35000,
+          tagBudgets: existingProfile?.tagBudgets,
+          tagItems: existingProfile?.tagItems,
+          geminiApiKey: existingProfile?.geminiApiKey,
+          hasCompletedOnboarding:
+            existingProfile?.hasCompletedOnboarding !== undefined
+              ? existingProfile.hasCompletedOnboarding
+              : isLocalCompleted || Boolean(existingProfile),
           provider: 'google',
           token: await fbUser.getIdToken(),
-          createdAt: Date.now(),
-          preferences: {
+          createdAt: (existingProfile as any)?.createdAt || Date.now(),
+          preferences: existingProfile?.preferences || {
             theme: 'system',
             currency: 'NT$',
             soundEnabled: true,

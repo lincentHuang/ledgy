@@ -13,7 +13,14 @@ import { UserProfileModal, WelcomeView, OnboardingWizardModal } from '@/blocks/a
 import { VoiceInputModal } from '@/blocks/voice-input';
 
 export default function Home() {
-  const { user, isAuthenticated, isAuthReady, pullFromCloud } = useAppStore();
+  const {
+    user,
+    isAuthenticated,
+    isAuthReady,
+    pullFromCloud,
+    transactions,
+    updateUserProfile,
+  } = useAppStore();
   const [currentTab, setCurrentTab] = useState<MainTabType>('overview');
 
   // Sidebar & Modal States
@@ -26,6 +33,46 @@ export default function Home() {
   const [personalTab, setPersonalTab] = useState<PersonalTabType>('payments');
   const [groupTab, setGroupTab] = useState<GroupTabType>('members');
   const [isProfileOpen, setIsProfileOpen] = useState(false);
+
+  // 🌟 智慧判斷是否需要跳出初次設定精靈：
+  // 1. 帳號明確標記 hasCompletedOnboarding: true ➔ 否
+  // 2. 本機快取標記已完成設定 ➔ 否
+  // 3. 使用者已有歷史交易明細（老用戶）➔ 否 (並自動補上 hasCompletedOnboarding: true)
+  const isLocalCompleted =
+    typeof window !== 'undefined' &&
+    Boolean(
+      (user?.uid && localStorage.getItem(`has_completed_onboarding_${user.uid}`) === 'true') ||
+        localStorage.getItem('ai_expense_has_completed_onboarding') === 'true'
+    );
+
+  const isExistingUserWithData = transactions && transactions.length > 0;
+
+  React.useEffect(() => {
+    if (
+      isAuthenticated &&
+      user?.uid &&
+      !user.hasCompletedOnboarding &&
+      (isLocalCompleted || isExistingUserWithData)
+    ) {
+      updateUserProfile({ hasCompletedOnboarding: true });
+    }
+  }, [
+    isAuthenticated,
+    user?.uid,
+    user?.hasCompletedOnboarding,
+    isLocalCompleted,
+    isExistingUserWithData,
+    updateUserProfile,
+  ]);
+
+  const shouldShowOnboarding = Boolean(
+    isAuthenticated &&
+      user &&
+      user.uid &&
+      !user.hasCompletedOnboarding &&
+      !isLocalCompleted &&
+      !isExistingUserWithData
+  );
 
   // 🔗 接收 iOS / Android 桌面 Widget Deep Link 事件 (必須在所有條件式 return 之前調用以符合 React Hooks 規則)
   React.useEffect(() => {
@@ -190,9 +237,9 @@ export default function Home() {
         onClose={() => setIsProfileOpen(false)}
       />
 
-      {/* 🌟 註冊/初次使用 4 步驟設定精靈 (基本資料/載具 -> 食衣住行標籤 -> 總預算與標籤預算 -> AI 助理) */}
+      {/* 🌟 註冊/初次使用 4 步驟設定精靈 (已設定過或老用戶絕不重複出現) */}
       <OnboardingWizardModal
-        isOpen={Boolean(isAuthenticated && user && !user.hasCompletedOnboarding)}
+        isOpen={shouldShowOnboarding}
         onComplete={() => {}}
       />
 

@@ -363,6 +363,13 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     try {
       const active = AuthService.getActiveSession();
       if (active) {
+        const isLocalCompleted =
+          localStorage.getItem(`has_completed_onboarding_${active.uid}`) === 'true' ||
+          localStorage.getItem('ai_expense_has_completed_onboarding') === 'true';
+        if (isLocalCompleted && !active.hasCompletedOnboarding) {
+          active.hasCompletedOnboarding = true;
+          AuthService.saveActiveSession(active);
+        }
         setUser(active);
         setIsAuthenticated(true);
       } else {
@@ -1344,6 +1351,17 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
 
     // ☁️ 即時自動上傳與同步所有個人資料至 Cloud Firestore 與後端資料庫
     const targetUser = fullUpdated || { ...user, ...profile };
+
+    if (profile.hasCompletedOnboarding) {
+      if (typeof window !== 'undefined') {
+        const uid = targetUser?.uid || user?.uid;
+        if (uid) {
+          localStorage.setItem(`has_completed_onboarding_${uid}`, 'true');
+        }
+        localStorage.setItem('ai_expense_has_completed_onboarding', 'true');
+      }
+    }
+
     if (targetUser && targetUser.uid) {
       const payloadToSave: UserProfile = {
         ...targetUser,
