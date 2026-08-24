@@ -92,11 +92,11 @@ export const Header: React.FC<HeaderProps> = ({
   return (
     <header className="flex-shrink-0 z-30 w-full glass-panel shadow-sm pt-safe transition-all duration-200">
       <div className="max-w-4xl mx-auto px-3 sm:px-4 py-2 sm:py-2.5 flex items-center justify-between gap-2">
-        {/* Left: Sidebar Hamburger + Brand Logo & Name */}
-        <div className="flex items-center gap-2.5">
+        {/* Left: Sidebar Hamburger + Brand Logo & Name (僅在手機/平板顯示；電腦版由左側常駐側邊欄顯示以避免 Logo 重複) */}
+        <div className="flex lg:hidden items-center gap-2">
           <button
             onClick={onOpenSidebar}
-            className="lg:hidden p-2 rounded-xl bg-slate-800/80 hover:bg-slate-800 text-slate-300 hover:text-white border border-slate-700/80 transition active:scale-95 shadow-sm"
+            className="p-2 rounded-xl bg-slate-800/80 hover:bg-slate-800 text-slate-300 hover:text-white border border-slate-700/80 transition active:scale-95 shadow-sm"
             title="開啟選單"
           >
             <Menu className="w-4 h-4 text-emerald-400" />
