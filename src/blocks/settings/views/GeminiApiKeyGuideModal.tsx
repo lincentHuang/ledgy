@@ -25,6 +25,7 @@ import {
 import {
   GEMINI_KEY_REGEX,
   maskApiKey,
+  validateGeminiKeyDirectly,
   ValidateApiKeyResponseDto,
 } from '@/lib/shared/types/geminiKey';
 
@@ -109,14 +110,8 @@ export const GeminiApiKeyGuideModal: React.FC<GeminiApiKeyGuideModalProps> = ({
     setValidationResult(null);
 
     try {
-      // 1. 優先呼叫後端驗證端點
-      const res = await fetch('/api/v1/ai/validate-key', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ apiKey: trimmedKey }),
-      });
-
-      const data: ValidateApiKeyResponseDto = await res.json();
+      // 1. 直連 Google 官方端點探針測試（相容 Localhost、Firebase Hosting 靜態匯出與離線 App）
+      const data = await validateGeminiKeyDirectly(trimmedKey);
       setValidationResult(data);
 
       if (data.valid) {
