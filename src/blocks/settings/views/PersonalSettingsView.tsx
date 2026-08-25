@@ -24,6 +24,8 @@ import {
 } from 'lucide-react';
 import { Button, Card } from '@/components';
 import { BudgetAllocationView } from './BudgetAllocationView';
+import { GeminiApiKeyGuideModal } from './GeminiApiKeyGuideModal';
+import { maskApiKey } from '@/lib/shared/types/geminiKey';
 
 export type PersonalTabType = 'general' | 'payments' | 'tags' | 'budget' | 'ai' | 'export';
 
@@ -69,6 +71,7 @@ export const PersonalSettingsView: React.FC<PersonalSettingsViewProps> = ({
 
   // 基本設定
   const [apiKey, setApiKey] = useState(user.geminiApiKey || '');
+  const [isApiKeyGuideOpen, setIsApiKeyGuideOpen] = useState(false);
   const [carrier, setCarrier] = useState(user.defaultCarrierCode || '/AB1234+');
   const [displayName, setDisplayName] = useState(user.displayName || '');
   const [weekStartDay, setWeekStartDay] = useState<number>(user.preferences?.weekStartDay ?? 1);
@@ -523,23 +526,58 @@ export const PersonalSettingsView: React.FC<PersonalSettingsViewProps> = ({
               </div>
 
               <div>
-                <label className="block text-slate-300 font-bold mb-1">
-                  Google Gemini API Key (可選)
-                </label>
-                <div className="relative">
+                <div className="flex items-center justify-between mb-1.5">
+                  <label className="block text-slate-300 font-bold text-xs">
+                    Google Gemini API Key (可選)
+                  </label>
+                  <button
+                    type="button"
+                    onClick={() => setIsApiKeyGuideOpen(true)}
+                    className="inline-flex items-center gap-1 text-[11px] font-bold text-emerald-400 hover:text-emerald-300 transition active:scale-95"
+                  >
+                    <Sparkles className="w-3 h-3" />
+                    如何免費取得？
+                  </button>
+                </div>
+
+                <div className="relative flex items-center">
                   <input
                     type="password"
                     value={apiKey}
                     onChange={(e) => setApiKey(e.target.value)}
-                    placeholder="AIzaSy..."
-                    className="w-full px-3.5 py-2.5 rounded-xl border border-slate-700 bg-slate-900 text-white font-mono focus:ring-2 focus:ring-emerald-500 outline-none"
+                    placeholder="AQ. 或 AIzaSy..."
+                    className="w-full pl-3.5 pr-10 py-2.5 rounded-xl border border-slate-700 bg-slate-900 text-white font-mono text-xs focus:ring-2 focus:ring-emerald-500 outline-none"
                   />
-                  <Key className="w-4 h-4 absolute right-3.5 top-1/2 -translate-y-1/2 text-slate-400" />
+                  <div className="absolute right-3 text-slate-500 pointer-events-none">
+                    <Key className="w-4 h-4" />
+                  </div>
                 </div>
-                <p className="text-[11px] text-slate-500 mt-1">
-                  系統已內建免設定即時 AI，若填寫個人 API Key 將優先使用您的獨立配額。
-                </p>
+
+                <div className="flex items-center justify-between mt-1.5 text-[11px]">
+                  <p className="text-slate-500 truncate max-w-[240px]">
+                    {user.geminiApiKey
+                      ? `已綁定：${maskApiKey(user.geminiApiKey)}`
+                      : '系統已內建即時 AI，填寫個人 Key 享專屬額度'}
+                  </p>
+                  {user.geminiApiKey && (
+                    <span className="text-emerald-400 font-bold flex items-center gap-1 flex-shrink-0">
+                      <Check className="w-3 h-3" />
+                      獨立配額生效中
+                    </span>
+                  )}
+                </div>
               </div>
+
+              {/* Gemini API Key 取得與驗證彈窗 */}
+              <GeminiApiKeyGuideModal
+                isOpen={isApiKeyGuideOpen}
+                onClose={() => setIsApiKeyGuideOpen(false)}
+                currentApiKey={apiKey}
+                onSaveKey={async (newKey) => {
+                  setApiKey(newKey);
+                  updateUserProfile({ geminiApiKey: newKey });
+                }}
+              />
 
               {/* 週期與起始日設定 */}
               <div className="pt-2 border-t border-slate-800 space-y-3">

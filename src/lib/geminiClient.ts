@@ -8,6 +8,67 @@ import {
   Transaction,
 } from '@app/shared';
 
+// 支援的 Gemini 模型候選清單（優先使用 Google 最新建議的 gemini-3.6-flash / gemini-3.7-flash，並具備自動降級容錯機制）
+const CANDIDATE_GEMINI_MODELS = [
+  'gemini-3.6-flash',
+  'gemini-3.7-flash',
+  'gemini-2.5-flash',
+  'gemini-1.5-flash',
+];
+
+/**
+ * 具備自動容錯與多模型退避的 Gemini 請求函式
+ */
+async function callGeminiApiWithFallback(
+  apiKey: string,
+  payload: any
+): Promise<{ ok: boolean; data?: any; errorMsg?: string; status?: number }> {
+  const cleanKey = apiKey.trim();
+  let lastErrorMsg = '';
+
+  for (const model of CANDIDATE_GEMINI_MODELS) {
+    try {
+      const response = await fetch(
+        `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${cleanKey}`,
+        {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload),
+        }
+      );
+
+      if (response.ok) {
+        const data = await response.json();
+        return { ok: true, data };
+      }
+
+      const errData = await response.json().catch(() => ({}));
+      const msg = errData.error?.message || `HTTP ${response.status}`;
+      lastErrorMsg = msg;
+
+      // 若為模型不可用、不存在或棄用 (404 或特定錯誤訊息)，繼續嘗試下一個候選模型
+      const isModelUnavailable =
+        response.status === 404 ||
+        msg.includes('no longer available') ||
+        msg.includes('is not found') ||
+        msg.includes('not supported');
+
+      if (isModelUnavailable) {
+        console.warn(`[GeminiClient] Model ${model} unavailable (${msg}), trying next model...`);
+        continue;
+      }
+
+      // 若為其他錯誤（例如金鑰無效、Quota 耗盡），直接回傳錯誤
+      return { ok: false, errorMsg: msg, status: response.status };
+    } catch (err: any) {
+      lastErrorMsg = err.message || '網路連線失敗';
+      console.warn(`[GeminiClient] Network error with model ${model}:`, err);
+    }
+  }
+
+  return { ok: false, errorMsg: lastErrorMsg || '所有可用 Gemini 模型皆無法連線' };
+}
+
 /**
  * 智慧自然語言記帳解析 (優先使用 0 Token 本地高準度語意引擎；必要時切換至超輕量 Gemini Micro-Prompt)
  */
@@ -31,37 +92,29 @@ export async function parseExpenseWithGemini(
 
   try {
     const systemPrompt = buildNaturalLanguageExpensePrompt(customFewShotPrompt, availableTags);
-    const response = await fetch(
-      `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${apiKey}`,
-      {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          contents: [
-            {
-              role: 'user',
-              parts: [{ text: `${systemPrompt}\n輸入：${input}` }],
-            },
-          ],
-          generationConfig: {
-            responseMimeType: 'application/json',
-            temperature: 0.1,
-            maxOutputTokens: 150,
-          },
-        }),
-      }
-    );
+    const result = await callGeminiApiWithFallback(apiKey, {
+      contents: [
+        {
+          role: 'user',
+          parts: [{ text: `${systemPrompt}\n輸入：${input}` }],
+        },
+      ],
+      generationConfig: {
+        responseMimeType: 'application/json',
+        temperature: 0.1,
+        maxOutputTokens: 150,
+      },
+    });
 
-    if (!response.ok) {
-      console.warn('Gemini API request failed, using local 0-token parser');
+    if (!result.ok || !result.data) {
+      console.warn('Gemini API request failed, using local 0-token parser:', result.errorMsg);
       return {
         ...localResult,
         engineType: 'local_zero_token',
       };
     }
 
-    const data = await response.json();
-    const rawJsonText = data.candidates?.[0]?.content?.parts?.[0]?.text;
+    const rawJsonText = result.data.candidates?.[0]?.content?.parts?.[0]?.text;
     if (!rawJsonText) {
       return {
         ...localResult,
@@ -93,7 +146,7 @@ export async function parseExpenseWithGemini(
 }
 
 /**
- * 呼叫 Gemini 2.5 Vision 進行發票/收據圖片 OCR 解析
+ * 呼叫 Gemini Vision 進行發票/收據圖片 OCR 解析
  */
 export async function parseReceiptImageWithGemini(
   base64Image: string,
@@ -121,40 +174,32 @@ export async function parseReceiptImageWithGemini(
 
   try {
     const prompt = buildReceiptOcrPrompt();
-    const response = await fetch(
-      `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${apiKey}`,
-      {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          contents: [
+    const result = await callGeminiApiWithFallback(apiKey, {
+      contents: [
+        {
+          role: 'user',
+          parts: [
+            { text: prompt },
             {
-              role: 'user',
-              parts: [
-                { text: prompt },
-                {
-                  inlineData: {
-                    mimeType,
-                    data: base64Image.replace(/^data:image\/[a-z]+;base64,/, ''),
-                  },
-                },
-              ],
+              inlineData: {
+                mimeType,
+                data: base64Image.replace(/^data:image\/[a-z]+;base64,/, ''),
+              },
             },
           ],
-          generationConfig: {
-            responseMimeType: 'application/json',
-            temperature: 0.1,
-          },
-        }),
-      }
-    );
+        },
+      ],
+      generationConfig: {
+        responseMimeType: 'application/json',
+        temperature: 0.1,
+      },
+    });
 
-    if (!response.ok) {
-      throw new Error(`Gemini Vision failed with status ${response.status}`);
+    if (!result.ok || !result.data) {
+      throw new Error(result.errorMsg || 'Gemini Vision OCR 呼叫失敗');
     }
 
-    const data = await response.json();
-    const text = data.candidates?.[0]?.content?.parts?.[0]?.text;
+    const text = result.data.candidates?.[0]?.content?.parts?.[0]?.text;
     const parsed = JSON.parse(text);
 
     // 確保每筆商品品項皆具備 AI 分類標籤
@@ -200,33 +245,23 @@ export async function askFinancialAdvisor(
   }
 
   try {
-    const response = await fetch(
-      `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${apiKey.trim()}`,
-      {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          contents: [
-            {
-              role: 'user',
-              parts: [{ text: contextPrompt }],
-            },
-          ],
-          generationConfig: {
-            temperature: 0.5,
-          },
-        }),
-      }
-    );
+    const result = await callGeminiApiWithFallback(apiKey, {
+      contents: [
+        {
+          role: 'user',
+          parts: [{ text: contextPrompt }],
+        },
+      ],
+      generationConfig: {
+        temperature: 0.5,
+      },
+    });
 
-    if (!response.ok) {
-      const errData = await response.json().catch(() => ({}));
-      const msg = errData.error?.message || `HTTP ${response.status}`;
-      throw new Error(`Gemini API 呼叫失敗：${msg}`);
+    if (!result.ok || !result.data) {
+      throw new Error(`Gemini API 呼叫失敗：${result.errorMsg}`);
     }
 
-    const data = await response.json();
-    return data.candidates?.[0]?.content?.parts?.[0]?.text || '抱歉，暫時無法分析您的數據。';
+    return result.data.candidates?.[0]?.content?.parts?.[0]?.text || '抱歉，暫時無法分析您的數據。';
   } catch (error: any) {
     console.error('Financial assistant error:', error);
     throw error;
