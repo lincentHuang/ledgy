@@ -630,7 +630,7 @@ export const TransactionList: React.FC<{ onOpenQuickInput: () => void }> = ({
       {/* 單筆明細快速編輯彈窗 */}
       {editingTx && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/75 backdrop-blur-sm animate-in fade-in duration-200">
-          <div className="relative w-full max-w-sm rounded-3xl glass-modal p-5 space-y-4 text-slate-100 shadow-2xl">
+          <div className="relative w-full max-w-sm max-h-[var(--app-height,90vh)] overflow-y-auto rounded-3xl glass-modal p-5 space-y-4 text-slate-100 shadow-2xl">
             <div className="flex items-center justify-between border-b border-white/10 pb-2">
               <h3 className="font-bold text-sm text-white flex items-center gap-1.5">
                 <Edit2 className="w-4 h-4 text-emerald-400" />

@@ -240,7 +240,7 @@ export const VoiceInputModal: React.FC<VoiceInputModalProps> = ({
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-0 sm:p-4 bg-black/80 backdrop-blur-md animate-in fade-in duration-200 overflow-hidden">
       {/* 電腦版置中卡片 + 手機版全螢幕自適應容器 */}
-      <div className="relative w-full h-[100dvh] sm:h-auto sm:max-h-[88vh] sm:max-w-lg rounded-none sm:rounded-3xl bg-slate-950/95 text-slate-100 shadow-2xl border-0 sm:border sm:border-slate-800/80 flex flex-col justify-between overflow-hidden backdrop-blur-2xl">
+      <div className="relative w-full h-[var(--app-height,100dvh)] sm:h-auto sm:max-h-[88vh] sm:max-w-lg rounded-none sm:rounded-3xl bg-slate-950/95 text-slate-100 shadow-2xl border-0 sm:border sm:border-slate-800/80 flex flex-col justify-between overflow-hidden backdrop-blur-2xl">
 
         {/* 背景純淨質感柔和漸層光暈 (無 Canvas 負擔) */}
         <div className="absolute inset-0 overflow-hidden pointer-events-none z-0">
@@ -654,7 +654,7 @@ export const VoiceInputModal: React.FC<VoiceInputModalProps> = ({
 
         {/* 3. 底部固定操作按鈕列 (Fixed Bottom Action Bar - 永遠保持在視窗內，含手機安全邊距) */}
         {parsedResults.length > 0 && (
-          <footer className="shrink-0 z-20 w-full px-4 py-3 pb-6 sm:pb-4 bg-slate-950/95 backdrop-blur-md border-t border-slate-800/70 flex items-center justify-center">
+          <footer className="shrink-0 z-20 w-full px-4 py-2.5 pb-safe sm:pb-3 bg-slate-950/95 backdrop-blur-md border-t border-slate-800/70 flex items-center justify-center">
             <div className="w-full flex items-center gap-2.5">
               <button
                 type="button"

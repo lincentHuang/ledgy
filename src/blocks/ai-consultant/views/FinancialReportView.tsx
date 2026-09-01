@@ -1431,7 +1431,7 @@ export const FinancialReportView: React.FC<FinancialReportViewProps> = ({
       {/* 模式 B：💬 AI 顧問對話模式 (AI Advisor Chat Mode) */}
       {/* ======================================================== */}
       {activeMode === 'advisor' && (
-        <div className="glass-panel rounded-3xl border border-slate-800 flex flex-col h-[600px] max-h-[75vh] overflow-hidden shadow-xl">
+        <div className="glass-panel rounded-3xl border border-slate-800 flex flex-col h-[520px] max-h-[calc(var(--app-height,100dvh)-160px)] sm:h-[600px] sm:max-h-[75vh] overflow-hidden shadow-xl">
           {!hasGeminiApiKey ? (
             /* 尚未填入 API Key 提示 */
             <div className="flex-1 p-6 flex flex-col items-center justify-center text-center space-y-4">

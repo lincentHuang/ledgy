@@ -35,6 +35,7 @@ export const viewport: Viewport = {
   userScalable: false,
   viewportFit: 'cover',
   themeColor: '#020617',
+  interactiveWidget: 'resizes-content',
 };
 
 export default function RootLayout({
@@ -44,7 +45,7 @@ export default function RootLayout({
 }) {
   return (
     <html lang="zh-TW" className="dark">
-      <body className="bg-slate-950 text-slate-100 min-h-screen h-[100dvh] overflow-hidden antialiased selection:bg-emerald-500 selection:text-white">
+      <body className="bg-slate-950 text-slate-100 min-h-screen h-[100dvh] h-[var(--app-height,100dvh)] overflow-hidden antialiased selection:bg-emerald-500 selection:text-white">
         <ErrorBoundary>
           <NativeInitializer />
           <AppProvider>{children}</AppProvider>

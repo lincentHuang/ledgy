@@ -57,7 +57,7 @@ export const Modal: React.FC<ModalProps> = ({
 
       {/* 彈窗內容本體 */}
       <div
-        className={`relative w-full ${maxWidthStyles[maxWidth]} rounded-3xl glass-modal text-slate-100 shadow-2xl p-5 sm:p-6 my-auto z-10 animate-in fade-in zoom-in-95 duration-200 border border-white/10 ${className}`}
+        className={`relative w-full ${maxWidthStyles[maxWidth]} max-h-[var(--app-height,90vh)] overflow-y-auto rounded-3xl glass-modal text-slate-100 shadow-2xl p-5 sm:p-6 my-auto z-10 animate-in fade-in zoom-in-95 duration-200 border border-white/10 ${className}`}
       >
         {/* Header */}
         {(title || icon) && (

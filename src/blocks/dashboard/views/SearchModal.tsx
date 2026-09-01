@@ -111,7 +111,7 @@ export const SearchModal: React.FC<SearchModalProps> = ({
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-black/80 backdrop-blur-md animate-in fade-in duration-200">
       <div
-        className="relative w-full max-w-xl max-h-[88vh] rounded-3xl glass-modal border border-emerald-500/30 bg-slate-900/95 shadow-2xl flex flex-col overflow-hidden animate-in zoom-in-95 duration-200 text-slate-100"
+        className="relative w-full max-w-xl max-h-[var(--app-height,88vh)] rounded-3xl glass-modal border border-emerald-500/30 bg-slate-900/95 shadow-2xl flex flex-col overflow-hidden animate-in zoom-in-95 duration-200 text-slate-100"
         onClick={(e) => e.stopPropagation()}
       >
         {/* 頂部搜尋列 */}

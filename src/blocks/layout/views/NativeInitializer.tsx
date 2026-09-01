@@ -79,9 +79,75 @@ export function NativeInitializer() {
       }
     });
 
+    // 📱 視窗與虛擬鍵盤自適應壓縮引擎 (模擬原生 App 鍵盤彈出時自動壓縮視窗)
+    const handleViewportChange = () => {
+      if (typeof window === 'undefined') return;
+
+      const vv = window.visualViewport;
+      const height = vv ? vv.height : window.innerHeight;
+      const offsetTop = vv ? vv.offsetTop : 0;
+      const keyboardHeight = Math.max(0, window.innerHeight - height);
+      const isKeyboardOpen = keyboardHeight > 120;
+
+      document.documentElement.style.setProperty('--app-height', `${height}px`);
+      document.documentElement.style.setProperty('--keyboard-height', `${keyboardHeight}px`);
+      document.documentElement.style.setProperty('--keyboard-offset', `${offsetTop}px`);
+      document.documentElement.style.setProperty('--is-keyboard-open', isKeyboardOpen ? '1' : '0');
+
+      // 修正 iOS Safari 聚焦輸入框時將整頁往上頂導致頂部被裁切的現象
+      if (isKeyboardOpen && window.scrollY > 0) {
+        window.scrollTo(0, 0);
+      }
+    };
+
+    handleViewportChange();
+
+    const visualViewport = window.visualViewport;
+    if (visualViewport) {
+      visualViewport.addEventListener('resize', handleViewportChange);
+      visualViewport.addEventListener('scroll', handleViewportChange);
+    }
+    window.addEventListener('resize', handleViewportChange);
+    window.addEventListener('orientationchange', handleViewportChange);
+
+    // 聚焦輸入框時，確保輸入框或所在容器平滑對齊可視範圍
+    const handleFocusIn = (e: FocusEvent) => {
+      const target = e.target as HTMLElement;
+      if (
+        target &&
+        (target.tagName === 'INPUT' ||
+          target.tagName === 'TEXTAREA' ||
+          target.isContentEditable ||
+          target.tagName === 'SELECT')
+      ) {
+        setTimeout(() => {
+          handleViewportChange();
+          target.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+        }, 120);
+      }
+    };
+
+    const handleFocusOut = () => {
+      setTimeout(() => {
+        handleViewportChange();
+        window.scrollTo(0, 0);
+      }, 100);
+    };
+
+    window.addEventListener('focusin', handleFocusIn);
+    window.addEventListener('focusout', handleFocusOut);
+
     return () => {
       backSub?.then((sub) => sub.remove()).catch(() => {});
       urlSub?.then((sub) => sub.remove()).catch(() => {});
+      if (visualViewport) {
+        visualViewport.removeEventListener('resize', handleViewportChange);
+        visualViewport.removeEventListener('scroll', handleViewportChange);
+      }
+      window.removeEventListener('resize', handleViewportChange);
+      window.removeEventListener('orientationchange', handleViewportChange);
+      window.removeEventListener('focusin', handleFocusIn);
+      window.removeEventListener('focusout', handleFocusOut);
     };
   }, []);
 

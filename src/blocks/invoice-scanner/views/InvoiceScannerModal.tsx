@@ -235,7 +235,7 @@ export const InvoiceScannerModal: React.FC<InvoiceScannerModalProps> = ({ isOpen
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-md animate-in fade-in duration-200">
-      <div className="relative w-full max-w-lg rounded-3xl bg-slate-900 text-slate-100 shadow-2xl border border-slate-800 p-6 overflow-hidden max-h-[90vh] flex flex-col">
+      <div className="relative w-full max-w-lg rounded-3xl bg-slate-900 text-slate-100 shadow-2xl border border-slate-800 p-6 overflow-hidden max-h-[var(--app-height,90vh)] flex flex-col">
         {/* 背景裝飾光暈 */}
         <div className="absolute top-0 right-0 w-64 h-32 bg-emerald-500/10 rounded-full blur-3xl pointer-events-none" />
 

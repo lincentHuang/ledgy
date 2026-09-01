@@ -143,7 +143,7 @@ export const BarcodeModal: React.FC<BarcodeModalProps> = ({ isOpen, onClose, onO
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-md animate-in fade-in duration-200">
-      <div className="relative w-full max-w-sm rounded-3xl bg-slate-900 text-slate-100 shadow-2xl border border-slate-800 p-5 overflow-y-auto max-h-[92vh]">
+      <div className="relative w-full max-w-sm rounded-3xl bg-slate-900 text-slate-100 shadow-2xl border border-slate-800 p-5 overflow-y-auto max-h-[var(--app-height,92vh)]">
         {/* Header */}
         <div className="flex items-center justify-between mb-3">
           <div className="flex items-center gap-2">

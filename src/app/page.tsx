@@ -122,7 +122,7 @@ export default function Home() {
   };
 
   return (
-    <div className="h-screen h-[100dvh] flex overflow-hidden selection:bg-emerald-500 selection:text-white">
+    <div className="h-screen h-[100dvh] h-[var(--app-height,100dvh)] flex overflow-hidden selection:bg-emerald-500 selection:text-white">
       {/* 側邊導航欄 Sidebar (獨立滾動區) */}
       <Sidebar
         isOpen={isSidebarOpen}
