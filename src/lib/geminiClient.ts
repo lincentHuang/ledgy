@@ -200,6 +200,107 @@ export async function parseExpenseWithGemini(
 }
 
 /**
+ * 智慧音訊直接轉錄與多筆記帳解析 (當 Web Speech API 在特定裝置/瀏覽器無回傳時的備援利器)
+ */
+export async function parseAudioExpenseWithGemini(
+  audioBase64: string,
+  mimeType: string = 'audio/webm',
+  apiKey?: string,
+  customFewShotPrompt = '',
+  availableTags?: string[]
+): Promise<{ transcript: string; expenses: ParsedExpenseAIResult[] }> {
+  if (!apiKey || !apiKey.trim() || !audioBase64) {
+    return { transcript: '', expenses: [] };
+  }
+
+  const systemPrompt = `你是一個專業的繁體中文語音記帳解析 AI。
+請聽取這段錄音，並完成兩項任務：
+1. 輸出逐字稿 transcript
+2. 將聽到的消費項目解析為結構化 JSON 陣列 expenses。
+請務必輸出繁體中文 (台灣常用用語)。
+格式要求 JSON:
+{
+  "transcript": "辨識出的整段文字",
+  "expenses": [
+    {
+      "title": "品項名稱",
+      "amount": 數字,
+      "type": "expense",
+      "categoryId": "food_dining",
+      "categoryName": "餐飲美食",
+      "subCategory": "細項",
+      "paymentMethod": "現金",
+      "tags": ["飲食"],
+      "ledgerType": "personal",
+      "merchant": "商家"
+    }
+  ]
+}`;
+
+  try {
+    const result = await callGeminiApiWithFallback(apiKey, {
+      contents: [
+        {
+          role: 'user',
+          parts: [
+            {
+              inlineData: {
+                mimeType,
+                data: audioBase64,
+              },
+            },
+            {
+              text: systemPrompt,
+            },
+          ],
+        },
+      ],
+      generationConfig: {
+        responseMimeType: 'application/json',
+        temperature: 0.1,
+        maxOutputTokens: 600,
+      },
+    });
+
+    if (!result.ok || !result.data) {
+      return { transcript: '', expenses: [] };
+    }
+
+    const rawJsonText = result.data.candidates?.[0]?.content?.parts?.[0]?.text;
+    if (!rawJsonText) return { transcript: '', expenses: [] };
+
+    const parsedJson = JSON.parse(rawJsonText);
+    const transcript = parsedJson.transcript || '';
+    let rawList: any[] = [];
+    if (Array.isArray(parsedJson.expenses)) {
+      rawList = parsedJson.expenses;
+    } else if (Array.isArray(parsedJson)) {
+      rawList = parsedJson;
+    }
+
+    const expenses: ParsedExpenseAIResult[] = rawList.map((item: any) => ({
+      title: item.title || transcript || '消費項目',
+      amount: Number(item.amount) || 0,
+      type: (item.type === 'income' ? 'income' : 'expense') as 'expense' | 'income',
+      categoryId: item.categoryId || 'other_expense',
+      categoryName: item.categoryName || '其他支出',
+      subCategory: item.subCategory,
+      paymentMethod: item.paymentMethod || '現金',
+      tags: item.tags && item.tags.length > 0 ? [item.tags[0]] : ['未歸類'],
+      ledgerType: item.ledgerType || 'personal',
+      merchant: item.merchant,
+      confidence: 0.98,
+      engineType: 'gemini_cloud',
+    }));
+
+    return { transcript, expenses };
+  } catch (err) {
+    console.error('Gemini audio parse failed:', err);
+    return { transcript: '', expenses: [] };
+  }
+}
+
+/**
  * 呼叫 Gemini Vision 進行發票/收據圖片 OCR 解析
  */
 export async function parseReceiptImageWithGemini(

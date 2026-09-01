@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useCallback } from 'react';
-import { parseExpensesWithGemini } from '@/lib/geminiClient';
+import { parseExpensesWithGemini, parseAudioExpenseWithGemini } from '@/lib/geminiClient';
 import {
   DEFAULT_CATEGORIES,
   matchTagIntelligently,
@@ -124,6 +124,64 @@ export function useVoiceExpenseParser({
     [geminiApiKey, defaultPaymentMethod, currentTags, activeLedger, learningEngine]
   );
 
+  // 當 Web Speech API 未回傳逐字稿時，直接解析已錄製的音訊 (Gemini Audio Fallback)
+  const parseAudio = useCallback(
+    async (audioBase64: string, mimeType: string): Promise<string> => {
+      if (!audioBase64) return '';
+      setIsParsing(true);
+      setParseError('');
+
+      try {
+        const { transcript, expenses } = await parseAudioExpenseWithGemini(
+          audioBase64,
+          mimeType,
+          geminiApiKey,
+          '',
+          currentTags
+        );
+
+        if (expenses.length > 0) {
+          const mapped: ParsedVoiceExpense[] = expenses.map((parsed, idx) => {
+            const isExplicitPersonal = /個人|私帳|自己/.test(parsed.title);
+            const isExplicitHousehold = /家庭|公帳|公用|家裡|大家/.test(parsed.title);
+            const determinedLedgerType: 'personal' | 'household' = isExplicitHousehold
+              ? 'household'
+              : isExplicitPersonal
+              ? 'personal'
+              : (parsed.ledgerType || activeLedger || 'personal');
+
+            return {
+              id: `audio_item_${Date.now()}_${idx}`,
+              title: parsed.title || '消費項目',
+              amount: parsed.amount || 0,
+              categoryId: parsed.categoryId,
+              categoryName: parsed.categoryName,
+              subCategory: parsed.subCategory,
+              paymentMethod: parsed.paymentMethod || defaultPaymentMethod || '現金',
+              tags: parsed.tags && parsed.tags.length > 0 ? [parsed.tags[0]] : ['未歸類'],
+              ledgerType: determinedLedgerType,
+              merchant: parsed.merchant,
+              confidence: parsed.confidence || 0.95,
+              engineType: 'gemini_cloud',
+            };
+          });
+
+          setParsedResults(mapped);
+          return transcript;
+        } else {
+          setParseError('未能從語音中辨識出消費內容，請重新說一次。');
+          return '';
+        }
+      } catch (err: any) {
+        setParseError(err.message || '語音解析異常，請再試一次。');
+        return '';
+      } finally {
+        setIsParsing(false);
+      }
+    },
+    [geminiApiKey, defaultPaymentMethod, currentTags, activeLedger]
+  );
+
   const updateItem = useCallback((index: number, changes: Partial<ParsedVoiceExpense>) => {
     setParsedResults((prev) => {
       const next = [...prev];
@@ -153,6 +211,7 @@ export function useVoiceExpenseParser({
     parseError,
     setParseError,
     parseVoice,
+    parseAudio,
     resetParsedResult,
   };
 }

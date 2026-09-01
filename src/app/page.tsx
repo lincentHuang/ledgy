@@ -240,7 +240,11 @@ export default function Home() {
         }}
       />
       <QuickInputModal isOpen={isQuickInputOpen} onClose={() => setIsQuickInputOpen(false)} />
-      <VoiceInputModal isOpen={isVoiceOpen} onClose={() => setIsVoiceOpen(false)} />
+      <VoiceInputModal
+        isOpen={isVoiceOpen}
+        onClose={() => setIsVoiceOpen(false)}
+        onSwitchToManualInput={() => setIsQuickInputOpen(true)}
+      />
       <InvoiceScannerModal isOpen={isScannerOpen} onClose={() => setIsScannerOpen(false)} />
       <FinancialChatModal isOpen={isAssistantOpen} onClose={() => setIsAssistantOpen(false)} />
       <UserProfileModal

@@ -332,12 +332,12 @@ export const TransactionList: React.FC<{ onOpenQuickInput: () => void }> = ({
     const deltaTime = Date.now() - touchStartRef.current.time;
     touchStartRef.current.valid = false;
 
-    const minDistance = 45;
-    const maxDuration = 500;
-    // 判定為水平滑動 (水平距離足夠且遠大於垂直位移，避免干擾正常滾動)
+    const minDistance = 40;
+    const maxDuration = 600;
+    // 判定為水平滑動 (水平距離達標且水平位移大於垂直位移，避免干擾正常頁面垂直滾動)
     if (
       Math.abs(deltaX) >= minDistance &&
-      Math.abs(deltaX) > Math.abs(deltaY) * 1.35 &&
+      Math.abs(deltaX) > Math.abs(deltaY) * 1.25 &&
       deltaTime <= maxDuration
     ) {
       if (deltaX < 0) {
@@ -351,11 +351,7 @@ export const TransactionList: React.FC<{ onOpenQuickInput: () => void }> = ({
   };
 
   return (
-    <div
-      className="space-y-3.5 touch-pan-y"
-      onTouchStart={handleTouchStart}
-      onTouchEnd={handleTouchEnd}
-    >
+    <div className="space-y-3.5">
       {/* 頂部：檢視模式切換器 (月檢視 / 週檢視) & 搜尋 Modal 按鈕 */}
       <div className="flex items-center justify-between gap-2">
         {/* 檢視模式切換 (月 / 週) */}
@@ -443,12 +439,12 @@ export const TransactionList: React.FC<{ onOpenQuickInput: () => void }> = ({
         </div>
       )}
 
-      {/* 🏷️ 標籤篩選列 (單選標籤，於 列表 / 週 / 月 檢視常駐提供篩選，支援手機版左右滑動切換) */}
+      {/* 🏷️ 標籤篩選列 (單選標籤，於 列表 / 週 / 月 檢視常駐提供篩選，自身保留流暢橫向滾動) */}
       <div className="space-y-1.5">
         <div className="flex items-center justify-between px-1 text-[11px] text-slate-400">
           <div className="flex items-center gap-1.5">
             <span className="font-bold text-slate-300">標籤篩選</span>
-            <span className="text-[10px] text-slate-500">(單選 ‧ 手機版可左右滑動切換)</span>
+            <span className="text-[10px] text-slate-500">(單選 ‧ 下方區域可左右滑動切換)</span>
           </div>
           {(isTagFiltered || isDateFiltered || isSearchFiltered) && (
             <button
@@ -488,27 +484,34 @@ export const TransactionList: React.FC<{ onOpenQuickInput: () => void }> = ({
         </div>
       </div>
 
-      <OverviewCards />
+      {/* 📱 標籤以下到 Dock 以上之主要內容手勢感應滑動區 */}
+      <div
+        className="space-y-3.5 min-h-[calc(100dvh-240px)] touch-pan-y"
+        onTouchStart={handleTouchStart}
+        onTouchEnd={handleTouchEnd}
+      >
+        <OverviewCards />
 
-      {viewMode === 'week' ? (
-        <WeekView
-          onEditTransaction={(tx) => openEditTransaction(tx)}
-          onOpenQuickInput={onOpenQuickInput}
-          isBatchMode={isBatchMode}
-          selectedTxIds={selectedTxIds}
-          onToggleSelectTx={toggleSelectTx}
-          onEnterBatchModeWithTx={handleEnterBatchMode}
-        />
-      ) : (
-        <MonthCalendarView
-          onEditTransaction={(tx) => openEditTransaction(tx)}
-          onOpenQuickInput={onOpenQuickInput}
-          isBatchMode={isBatchMode}
-          selectedTxIds={selectedTxIds}
-          onToggleSelectTx={toggleSelectTx}
-          onEnterBatchModeWithTx={handleEnterBatchMode}
-        />
-      )}
+        {viewMode === 'week' ? (
+          <WeekView
+            onEditTransaction={(tx) => openEditTransaction(tx)}
+            onOpenQuickInput={onOpenQuickInput}
+            isBatchMode={isBatchMode}
+            selectedTxIds={selectedTxIds}
+            onToggleSelectTx={toggleSelectTx}
+            onEnterBatchModeWithTx={handleEnterBatchMode}
+          />
+        ) : (
+          <MonthCalendarView
+            onEditTransaction={(tx) => openEditTransaction(tx)}
+            onOpenQuickInput={onOpenQuickInput}
+            isBatchMode={isBatchMode}
+            selectedTxIds={selectedTxIds}
+            onToggleSelectTx={toggleSelectTx}
+            onEnterBatchModeWithTx={handleEnterBatchMode}
+          />
+        )}
+      </div>
 
       {/* 🏷️ 批次修改標籤彈窗 */}
       {isBatchTagModalOpen && (

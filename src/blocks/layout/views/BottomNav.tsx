@@ -50,13 +50,13 @@ export const BottomNav: React.FC<BottomNavProps> = ({
             <span className="text-[10px]">明細</span>
           </button>
 
-          {/* 3. 🎙️ AI 語音說話記帳 (中央亮點按鈕) */}
+          {/* 3. ➕ 記帳按鈕 (中央亮點按鈕) */}
           <button
             onClick={onOpenVoiceInput}
             className="w-12 h-12 rounded-2xl bg-gradient-to-tr from-emerald-600 to-teal-500 hover:from-emerald-500 hover:to-teal-400 text-white flex items-center justify-center shadow-lg shadow-emerald-600/30 active:scale-95 transition-all -mt-3 ring-4 ring-slate-950"
-            title="AI 語音說話記帳"
+            title="記帳"
           >
-            <Mic className="w-5 h-5" />
+            <Plus className="w-6 h-6 stroke-[2.5]" />
           </button>
 
           {/* 4. 🧾 手機條碼載具與發票 (Modal 彈窗) */}
