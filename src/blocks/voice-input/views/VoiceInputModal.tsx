@@ -22,8 +22,6 @@ import {
 import { Button } from '@/components';
 import { useSpeechRecognition } from '../hooks/useSpeechRecognition';
 import { useVoiceExpenseParser } from '../hooks/useVoiceExpenseParser';
-import { useAudioVisualizer } from '../hooks/useAudioVisualizer';
-import { AudioVisualizerBackground } from './AudioVisualizerBackground';
 
 export interface VoiceInputModalProps {
   isOpen: boolean;
@@ -63,7 +61,6 @@ export const VoiceInputModal: React.FC<VoiceInputModalProps> = ({
     removeItem,
     parseError,
     parseVoice,
-    parseAudio,
     resetParsedResult,
   } = useVoiceExpenseParser({
     geminiApiKey: user.geminiApiKey,
@@ -86,53 +83,25 @@ export const VoiceInputModal: React.FC<VoiceInputModalProps> = ({
     autoStopDelay: 2200,
     onEnd: (finalTranscript) => {
       if (!isParsing) {
-        handleProcessVoiceOrAudio(finalTranscript);
+        handleProcessVoiceText(finalTranscript);
       }
     },
   });
 
-  // 超低延遲 (<100ms) 麥克風音量與即時說話偵測 + 僅在真正聆聽時開啟硬體麥克風
-  const {
-    volume,
-    isSpeaking,
-    sharedStateRef,
-    stop: stopAudioMonitor,
-    getRecordedAudioBase64,
-  } = useAudioVisualizer({
-    active: isOpen && mode === 'voice' && isListening,
-    threshold: 0.03,
-  });
-
-  const handleProcessVoiceOrAudio = useCallback(
-    async (text?: string) => {
+  const handleProcessVoiceText = useCallback(
+    (text?: string) => {
       const latestText = getLatestTranscript();
       const speechText = (text !== undefined ? text : latestText || transcript).trim();
       if (speechText) {
         parseVoice(speechText);
-        return;
-      }
-
-      // 若完全無文字，檢查是否有有效長度的錄音資料
-      try {
-        const audioData = await getRecordedAudioBase64();
-        if (audioData && audioData.base64 && audioData.base64.length > 2500) {
-          const recognizedText = await parseAudio(audioData.base64, audioData.mimeType);
-          if (recognizedText) {
-            setTranscript(recognizedText);
-          }
-        } else {
-          // 未偵測到有效聲音，乾淨重設，不空轉進入漫長 AI 等待
-          resetTranscript();
-        }
-      } catch (e) {
-        console.warn('Audio fallback error:', e);
+      } else {
         resetTranscript();
       }
     },
-    [getLatestTranscript, transcript, parseVoice, parseAudio, getRecordedAudioBase64, resetTranscript, setTranscript]
+    [getLatestTranscript, transcript, parseVoice, resetTranscript]
   );
 
-  // 當 Modal 開啟時，初始化狀態 (零阻塞非同步啟動)
+  // 當 Modal 開啟時，初始化狀態 (0ms 極速啟動)
   useEffect(() => {
     if (isOpen) {
       setMode(initialMode);
@@ -148,7 +117,6 @@ export const VoiceInputModal: React.FC<VoiceInputModalProps> = ({
       }
     } else {
       stopListening();
-      stopAudioMonitor();
     }
   }, [
     isOpen,
@@ -161,7 +129,6 @@ export const VoiceInputModal: React.FC<VoiceInputModalProps> = ({
     resetParsedResult,
     startListening,
     stopListening,
-    stopAudioMonitor,
   ]);
 
   // 手動點擊麥克風開關切換 (即時結算，0ms 卡頓)
@@ -169,11 +136,10 @@ export const VoiceInputModal: React.FC<VoiceInputModalProps> = ({
     if (isListening) {
       const currentText = getLatestTranscript();
       stopListening();
-      stopAudioMonitor();
       if (currentText && currentText.trim()) {
         parseVoice(currentText.trim());
       } else {
-        handleProcessVoiceOrAudio();
+        handleProcessVoiceText();
       }
     } else {
       resetTranscript();
@@ -184,22 +150,20 @@ export const VoiceInputModal: React.FC<VoiceInputModalProps> = ({
     isListening,
     getLatestTranscript,
     stopListening,
-    stopAudioMonitor,
     parseVoice,
-    handleProcessVoiceOrAudio,
+    handleProcessVoiceText,
     resetTranscript,
     resetParsedResult,
     startListening,
   ]);
 
-  // 切換至手動輸入模式 (即時關閉麥克風硬體)
+  // 切換至手動輸入模式
   const handleSwitchToManual = useCallback(() => {
     setMode('manual');
     stopListening();
-    stopAudioMonitor();
-  }, [stopListening, stopAudioMonitor]);
+  }, [stopListening]);
 
-  // 切換至語音模式 (即時響應)
+  // 切換至語音模式
   const handleSwitchToVoice = useCallback(() => {
     setMode('voice');
     resetTranscript();
@@ -277,11 +241,12 @@ export const VoiceInputModal: React.FC<VoiceInputModalProps> = ({
     <div className="fixed inset-0 z-50 flex items-center justify-center p-0 sm:p-4 bg-black/80 backdrop-blur-md animate-in fade-in duration-200 overflow-hidden">
       {/* 電腦版置中卡片 + 手機版全螢幕自適應容器 */}
       <div className="relative w-full h-[100dvh] sm:h-auto sm:max-h-[88vh] sm:max-w-lg rounded-none sm:rounded-3xl bg-slate-950/95 text-slate-100 shadow-2xl border-0 sm:border sm:border-slate-800/80 flex flex-col justify-between overflow-hidden backdrop-blur-2xl">
-        {/* 隨聲音跳動的動態視覺背景 (Dancing Audio-Reactive Background - 60fps Native Loop) */}
-        <AudioVisualizerBackground
-          isListening={isListening && mode === 'voice'}
-          sharedStateRef={sharedStateRef}
-        />
+        
+        {/* 背景純淨質感柔和漸層光暈 (無 Canvas 負擔) */}
+        <div className="absolute inset-0 overflow-hidden pointer-events-none z-0">
+          <div className="absolute top-1/4 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[380px] h-[380px] sm:w-[500px] sm:h-[500px] rounded-full bg-emerald-600/10 blur-[100px] pointer-events-none" />
+          <div className="absolute bottom-1/4 right-1/4 w-[300px] h-[300px] sm:w-[400px] sm:h-[400px] rounded-full bg-teal-600/10 blur-[100px] pointer-events-none" />
+        </div>
 
         {/* 1. 頂部簡潔標題列 (Fixed Header) */}
         <header className="shrink-0 z-20 w-full px-5 py-4 flex items-center justify-between border-b border-slate-800/60 bg-slate-950/80 backdrop-blur-md">
@@ -300,10 +265,11 @@ export const VoiceInputModal: React.FC<VoiceInputModalProps> = ({
               <button
                 type="button"
                 onClick={handleSwitchToVoice}
-                className={`flex items-center gap-1 px-2.5 py-1 rounded-lg transition ${mode === 'voice'
+                className={`flex items-center gap-1 px-2.5 py-1 rounded-lg transition ${
+                  mode === 'voice'
                     ? 'bg-emerald-600 text-white shadow-sm'
                     : 'text-slate-400 hover:text-slate-200'
-                  }`}
+                }`}
               >
                 <Mic className="w-3.5 h-3.5" />
                 <span>語音</span>
@@ -311,10 +277,11 @@ export const VoiceInputModal: React.FC<VoiceInputModalProps> = ({
               <button
                 type="button"
                 onClick={handleSwitchToManual}
-                className={`flex items-center gap-1 px-2.5 py-1 rounded-lg transition ${mode === 'manual'
+                className={`flex items-center gap-1 px-2.5 py-1 rounded-lg transition ${
+                  mode === 'manual'
                     ? 'bg-emerald-600 text-white shadow-sm'
                     : 'text-slate-400 hover:text-slate-200'
-                  }`}
+                }`}
               >
                 <Keyboard className="w-3.5 h-3.5" />
                 <span>手動</span>
@@ -339,31 +306,14 @@ export const VoiceInputModal: React.FC<VoiceInputModalProps> = ({
           {parsedResults.length === 0 ? (
             <div className="flex-1 flex flex-col items-center justify-center text-center w-full my-auto">
               {mode === 'voice' ? (
-                /* 🎙️ 語音模式 (Voice Mode) */
+                /* 🎙️ 語音模式 (Voice Mode - 純粹輕量麥克風) */
                 <>
-                  {/* 核心動態麥克風按鈕與音波光環 */}
-                  <div className="relative my-6 flex items-center justify-center">
+                  {/* 核心麥克風按鈕與簡約 CSS 發光光環 */}
+                  <div className="relative my-8 flex items-center justify-center">
                     {isListening && (
                       <>
-                        <div
-                          className="absolute rounded-full bg-emerald-500/20 pointer-events-none transition-all duration-75 ease-out"
-                          style={{
-                            width: `${130 + volume * 140}px`,
-                            height: `${130 + volume * 140}px`,
-                            opacity: isSpeaking ? 0.6 + volume * 0.4 : 0.18,
-                          }}
-                        />
-                        <div
-                          className="absolute rounded-full bg-teal-400/25 pointer-events-none transition-all duration-100 ease-out"
-                          style={{
-                            width: `${105 + volume * 80}px`,
-                            height: `${105 + volume * 80}px`,
-                            opacity: isSpeaking ? 0.7 + volume * 0.3 : 0.25,
-                          }}
-                        />
-                        {isSpeaking && (
-                          <div className="absolute w-24 h-24 rounded-full bg-rose-500/30 animate-ping pointer-events-none" />
-                        )}
+                        <div className="absolute w-32 h-32 rounded-full bg-emerald-500/15 animate-ping pointer-events-none" />
+                        <div className="absolute w-28 h-28 rounded-full bg-teal-400/20 animate-pulse pointer-events-none" />
                       </>
                     )}
 
@@ -371,49 +321,24 @@ export const VoiceInputModal: React.FC<VoiceInputModalProps> = ({
                     <button
                       type="button"
                       onClick={handleToggleListening}
-                      className={`relative z-10 w-20 h-20 sm:w-24 sm:h-24 rounded-full flex items-center justify-center shadow-2xl transition-all duration-150 active:scale-90 ${isListening
-                          ? isSpeaking
-                            ? 'bg-gradient-to-tr from-rose-600 via-rose-500 to-amber-500 text-white shadow-rose-600/50 ring-6 ring-rose-500/30 scale-105'
-                            : 'bg-gradient-to-tr from-emerald-600 via-teal-500 to-cyan-500 text-white shadow-emerald-600/40 ring-6 ring-emerald-500/30'
-                          : 'bg-slate-800 hover:bg-slate-700 text-slate-300 shadow-slate-900/60 ring-6 ring-slate-800/50'
-                        }`}
+                      className={`relative z-10 w-24 h-24 sm:w-28 sm:h-28 rounded-full flex items-center justify-center shadow-2xl transition-all duration-150 active:scale-90 ${
+                        isListening
+                          ? 'bg-gradient-to-tr from-emerald-600 via-teal-500 to-cyan-500 text-white shadow-emerald-600/50 ring-8 ring-emerald-500/25 scale-105'
+                          : 'bg-slate-800 hover:bg-slate-700 text-slate-300 shadow-slate-900/60 ring-8 ring-slate-800/40'
+                      }`}
                       title={isListening ? '點擊結束錄音並開始辨識' : '點擊開始錄音'}
                     >
-                      <Mic
-                        className={`w-9 h-9 sm:w-10 sm:h-10 transition-transform duration-100 ${isSpeaking ? 'scale-110' : ''
-                          }`}
-                      />
+                      <Mic className="w-10 h-10 sm:w-12 sm:h-12" />
                     </button>
                   </div>
 
                   {/* 即時語音狀態指示 */}
                   <div className="flex flex-col items-center justify-center">
                     {isListening ? (
-                      isSpeaking ? (
-                        <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-rose-950/80 border border-rose-500/60 text-rose-300 font-bold text-xs shadow-lg shadow-rose-950/50 animate-pulse">
-                          <Activity className="w-3.5 h-3.5 text-rose-400 shrink-0" />
-                          <span>⚡ 偵測到聲音，辨識中...</span>
-                          <div className="flex items-center gap-0.5 ml-1 h-3">
-                            <span
-                              className="w-1 bg-rose-400 rounded-full transition-all duration-75"
-                              style={{ height: `${Math.max(4, volume * 12)}px` }}
-                            />
-                            <span
-                              className="w-1 bg-amber-400 rounded-full transition-all duration-75"
-                              style={{ height: `${Math.max(4, volume * 15)}px` }}
-                            />
-                            <span
-                              className="w-1 bg-rose-400 rounded-full transition-all duration-75"
-                              style={{ height: `${Math.max(4, volume * 10)}px` }}
-                            />
-                          </div>
-                        </div>
-                      ) : (
-                        <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-emerald-950/80 border border-emerald-500/40 text-emerald-300 font-medium text-xs shadow-lg shadow-emerald-950/40">
-                          <span className="w-2 h-2 rounded-full bg-emerald-400 animate-ping shrink-0" />
-                          <span>聆聽中，請說出消費內容...</span>
-                        </div>
-                      )
+                      <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-emerald-950/80 border border-emerald-500/40 text-emerald-300 font-medium text-xs shadow-lg shadow-emerald-950/40 animate-pulse">
+                        <span className="w-2 h-2 rounded-full bg-emerald-400 shrink-0" />
+                        <span>聆聽中，請說出消費內容...</span>
+                      </div>
                     ) : isParsing ? (
                       <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-teal-950/80 border border-teal-500/50 text-teal-300 font-bold text-xs shadow-lg">
                         <Loader2 className="w-3.5 h-3.5 animate-spin text-teal-400 shrink-0" />
@@ -682,10 +607,11 @@ export const VoiceInputModal: React.FC<VoiceInputModalProps> = ({
                             ledgerType: item.ledgerType === 'household' ? 'personal' : 'household',
                           })
                         }
-                        className={`flex items-center gap-1 px-2.5 py-1 rounded-xl text-xs font-bold border transition ${item.ledgerType === 'household'
+                        className={`flex items-center gap-1 px-2.5 py-1 rounded-xl text-xs font-bold border transition ${
+                          item.ledgerType === 'household'
                             ? 'bg-purple-950/80 border-purple-600 text-purple-300'
                             : 'bg-emerald-950/80 border-emerald-600 text-emerald-300'
-                          }`}
+                        }`}
                       >
                         {item.ledgerType === 'household' ? (
                           <>
@@ -753,7 +679,7 @@ export const VoiceInputModal: React.FC<VoiceInputModalProps> = ({
                 variant="primary"
                 size="md"
                 fullWidth
-                className="h-11 flex-1 font-bold text-sm shadow-xl shadow-emerald-950/50 rounded-xl"
+                className="h-11 font-bold text-sm shadow-xl shadow-emerald-950/50 rounded-xl"
                 onClick={handleConfirmAllTransactions}
                 leftIcon={<Check className="w-4 h-4" />}
               >
