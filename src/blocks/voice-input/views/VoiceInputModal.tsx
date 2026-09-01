@@ -241,7 +241,7 @@ export const VoiceInputModal: React.FC<VoiceInputModalProps> = ({
     <div className="fixed inset-0 z-50 flex items-center justify-center p-0 sm:p-4 bg-black/80 backdrop-blur-md animate-in fade-in duration-200 overflow-hidden">
       {/* 電腦版置中卡片 + 手機版全螢幕自適應容器 */}
       <div className="relative w-full h-[100dvh] sm:h-auto sm:max-h-[88vh] sm:max-w-lg rounded-none sm:rounded-3xl bg-slate-950/95 text-slate-100 shadow-2xl border-0 sm:border sm:border-slate-800/80 flex flex-col justify-between overflow-hidden backdrop-blur-2xl">
-        
+
         {/* 背景純淨質感柔和漸層光暈 (無 Canvas 負擔) */}
         <div className="absolute inset-0 overflow-hidden pointer-events-none z-0">
           <div className="absolute top-1/4 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[380px] h-[380px] sm:w-[500px] sm:h-[500px] rounded-full bg-emerald-600/10 blur-[100px] pointer-events-none" />
@@ -265,11 +265,10 @@ export const VoiceInputModal: React.FC<VoiceInputModalProps> = ({
               <button
                 type="button"
                 onClick={handleSwitchToVoice}
-                className={`flex items-center gap-1 px-2.5 py-1 rounded-lg transition ${
-                  mode === 'voice'
-                    ? 'bg-emerald-600 text-white shadow-sm'
-                    : 'text-slate-400 hover:text-slate-200'
-                }`}
+                className={`flex items-center gap-1 px-2.5 py-1 rounded-lg transition ${mode === 'voice'
+                  ? 'bg-emerald-600 text-white shadow-sm'
+                  : 'text-slate-400 hover:text-slate-200'
+                  }`}
               >
                 <Mic className="w-3.5 h-3.5" />
                 <span>語音</span>
@@ -277,11 +276,10 @@ export const VoiceInputModal: React.FC<VoiceInputModalProps> = ({
               <button
                 type="button"
                 onClick={handleSwitchToManual}
-                className={`flex items-center gap-1 px-2.5 py-1 rounded-lg transition ${
-                  mode === 'manual'
-                    ? 'bg-emerald-600 text-white shadow-sm'
-                    : 'text-slate-400 hover:text-slate-200'
-                }`}
+                className={`flex items-center gap-1 px-2.5 py-1 rounded-lg transition ${mode === 'manual'
+                  ? 'bg-emerald-600 text-white shadow-sm'
+                  : 'text-slate-400 hover:text-slate-200'
+                  }`}
               >
                 <Keyboard className="w-3.5 h-3.5" />
                 <span>手動</span>
@@ -321,11 +319,10 @@ export const VoiceInputModal: React.FC<VoiceInputModalProps> = ({
                     <button
                       type="button"
                       onClick={handleToggleListening}
-                      className={`relative z-10 w-24 h-24 sm:w-28 sm:h-28 rounded-full flex items-center justify-center shadow-2xl transition-all duration-150 active:scale-90 ${
-                        isListening
-                          ? 'bg-gradient-to-tr from-emerald-600 via-teal-500 to-cyan-500 text-white shadow-emerald-600/50 ring-8 ring-emerald-500/25 scale-105'
-                          : 'bg-slate-800 hover:bg-slate-700 text-slate-300 shadow-slate-900/60 ring-8 ring-slate-800/40'
-                      }`}
+                      className={`relative z-10 w-24 h-24 sm:w-28 sm:h-28 rounded-full flex items-center justify-center shadow-2xl transition-all duration-150 active:scale-90 ${isListening
+                        ? 'bg-gradient-to-tr from-emerald-600 via-teal-500 to-cyan-500 text-white shadow-emerald-600/50 ring-8 ring-emerald-500/25 scale-105'
+                        : 'bg-slate-800 hover:bg-slate-700 text-slate-300 shadow-slate-900/60 ring-8 ring-slate-800/40'
+                        }`}
                       title={isListening ? '點擊結束錄音並開始辨識' : '點擊開始錄音'}
                     >
                       <Mic className="w-10 h-10 sm:w-12 sm:h-12" />
@@ -607,11 +604,10 @@ export const VoiceInputModal: React.FC<VoiceInputModalProps> = ({
                             ledgerType: item.ledgerType === 'household' ? 'personal' : 'household',
                           })
                         }
-                        className={`flex items-center gap-1 px-2.5 py-1 rounded-xl text-xs font-bold border transition ${
-                          item.ledgerType === 'household'
-                            ? 'bg-purple-950/80 border-purple-600 text-purple-300'
-                            : 'bg-emerald-950/80 border-emerald-600 text-emerald-300'
-                        }`}
+                        className={`flex items-center gap-1 px-2.5 py-1 rounded-xl text-xs font-bold border transition ${item.ledgerType === 'household'
+                          ? 'bg-purple-950/80 border-purple-600 text-purple-300'
+                          : 'bg-emerald-950/80 border-emerald-600 text-emerald-300'
+                          }`}
                       >
                         {item.ledgerType === 'household' ? (
                           <>
@@ -678,8 +674,7 @@ export const VoiceInputModal: React.FC<VoiceInputModalProps> = ({
               <Button
                 variant="primary"
                 size="md"
-                fullWidth
-                className="h-11 font-bold text-sm shadow-xl shadow-emerald-950/50 rounded-xl"
+                className="h-11 flex-1 font-bold text-sm shadow-xl shadow-emerald-950/50 rounded-xl"
                 onClick={handleConfirmAllTransactions}
                 leftIcon={<Check className="w-4 h-4" />}
               >
