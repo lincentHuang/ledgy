@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useCallback } from 'react';
-import { askFinancialAdvisor } from '@/lib/geminiClient';
+import { askFinancialAdvisor, streamFinancialAdvisor } from '@/lib/geminiClient';
 import { Transaction, UserProfile, Household } from '@app/shared';
 
 export interface ChatMessage {
@@ -43,34 +43,61 @@ export function useFinancialAdvisor({
       setMessages((prev) => [...prev, userMsg]);
       setIsLoading(true);
 
+      const aiMsgId = `ai-${Date.now()}`;
+      const aiMsgPlaceholder: ChatMessage = {
+        id: aiMsgId,
+        sender: 'ai',
+        text: '',
+        timestamp: Date.now() + 1,
+      };
+
+      setMessages((prev) => [...prev, aiMsgPlaceholder]);
+
       try {
-        const reply = await askFinancialAdvisor(
-          transactions,
-          userMsg.text,
-          apiKey,
-          activeLedger === 'household' ? household?.name : undefined,
-          {
-            monthlyBudget: activeLedger === 'household' ? household?.monthlyBudget : user?.monthlyBudget,
-            tagBudgets: activeLedger === 'household' ? household?.tagBudgets : user?.tagBudgets,
-          }
-        );
-
-        const aiMsg: ChatMessage = {
-          id: `ai-${Date.now()}`,
-          sender: 'ai',
-          text: reply,
-          timestamp: Date.now(),
-        };
-
-        setMessages((prev) => [...prev, aiMsg]);
+        if (apiKey) {
+          await streamFinancialAdvisor(
+            transactions,
+            userMsg.text,
+            apiKey,
+            {
+              householdName: activeLedger === 'household' ? household?.name : undefined,
+              budgetInfo: {
+                monthlyBudget: activeLedger === 'household' ? household?.monthlyBudget : user?.monthlyBudget,
+                tagBudgets: activeLedger === 'household' ? household?.tagBudgets : user?.tagBudgets,
+              },
+              onChunk: (accumulatedText) => {
+                setMessages((prev) =>
+                  prev.map((msg) =>
+                    msg.id === aiMsgId ? { ...msg, text: accumulatedText } : msg
+                  )
+                );
+              },
+            }
+          );
+        } else {
+          const reply = await askFinancialAdvisor(
+            transactions,
+            userMsg.text,
+            apiKey,
+            activeLedger === 'household' ? household?.name : undefined,
+            {
+              monthlyBudget: activeLedger === 'household' ? household?.monthlyBudget : user?.monthlyBudget,
+              tagBudgets: activeLedger === 'household' ? household?.tagBudgets : user?.tagBudgets,
+            }
+          );
+          setMessages((prev) =>
+            prev.map((msg) =>
+              msg.id === aiMsgId ? { ...msg, text: reply } : msg
+            )
+          );
+        }
       } catch (err: any) {
-        const errorMsg: ChatMessage = {
-          id: `err-${Date.now()}`,
-          sender: 'ai',
-          text: `抱歉，理財顧問目前無法回應：${err.message || '連線異常，請稍後再試。'}`,
-          timestamp: Date.now(),
-        };
-        setMessages((prev) => [...prev, errorMsg]);
+        const errorMsg = `抱歉，理財顧問目前無法回應：${err.message || '連線異常，請稍後再試。'}`;
+        setMessages((prev) =>
+          prev.map((msg) =>
+            msg.id === aiMsgId ? { ...msg, text: errorMsg } : msg
+          )
+        );
       } finally {
         setIsLoading(false);
       }

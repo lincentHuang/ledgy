@@ -1,7 +1,8 @@
 'use client';
 
-import React, { useState } from 'react';
-import { useAppStore } from '@/lib/store';
+import React, { useState, useRef, useEffect, useCallback, useMemo } from 'react';
+import { useAppStore, DEFAULT_TAG_ITEMS, generateTagKey } from '@/lib/store';
+import { Platform } from '@/lib/platform';
 import {
   Search,
   Tag,
@@ -28,11 +29,14 @@ import {
   Check,
   CheckSquare,
 } from 'lucide-react';
-import { Transaction } from '@app/shared';
+import { Transaction, TagItem } from '@app/shared';
 import { WeekView } from './WeekView';
 import { MonthCalendarView } from './MonthCalendarView';
+import { TransactionGroupedList } from './TransactionGroupedList';
 import { OverviewCards } from './OverviewCards';
+import { SearchModal } from './SearchModal';
 import { Button, TagPill, SegmentedControl, Input, Card } from '@/components';
+
 
 const ICON_MAP: Record<string, any> = {
   Utensils,
@@ -73,6 +77,7 @@ export const TransactionList: React.FC<{ onOpenQuickInput: () => void }> = ({
   } = useAppStore();
 
   const [editingTx, setEditingTx] = useState<Transaction | null>(null);
+  const [isSearchModalOpen, setIsSearchModalOpen] = useState(false);
   // ✏️ 快速勾選與批次管理狀態
   const [isBatchMode, setIsBatchMode] = useState(false);
   const [selectedTxIds, setSelectedTxIds] = useState<string[]>([]);
@@ -81,18 +86,10 @@ export const TransactionList: React.FC<{ onOpenQuickInput: () => void }> = ({
   const [isBatchDateModalOpen, setIsBatchDateModalOpen] = useState(false);
   const [batchTargetDate, setBatchTargetDate] = useState(new Date().toISOString().split('T')[0]);
 
-  // 📅 日期區間篩選彈窗狀態
-  const [isDateRangeModalOpen, setIsDateRangeModalOpen] = useState(false);
-  const [tempStartDate, setTempStartDate] = useState(
-    dateRangeFilter?.startDate || new Date(new Date().getFullYear(), new Date().getMonth(), 1).toISOString().split('T')[0]
-  );
-  const [tempEndDate, setTempEndDate] = useState(
-    dateRangeFilter?.endDate || new Date().toISOString().split('T')[0]
-  );
-
-  // 標籤與區間有效狀態
+  // 標籤與搜尋有效狀態
   const activeTags = selectedTagFilters.filter((t) => t && t !== 'all');
   const isTagFiltered = activeTags.length > 0;
+  const showTagBadge = !isTagFiltered || activeTags.length > 1;
   const isDateFiltered = Boolean(dateRangeFilter?.startDate && dateRangeFilter?.endDate);
   const isSearchFiltered = Boolean(searchQuery && searchQuery.trim());
   const isAnyFilterActive = isTagFiltered || isDateFiltered || isSearchFiltered;
@@ -124,7 +121,7 @@ export const TransactionList: React.FC<{ onOpenQuickInput: () => void }> = ({
       if (!matchesTag) return false;
     }
 
-    // 3. 日期區間篩選
+    // 3. 日期區間篩選 (若全域仍有設定時相容)
     if (isDateFiltered && dateRangeFilter) {
       if (tx.date < dateRangeFilter.startDate || tx.date > dateRangeFilter.endDate) {
         return false;
@@ -147,27 +144,17 @@ export const TransactionList: React.FC<{ onOpenQuickInput: () => void }> = ({
     return { tag, count: tagTxs.length, sum: tagSum, percent };
   });
 
-  const groupedByDate: Record<string, Transaction[]> = {};
-  displayList.forEach((tx) => {
-    if (!groupedByDate[tx.date]) {
-      groupedByDate[tx.date] = [];
-    }
-    groupedByDate[tx.date].push(tx);
-  });
-
-  const sortedDates = Object.keys(groupedByDate).sort((a, b) => b.localeCompare(a));
-
-  const getCategoryIcon = (iconName?: string) => {
-    const IconComp = iconName && ICON_MAP[iconName] ? ICON_MAP[iconName] : Utensils;
-    return <IconComp className="w-4 h-4" />;
-  };
-
   const toggleSelectTx = (id: string) => {
     if (selectedTxIds.includes(id)) {
       setSelectedTxIds(selectedTxIds.filter((x) => x !== id));
     } else {
       setSelectedTxIds([...selectedTxIds, id]);
     }
+  };
+
+  const handleEnterBatchMode = (id: string) => {
+    setIsBatchMode(true);
+    setSelectedTxIds([id]);
   };
 
   const handleSelectAll = () => {
@@ -190,8 +177,13 @@ export const TransactionList: React.FC<{ onOpenQuickInput: () => void }> = ({
   const handleApplyBatchTags = () => {
     if (selectedTxIds.length === 0 || batchSelectedTags.length === 0) return;
     const targetTag = batchSelectedTags[0] || '未歸類';
+    const matchedTag = currentTagItems.find((item) => item.name === targetTag || item.id === targetTag);
+    const targetTagId = matchedTag ? matchedTag.id : generateTagKey(targetTag);
     selectedTxIds.forEach((id) => {
-      updateTransaction(id, { tags: [targetTag] });
+      updateTransaction(id, {
+        tags: [targetTag],
+        tagIds: [targetTagId],
+      });
     });
     setIsBatchTagModalOpen(false);
     setBatchSelectedTags([]);
@@ -211,275 +203,204 @@ export const TransactionList: React.FC<{ onOpenQuickInput: () => void }> = ({
     alert(`已成功將選取的 ${selectedTxIds.length} 筆記帳日期修改為「${batchTargetDate}」！`);
   };
 
-  const handleSelectEditTag = (tag: string) => {
+  const openEditTransaction = (tx: Transaction) => {
+    const rawTag = tx.tags?.[0] || '未歸類';
+    const rawTagId = tx.tagIds?.[0];
+
+    // 優先比對 tagIds，次之比對標籤名稱
+    const matchedTag =
+      currentTagItems.find((t) => (rawTagId && t.id === rawTagId) || t.name === rawTag || t.id === rawTag) ||
+      DEFAULT_TAG_ITEMS.find((t) => (rawTagId && t.id === rawTagId) || t.name === rawTag || t.id === rawTag);
+
+    const resolvedTagName = matchedTag ? matchedTag.name : rawTag;
+    const resolvedTagId = matchedTag ? matchedTag.id : (rawTagId || generateTagKey(resolvedTagName));
+
+    setEditingTx({
+      ...tx,
+      tags: [resolvedTagName],
+      tagIds: [resolvedTagId],
+    });
+  };
+
+  const handleSelectEditTag = (tagItem: TagItem) => {
     if (!editingTx) return;
-    setEditingTx({ ...editingTx, tags: [tag] });
+    setEditingTx({
+      ...editingTx,
+      tags: [tagItem.name],
+      tagIds: [tagItem.id],
+    });
   };
 
-  // 日期快速預設切換
-  const handleSetDatePreset = (preset: 'today' | 'this_week' | 'this_month' | 'last_30_days' | 'all') => {
-    const now = new Date();
-    const todayStr = now.toISOString().split('T')[0];
+  // 🏷️ 標籤頁籤單選與滑動切換邏輯
+  const tagsNavRef = useRef<HTMLDivElement>(null);
 
-    if (preset === 'all') {
-      setDateRangeFilter(null);
-      setIsDateRangeModalOpen(false);
+  // 所有可用標籤列表（包含「全部」）
+  const tagTabs = useMemo(() => {
+    return [
+      { id: 'all', name: '全部' },
+      ...currentTagItems.map((t) => ({ id: t.id, name: t.name })),
+    ];
+  }, [currentTagItems]);
+
+  // 當前選中的標籤索引 (0 代表「全部」)
+  const currentTabIndex = useMemo(() => {
+    if (activeTags.length === 0) return 0;
+    const idx = tagTabs.findIndex(
+      (t) => t.name === activeTags[0] || t.id === activeTags[0]
+    );
+    return idx >= 0 ? idx : 0;
+  }, [tagTabs, activeTags]);
+
+  const handleSelectTagTab = useCallback(
+    (tagName: string) => {
+      if (tagName === '全部' || tagName === 'all') {
+        setSelectedTagFilters([]);
+      } else {
+        setSelectedTagFilters([tagName]);
+      }
+    },
+    [setSelectedTagFilters]
+  );
+
+  // 切換至上一標籤 / 下一標籤 (支援邊界保護與震動回饋)
+  const handlePrevTag = useCallback(() => {
+    if (currentTabIndex > 0) {
+      const prevTab = tagTabs[currentTabIndex - 1];
+      handleSelectTagTab(prevTab.name);
+      Platform.haptic('light');
+    }
+  }, [currentTabIndex, tagTabs, handleSelectTagTab]);
+
+  const handleNextTag = useCallback(() => {
+    if (currentTabIndex < tagTabs.length - 1) {
+      const nextTab = tagTabs[currentTabIndex + 1];
+      handleSelectTagTab(nextTab.name);
+      Platform.haptic('light');
+    }
+  }, [currentTabIndex, tagTabs, handleSelectTagTab]);
+
+  // 當標籤切換時，自動將該標籤膠囊滑動置中
+  useEffect(() => {
+    if (tagsNavRef.current) {
+      const activeEl = tagsNavRef.current.querySelector('[data-active="true"]') as HTMLElement;
+      if (activeEl) {
+        activeEl.scrollIntoView({
+          behavior: 'smooth',
+          block: 'nearest',
+          inline: 'center',
+        });
+      }
+    }
+  }, [selectedTagFilters]);
+
+  // 📱 手機版左右滑動切換標籤手勢偵測
+  const touchStartRef = useRef<{ x: number; y: number; time: number; valid: boolean }>({
+    x: 0,
+    y: 0,
+    time: 0,
+    valid: false,
+  });
+
+  const handleTouchStart = (e: React.TouchEvent) => {
+    if (
+      e.touches.length !== 1 ||
+      isBatchMode ||
+      isSearchModalOpen ||
+      isBatchTagModalOpen ||
+      isBatchDateModalOpen
+    ) {
+      touchStartRef.current.valid = false;
       return;
     }
-
-    if (preset === 'today') {
-      setDateRangeFilter({ startDate: todayStr, endDate: todayStr });
-      setIsDateRangeModalOpen(false);
-      return;
-    }
-
-    if (preset === 'this_week') {
-      const currentDay = now.getDay();
-      const distanceToMonday = currentDay === 0 ? -6 : 1 - currentDay;
-      const monday = new Date(now);
-      monday.setDate(now.getDate() + distanceToMonday);
-      const sunday = new Date(monday);
-      sunday.setDate(monday.getDate() + 6);
-      setDateRangeFilter({
-        startDate: monday.toISOString().split('T')[0],
-        endDate: sunday.toISOString().split('T')[0],
-      });
-      setIsDateRangeModalOpen(false);
-      return;
-    }
-
-    if (preset === 'this_month') {
-      const y = now.getFullYear();
-      const m = now.getMonth();
-      const firstDay = new Date(y, m, 1).toISOString().split('T')[0];
-      const lastDay = new Date(y, m + 1, 0).toISOString().split('T')[0];
-      setDateRangeFilter({ startDate: firstDay, endDate: lastDay });
-      setIsDateRangeModalOpen(false);
-      return;
-    }
-
-    if (preset === 'last_30_days') {
-      const past = new Date(now);
-      past.setDate(now.getDate() - 30);
-      setDateRangeFilter({
-        startDate: past.toISOString().split('T')[0],
-        endDate: todayStr,
-      });
-      setIsDateRangeModalOpen(false);
-      return;
-    }
+    const touch = e.touches[0];
+    touchStartRef.current = {
+      x: touch.clientX,
+      y: touch.clientY,
+      time: Date.now(),
+      valid: true,
+    };
   };
 
-  const handleApplyCustomDateRange = () => {
-    if (!tempStartDate || !tempEndDate) return;
-    if (tempStartDate > tempEndDate) {
-      alert('開始日期不得晚於結束日期！');
+  const handleTouchEnd = (e: React.TouchEvent) => {
+    if (!touchStartRef.current.valid || e.changedTouches.length !== 1) {
+      touchStartRef.current.valid = false;
       return;
     }
-    setDateRangeFilter({ startDate: tempStartDate, endDate: tempEndDate });
-    setIsDateRangeModalOpen(false);
+    const touch = e.changedTouches[0];
+    const deltaX = touch.clientX - touchStartRef.current.x;
+    const deltaY = touch.clientY - touchStartRef.current.y;
+    const deltaTime = Date.now() - touchStartRef.current.time;
+    touchStartRef.current.valid = false;
+
+    const minDistance = 45;
+    const maxDuration = 500;
+    // 判定為水平滑動 (水平距離足夠且遠大於垂直位移，避免干擾正常滾動)
+    if (
+      Math.abs(deltaX) >= minDistance &&
+      Math.abs(deltaX) > Math.abs(deltaY) * 1.35 &&
+      deltaTime <= maxDuration
+    ) {
+      if (deltaX < 0) {
+        // 向左滑動 -> 切換至下一個標籤
+        handleNextTag();
+      } else {
+        // 向右滑動 -> 切換至上一個標籤
+        handlePrevTag();
+      }
+    }
   };
 
   return (
-    <div className="space-y-3.5">
-      {/* 頂部：檢視模式切換器 (列表 / 週檢視 / 月檢視)、日期區間篩選 & 搜尋欄 */}
-      <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-2">
-        <div className="flex items-center gap-2">
-          {/* 檢視模式切換 */}
-          <SegmentedControl
-            value={viewMode}
-            onChange={(val) => setViewMode(val as any)}
-            options={[
-              { value: 'list', label: '列表', icon: <List className="w-3.5 h-3.5" /> },
-              { value: 'week', label: '週', icon: <Calendar className="w-3.5 h-3.5" /> },
-              { value: 'month', label: '月', icon: <CalendarDays className="w-3.5 h-3.5" /> },
-            ]}
-          />
+    <div
+      className="space-y-3.5 touch-pan-y"
+      onTouchStart={handleTouchStart}
+      onTouchEnd={handleTouchEnd}
+    >
+      {/* 頂部：檢視模式切換器 (月檢視 / 週檢視) & 搜尋 Modal 按鈕 */}
+      <div className="flex items-center justify-between gap-2">
+        {/* 檢視模式切換 (月 / 週) */}
+        <SegmentedControl
+          value={viewMode === 'week' ? 'week' : 'month'}
+          onChange={(val) => setViewMode(val as any)}
+          options={[
+            { value: 'month', label: '月', icon: <CalendarDays className="w-3.5 h-3.5" /> },
+            { value: 'week', label: '週', icon: <Calendar className="w-3.5 h-3.5" /> },
+          ]}
+        />
 
-          {/* ✏️ 快速勾選與批次管理筆按鈕 (支援 列表 / 週 / 月 檢視) */}
-          <Button
-            variant={isBatchMode ? 'primary' : 'secondary'}
-            size="sm"
-            onClick={() => {
-              if (isBatchMode) {
-                setIsBatchMode(false);
-                setSelectedTxIds([]);
-              } else {
-                setIsBatchMode(true);
-              }
-            }}
-            leftIcon={<Edit2 className="w-3.5 h-3.5 text-emerald-400" />}
-            className="rounded-2xl"
-            title={isBatchMode ? '完成批次編輯' : '快速勾選、批次刪除或編輯標籤/日期'}
-          >
-            {isBatchMode ? '完成' : '編輯'}
-          </Button>
-        </div>
-
-        {/* 搜尋欄與日期區間指定按鈕 */}
-        <div className="flex items-center gap-2 flex-1 max-w-md justify-end">
-          {/* 📅 指定日期範圍篩選按鈕 */}
-          <div className="relative">
-            <button
-              type="button"
-              onClick={() => {
-                setTempStartDate(
-                  dateRangeFilter?.startDate ||
-                    new Date(new Date().getFullYear(), new Date().getMonth(), 1).toISOString().split('T')[0]
-                );
-                setTempEndDate(dateRangeFilter?.endDate || new Date().toISOString().split('T')[0]);
-                setIsDateRangeModalOpen((prev) => !prev);
-              }}
-              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl border text-xs font-bold transition shadow-sm ${
-                isDateFiltered
-                  ? 'bg-emerald-950/80 border-emerald-500/80 text-emerald-300 ring-1 ring-emerald-500/50'
-                  : 'bg-slate-900/90 border-slate-800 text-slate-300 hover:text-white hover:border-slate-700'
-              }`}
-              title="指定日期區間篩選"
-            >
-              <Calendar className="w-3.5 h-3.5 text-emerald-400" />
-              <span className="truncate max-w-[130px] sm:max-w-[180px]">
-                {isDateFiltered
-                  ? `${dateRangeFilter!.startDate.substring(5)} ~ ${dateRangeFilter!.endDate.substring(5)}`
-                  : '全部區間'}
-              </span>
-            </button>
-          </div>
-
-          {/* 搜尋欄 */}
-          <div className="relative flex-1 max-w-xs">
-            <Search className="w-3.5 h-3.5 absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none" />
-            <input
-              type="text"
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              placeholder="搜尋品項或 #標籤..."
-              className="w-full pl-8 pr-3 py-1.5 rounded-xl border border-slate-800 bg-slate-900/90 text-slate-100 text-xs focus:outline-none focus:ring-1 focus:ring-emerald-500 shadow-sm"
-            />
-          </div>
-        </div>
+        {/* 🔍 搜尋 Modal 觸發按鈕 */}
+        <button
+          type="button"
+          onClick={() => setIsSearchModalOpen(true)}
+          className="flex items-center gap-2 px-3 py-1.5 rounded-xl border border-slate-800 bg-slate-900/90 text-slate-300 hover:text-white hover:border-slate-700 text-xs transition shadow-sm max-w-[220px] sm:max-w-xs flex-1 justify-start"
+          title="開啟搜尋彈窗"
+        >
+          <Search className="w-3.5 h-3.5 text-emerald-400 flex-shrink-0" />
+          <span className="truncate text-slate-400">搜尋品項或 #標籤...</span>
+        </button>
       </div>
 
-      {/* 📅 日期區間選擇下拉卡片 */}
-      {isDateRangeModalOpen && (
-        <div className="p-3.5 rounded-3xl bg-slate-900/95 border border-emerald-500/40 shadow-2xl backdrop-blur-md space-y-3 animate-in fade-in slide-in-from-top-1">
-          <div className="flex items-center justify-between border-b border-slate-800 pb-2">
-            <div className="flex items-center gap-1.5 text-xs font-bold text-slate-200">
-              <Calendar className="w-4 h-4 text-emerald-400" />
-              <span>指定消費日期範圍清單</span>
-            </div>
-            <button
-              onClick={() => setIsDateRangeModalOpen(false)}
-              className="p-1 text-slate-400 hover:text-white"
-            >
-              <X className="w-3.5 h-3.5" />
-            </button>
-          </div>
-
-          {/* 快速預設按鈕 */}
-          <div className="flex flex-wrap gap-1.5 text-xs">
-            <button
-              onClick={() => handleSetDatePreset('all')}
-              className={`px-2.5 py-1 rounded-xl font-bold transition border ${
-                !dateRangeFilter
-                  ? 'bg-emerald-600 border-emerald-500 text-white shadow-sm'
-                  : 'bg-slate-800 border-slate-700 text-slate-300 hover:text-white'
-              }`}
-            >
-              全部時間
-            </button>
-            <button
-              onClick={() => handleSetDatePreset('today')}
-              className="px-2.5 py-1 rounded-xl bg-slate-800 border border-slate-700 text-slate-300 hover:text-emerald-400 font-bold transition"
-            >
-              今天
-            </button>
-            <button
-              onClick={() => handleSetDatePreset('this_week')}
-              className="px-2.5 py-1 rounded-xl bg-slate-800 border border-slate-700 text-slate-300 hover:text-emerald-400 font-bold transition"
-            >
-              本週
-            </button>
-            <button
-              onClick={() => handleSetDatePreset('this_month')}
-              className="px-2.5 py-1 rounded-xl bg-slate-800 border border-slate-700 text-slate-300 hover:text-emerald-400 font-bold transition"
-            >
-              本月
-            </button>
-            <button
-              onClick={() => handleSetDatePreset('last_30_days')}
-              className="px-2.5 py-1 rounded-xl bg-slate-800 border border-slate-700 text-slate-300 hover:text-emerald-400 font-bold transition"
-            >
-              近 30 天
-            </button>
-          </div>
-
-          {/* 自訂日期起訖 */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 pt-1">
-            <div>
-              <label className="block text-[10px] font-bold text-slate-400 mb-1">開始日期 (From)</label>
-              <input
-                type="date"
-                value={tempStartDate}
-                onChange={(e) => setTempStartDate(e.target.value)}
-                className="w-full px-3 py-1.5 rounded-xl border border-slate-700 bg-slate-800 text-white font-mono text-xs outline-none focus:ring-1 focus:ring-emerald-500"
-              />
-            </div>
-            <div>
-              <label className="block text-[10px] font-bold text-slate-400 mb-1">結束日期 (To)</label>
-              <input
-                type="date"
-                value={tempEndDate}
-                onChange={(e) => setTempEndDate(e.target.value)}
-                className="w-full px-3 py-1.5 rounded-xl border border-slate-700 bg-slate-800 text-white font-mono text-xs outline-none focus:ring-1 focus:ring-emerald-500"
-              />
-            </div>
-          </div>
-
-          <div className="flex items-center justify-end gap-2 pt-2 border-t border-slate-800">
-            {dateRangeFilter && (
-              <button
-                onClick={() => {
-                  setDateRangeFilter(null);
-                  setIsDateRangeModalOpen(false);
-                }}
-                className="px-3 py-1.5 rounded-xl text-xs text-rose-400 hover:bg-rose-950/40 transition"
-              >
-                清除區間
-              </button>
-            )}
-            <button
-              onClick={handleApplyCustomDateRange}
-              className="px-4 py-1.5 rounded-xl bg-emerald-600 text-white font-bold text-xs hover:bg-emerald-700 shadow-md transition"
-            >
-              套用區間
-            </button>
-          </div>
-        </div>
-      )}
-
-      {/* ⚡ 批次操作固定工具列 (當 isBatchMode 啟用時浮現，支援 列表 / 週 / 月) */}
+      {/* ⚡ 批次操作固定工具列 (當長按項目進入 isBatchMode 時，浮現在 dock 正上方，手機版優先設計) */}
       {isBatchMode && (
-        <div className="sticky top-14 z-20 p-2.5 sm:p-3 rounded-2xl bg-slate-900/95 border border-emerald-500/40 shadow-xl backdrop-blur-md flex items-center justify-between gap-2 text-xs animate-in fade-in slide-in-from-top-2">
-          <div className="flex items-center gap-2">
-            <span className="font-bold text-white">已勾選 {selectedTxIds.length} 筆</span>
-            <button
-              onClick={handleSelectAll}
-              className="text-emerald-400 hover:text-emerald-300 underline font-semibold text-[11px]"
-            >
-              {selectedTxIds.length === displayList.length ? '取消全選' : '全選'}
-            </button>
-          </div>
+        <div className="fixed bottom-[calc(62px+env(safe-area-inset-bottom,0px))] lg:bottom-4 left-3 right-3 sm:left-6 sm:right-6 lg:left-1/2 lg:-translate-x-1/2 lg:w-full max-w-lg z-40 p-2.5 sm:p-3 rounded-2xl bg-slate-900/95 border border-emerald-500/50 shadow-2xl backdrop-blur-xl flex items-center justify-between gap-2 text-xs animate-in fade-in slide-in-from-bottom-3 duration-200 ring-1 ring-emerald-500/30">
+          <button
+            type="button"
+            onClick={handleSelectAll}
+            className="px-2.5 py-1.5 rounded-xl bg-slate-800/90 hover:bg-slate-700 text-emerald-400 hover:text-emerald-300 border border-slate-700/80 font-bold text-xs whitespace-nowrap transition active:scale-95 shadow-sm flex-shrink-0"
+          >
+            {selectedTxIds.length === displayList.length && displayList.length > 0 ? '取消全選' : '全選'}
+          </button>
 
-          <div className="flex items-center gap-1.5">
+          <div className="flex items-center gap-1.5 flex-shrink-0">
             <Button
               variant="secondary"
               size="xs"
               onClick={() => setIsBatchTagModalOpen(true)}
               disabled={selectedTxIds.length === 0}
               leftIcon={<Tag className="w-3.5 h-3.5 text-emerald-400" />}
+              className="px-2 sm:px-2.5"
             >
-              批次標籤
+              標籤
             </Button>
 
             <Button
@@ -491,8 +412,9 @@ export const TransactionList: React.FC<{ onOpenQuickInput: () => void }> = ({
               }}
               disabled={selectedTxIds.length === 0}
               leftIcon={<Calendar className="w-3.5 h-3.5 text-sky-400" />}
+              className="px-2 sm:px-2.5"
             >
-              修改日期
+              日期
             </Button>
 
             <Button
@@ -501,6 +423,7 @@ export const TransactionList: React.FC<{ onOpenQuickInput: () => void }> = ({
               onClick={handleBatchDelete}
               disabled={selectedTxIds.length === 0}
               leftIcon={<Trash2 className="w-3.5 h-3.5 text-rose-400" />}
+              className="px-2 sm:px-2.5"
             >
               刪除
             </Button>
@@ -512,6 +435,7 @@ export const TransactionList: React.FC<{ onOpenQuickInput: () => void }> = ({
                 setIsBatchMode(false);
                 setSelectedTxIds([]);
               }}
+              className="px-2.5 sm:px-3"
             >
               完成
             </Button>
@@ -519,12 +443,12 @@ export const TransactionList: React.FC<{ onOpenQuickInput: () => void }> = ({
         </div>
       )}
 
-      {/* 🏷️ 標籤篩選列 (支援複選標籤，於 列表 / 週 / 月 檢視皆常駐提供篩選) */}
+      {/* 🏷️ 標籤篩選列 (單選標籤，於 列表 / 週 / 月 檢視常駐提供篩選，支援手機版左右滑動切換) */}
       <div className="space-y-1.5">
         <div className="flex items-center justify-between px-1 text-[11px] text-slate-400">
           <div className="flex items-center gap-1.5">
             <span className="font-bold text-slate-300">標籤篩選</span>
-            <span className="text-[10px] text-slate-500">(可點擊多個標籤進行複選)</span>
+            <span className="text-[10px] text-slate-500">(單選 ‧ 手機版可左右滑動切換)</span>
           </div>
           {(isTagFiltered || isDateFiltered || isSearchFiltered) && (
             <button
@@ -541,11 +465,14 @@ export const TransactionList: React.FC<{ onOpenQuickInput: () => void }> = ({
           )}
         </div>
 
-        <div className="flex items-center gap-1.5 overflow-x-auto pb-1 no-scrollbar text-xs">
+        <div
+          ref={tagsNavRef}
+          className="flex items-center gap-1.5 overflow-x-auto pb-1 no-scrollbar text-xs scroll-smooth"
+        >
           <TagPill
             tag="全部"
             active={!isTagFiltered}
-            onClick={() => setSelectedTagFilters([])}
+            onClick={() => handleSelectTagTab('全部')}
           />
           {currentTagItems.map((tagItem) => {
             const isSelected = activeTags.includes(tagItem.name) || activeTags.includes(tagItem.id);
@@ -554,7 +481,7 @@ export const TransactionList: React.FC<{ onOpenQuickInput: () => void }> = ({
                 key={tagItem.id}
                 tag={tagItem.name}
                 active={isSelected}
-                onClick={() => toggleTagFilter(tagItem.name)}
+                onClick={() => handleSelectTagTab(tagItem.name)}
               />
             );
           })}
@@ -563,114 +490,24 @@ export const TransactionList: React.FC<{ onOpenQuickInput: () => void }> = ({
 
       <OverviewCards />
 
-      {viewMode === 'week' && (
+      {viewMode === 'week' ? (
         <WeekView
-          onEditTransaction={(tx) => setEditingTx(tx)}
+          onEditTransaction={(tx) => openEditTransaction(tx)}
           onOpenQuickInput={onOpenQuickInput}
           isBatchMode={isBatchMode}
           selectedTxIds={selectedTxIds}
           onToggleSelectTx={toggleSelectTx}
+          onEnterBatchModeWithTx={handleEnterBatchMode}
         />
-      )}
-
-      {viewMode === 'month' && (
+      ) : (
         <MonthCalendarView
-          onEditTransaction={(tx) => setEditingTx(tx)}
+          onEditTransaction={(tx) => openEditTransaction(tx)}
           onOpenQuickInput={onOpenQuickInput}
           isBatchMode={isBatchMode}
           selectedTxIds={selectedTxIds}
           onToggleSelectTx={toggleSelectTx}
+          onEnterBatchModeWithTx={handleEnterBatchMode}
         />
-      )}
-
-      {viewMode === 'list' && (
-        <>
-          {sortedDates.length === 0 ? (
-            <div className="glass-panel rounded-3xl p-10 text-center space-y-3">
-              <div className="w-12 h-12 rounded-2xl bg-emerald-950/80 border border-emerald-800 text-emerald-400 flex items-center justify-center mx-auto">
-                <Sparkles className="w-6 h-6" />
-              </div>
-              <div>
-                <h3 className="font-bold text-slate-200 text-sm">尚無符合條件的記帳記錄</h3>
-              </div>
-            </div>
-          ) : (
-            <div className="space-y-3">
-              {sortedDates.map((dateStr) => {
-                const dayTransactions = groupedByDate[dateStr];
-                const dayTotal = dayTransactions.reduce((sum, tx) => sum + (tx.amount || 0), 0);
-
-                return (
-                  <div
-                    key={dateStr}
-                    className="glass-panel rounded-3xl p-3.5 sm:p-4 space-y-2 transition shadow-sm"
-                  >
-                    <div className="flex items-center justify-between border-b border-white/5 pb-2">
-                      <div className="flex items-center gap-2">
-                        <span className="font-mono text-xs font-bold text-slate-300 flex items-center gap-1.5">
-                          <Calendar className="w-3.5 h-3.5 text-emerald-400" />
-                          {dateStr}
-                        </span>
-                        <span className="text-[10px] text-slate-500 font-bold bg-slate-800/80 px-1.5 py-0.5 rounded-md">
-                          {dayTransactions.length} 筆
-                        </span>
-                      </div>
-                      <span className="font-mono text-xs font-black text-slate-200">
-                        小計 NT$ {dayTotal.toLocaleString()}
-                      </span>
-                    </div>
-
-                    <div className="space-y-1.5">
-                      {dayTransactions.map((tx) => {
-                        const isSelected = selectedTxIds.includes(tx.id);
-
-                        return (
-                          <div
-                            key={tx.id}
-                            onClick={() => {
-                              if (isBatchMode) {
-                                toggleSelectTx(tx.id);
-                              } else {
-                                setEditingTx(tx);
-                              }
-                            }}
-                            className={`flex items-center justify-between p-2 sm:p-2.5 rounded-2xl transition duration-150 cursor-pointer border ${
-                              isBatchMode
-                                ? isSelected
-                                  ? 'bg-emerald-950/40 border-emerald-500/50'
-                                  : 'bg-slate-900/40 border-slate-800/60 hover:border-slate-700'
-                                : 'bg-slate-900/60 hover:bg-slate-800/80 border-slate-800/80 hover:border-slate-700 active:scale-[0.99]'
-                            }`}
-                          >
-                            <div className="flex items-center gap-2.5 min-w-0">
-                              {isBatchMode && (
-                                <div
-                                  className={`w-4 h-4 rounded-lg flex items-center justify-center transition border ${
-                                    isSelected
-                                      ? 'bg-emerald-500 border-emerald-400 text-slate-950 font-bold'
-                                      : 'border-slate-700 bg-slate-800'
-                                  }`}
-                                >
-                                  {isSelected && <Check className="w-3 h-3 stroke-[3]" />}
-                                </div>
-                              )}
-                              <h4 className="font-bold text-xs sm:text-sm text-slate-100 truncate">
-                                {tx.title}
-                              </h4>
-                            </div>
-                            <span className="text-xs sm:text-sm font-black font-mono text-emerald-400">
-                              -NT$ {tx.amount.toLocaleString()}
-                            </span>
-                          </div>
-                        );
-                      })}
-                    </div>
-                  </div>
-                );
-              })}
-            </div>
-          )}
-        </>
       )}
 
       {/* 🏷️ 批次修改標籤彈窗 */}
@@ -863,14 +700,16 @@ export const TransactionList: React.FC<{ onOpenQuickInput: () => void }> = ({
                 <label className="block text-[11px] text-slate-400 mb-1">歸屬標籤 (單一標籤)</label>
                 <div className="flex flex-wrap gap-1.5 max-h-32 overflow-y-auto p-1.5 bg-slate-900/60 rounded-xl border border-slate-800 mb-1">
                   {currentTagItems.map((tagItem) => {
-                    const isSelected =
-                      (editingTx.tags?.[0] || '未歸類') === tagItem.name ||
-                      (editingTx.tagIds?.[0] || '') === tagItem.id;
+                    const currentId = editingTx.tagIds?.[0];
+                    const currentName = editingTx.tags?.[0];
+                    const isSelected = currentId
+                      ? tagItem.id === currentId
+                      : tagItem.name === currentName || (currentName === '未歸類' && tagItem.name === '未歸類');
                     return (
                       <button
                         key={tagItem.id}
                         type="button"
-                        onClick={() => handleSelectEditTag(tagItem.name)}
+                        onClick={() => handleSelectEditTag(tagItem)}
                         className={`px-2.5 py-1 rounded-lg text-xs font-semibold transition flex items-center gap-1 ${
                           isSelected
                             ? 'bg-emerald-600 text-white font-bold shadow-sm'
@@ -921,6 +760,13 @@ export const TransactionList: React.FC<{ onOpenQuickInput: () => void }> = ({
           </div>
         </div>
       )}
+
+      {/* 🔍 搜尋彈窗 */}
+      <SearchModal
+        isOpen={isSearchModalOpen}
+        onClose={() => setIsSearchModalOpen(false)}
+        onEditTransaction={openEditTransaction}
+      />
     </div>
   );
 };

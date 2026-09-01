@@ -31,6 +31,7 @@ import {
   XCircle,
   BellRing,
 } from 'lucide-react';
+import { DeleteLedgerModal } from '@/blocks/family-ledger/views/DeleteLedgerModal';
 
 export type SettingsTabType = 'general' | 'payments' | 'tags' | 'group' | 'ai' | 'export';
 
@@ -83,6 +84,7 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
   const [houseName, setHouseName] = useState('');
   const [houseBudget, setHouseBudget] = useState(40000);
   const [joinCode, setJoinCode] = useState('');
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [copiedCode, setCopiedCode] = useState(false);
   const [isEditingGroupName, setIsEditingGroupName] = useState(false);
   const [editGroupNameInput, setEditGroupNameInput] = useState(household?.name || '');
@@ -900,16 +902,7 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
                   <div className="pt-2 flex justify-between items-center border-t border-slate-800">
                     {isLeader && (
                       <button
-                        onClick={() => {
-                          if (
-                            confirm(
-                              `【危險操作】您是組長，確定要「解散並刪除」群組「${household.name}」嗎？所有成員將一併退出。`
-                            )
-                          ) {
-                            deleteHousehold(household.id);
-                            alert('已解散並刪除此群組。');
-                          }
-                        }}
+                        onClick={() => setShowDeleteModal(true)}
                         className="px-3 py-1.5 rounded-xl bg-rose-950/30 hover:bg-rose-950/60 border border-rose-900/40 text-rose-400 text-xs font-bold transition flex items-center gap-1"
                       >
                         <Trash2 className="w-3.5 h-3.5" />
@@ -918,12 +911,7 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
                     )}
 
                     <button
-                      onClick={() => {
-                        if (confirm(`確定要退出「${household.name}」群組嗎？`)) {
-                          leaveHousehold(household.id);
-                          alert('已退出此群組。');
-                        }
-                      }}
+                      onClick={() => setShowDeleteModal(true)}
                       className="px-4 py-2 bg-slate-800 hover:bg-rose-950/60 border border-slate-700 hover:border-rose-900/50 text-slate-400 hover:text-rose-400 rounded-xl text-xs font-bold transition flex items-center gap-1.5 ml-auto"
                     >
                       <LogOut className="w-3.5 h-3.5" />
@@ -1224,6 +1212,27 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
           </div>
         )}
       </div>
+
+      {/* 刪除/退出群組安全確認 Modal */}
+      <DeleteLedgerModal
+        isOpen={showDeleteModal}
+        onClose={() => setShowDeleteModal(false)}
+        household={household || null}
+        currentUserId={user.uid}
+        transactionCount={
+          household
+            ? transactions.filter((t) => t.householdId === household.id || (t.ledgerType === 'household' && !t.householdId)).length
+            : 0
+        }
+        onConfirmDelete={(hId) => {
+          deleteHousehold(hId);
+          onBack();
+        }}
+        onConfirmLeave={(hId) => {
+          leaveHousehold(hId);
+          onBack();
+        }}
+      />
     </div>
   );
 };

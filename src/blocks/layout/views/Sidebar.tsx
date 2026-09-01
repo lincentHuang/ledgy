@@ -24,6 +24,8 @@ import {
   Cloud,
   Wand2,
   Smartphone,
+  Barcode,
+  BarChart3,
 } from 'lucide-react';
 import { MainTabType } from './BottomNav';
 import { PersonalTabType, GroupTabType } from '@/blocks/settings';
@@ -38,6 +40,8 @@ interface SidebarProps {
   onOpenAssistant: () => void;
   onOpenProfile: () => void;
   onOpenOnboarding: () => void;
+  onOpenBarcode?: () => void;
+  onOpenScanner?: () => void;
   personalTab?: PersonalTabType;
   groupTab?: GroupTabType;
 }
@@ -52,6 +56,8 @@ export const Sidebar: React.FC<SidebarProps> = ({
   onOpenAssistant,
   onOpenProfile,
   onOpenOnboarding,
+  onOpenBarcode,
+  onOpenScanner,
   personalTab = 'payments',
   groupTab = 'members',
 }) => {
@@ -126,95 +132,84 @@ export const Sidebar: React.FC<SidebarProps> = ({
             </button>
           </div>
 
-          {/* 帳本切換選單 */}
+          {/* 獨立帳本切換選單 */}
           <div className="space-y-1.5">
-            <p className="px-2 text-[10px] font-bold text-slate-400 uppercase tracking-wider">
-              當前帳本模式
-            </p>
-            <div className="grid grid-cols-2 gap-1.5 bg-slate-900/90 p-1 rounded-2xl border border-slate-800 text-xs font-bold shadow-sm">
+            <div className="px-2 pb-0.5 flex items-center justify-between">
+              <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">
+                切換帳本 ({1 + households.length})
+              </p>
+              <button
+                onClick={() => {
+                  onChangeTab('family');
+                  onClose();
+                }}
+                className="text-[10px] text-emerald-400 hover:text-emerald-300 font-bold"
+              >
+                管理帳本
+              </button>
+            </div>
+
+            <div className="space-y-1 bg-slate-900/60 p-1.5 rounded-2xl border border-slate-800/80">
+              {/* 1. 個人私帳 */}
               <button
                 onClick={() => {
                   setActiveLedger('personal');
                   onChangeTab('overview');
                   onClose();
                 }}
-                className={`py-1.5 rounded-xl transition flex items-center justify-center gap-1.5 border ${
+                className={`w-full flex items-center justify-between px-3 py-2 rounded-xl transition text-left border ${
                   activeLedger === 'personal'
-                    ? 'bg-emerald-600 border-emerald-500 text-white shadow-sm font-black'
-                    : 'border-transparent text-slate-400 hover:text-slate-200'
+                    ? 'bg-emerald-950/80 text-emerald-300 font-bold border-emerald-800/60 shadow'
+                    : 'border-transparent hover:bg-slate-800/80 text-slate-400 hover:text-slate-200'
                 }`}
               >
-                <Wallet className="w-3.5 h-3.5" />
-                <span>個人私帳</span>
+                <div className="flex items-center gap-2 truncate">
+                  <Wallet className="w-3.5 h-3.5 text-emerald-400 flex-shrink-0" />
+                  <span className="truncate">個人私帳</span>
+                </div>
+                {activeLedger === 'personal' && <Check className="w-3.5 h-3.5 text-emerald-400 flex-shrink-0" />}
               </button>
 
+              {/* 2. 各獨立共享帳本 */}
+              {households.map((h) => {
+                const isCurrent = activeLedger === 'household' && activeHouseholdId === h.id;
+                return (
+                  <button
+                    key={h.id}
+                    onClick={() => {
+                      switchActiveHousehold(h.id);
+                      setActiveLedger('household');
+                      onChangeTab('overview');
+                      onClose();
+                    }}
+                    className={`w-full flex items-center justify-between px-3 py-2 rounded-xl transition text-left border ${
+                      isCurrent
+                        ? 'bg-purple-950/80 text-purple-300 font-bold border-purple-800/60 shadow'
+                        : 'border-transparent hover:bg-slate-800/80 text-slate-400 hover:text-slate-200'
+                    }`}
+                  >
+                    <div className="flex items-center gap-2 truncate">
+                      <Users className="w-3.5 h-3.5 text-purple-400 flex-shrink-0" />
+                      <span className="truncate">{h.name}</span>
+                    </div>
+                    {isCurrent && <Check className="w-3.5 h-3.5 text-purple-400 flex-shrink-0" />}
+                  </button>
+                );
+              })}
+
+              {/* 快速建立/加入帳本 */}
               <button
                 onClick={() => {
-                  if (households.length > 0) {
-                    setActiveLedger('household');
-                    onChangeTab('family');
-                    onClose();
-                  } else {
-                    handleOpenGroup('members');
-                  }
+                  onChangeTab('family');
+                  onClose();
                 }}
-                className={`py-1.5 rounded-xl transition flex items-center justify-center gap-1.5 border ${
-                  activeLedger === 'household'
-                    ? 'bg-purple-600 border-purple-500 text-white shadow-sm font-black'
-                    : 'border-transparent text-slate-400 hover:text-slate-200'
-                }`}
+                className="w-full flex items-center gap-1.5 px-3 py-1.5 rounded-xl hover:bg-slate-800/80 text-slate-500 hover:text-slate-300 transition text-[11px] font-medium border border-transparent"
               >
-                <Users className="w-3.5 h-3.5" />
-                <span>群組公帳</span>
+                <Plus className="w-3.5 h-3.5 text-emerald-400" />
+                <span>+ 建立或加入新帳本</span>
               </button>
             </div>
           </div>
-
-          {/* 複數群組切換清單 (僅在群組公帳模式下顯示) */}
-          {activeLedger === 'household' && households.length > 0 && (
-            <div className="space-y-1">
-              <div className="px-2 pb-1 flex items-center justify-between">
-                <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">
-                  切換群組帳本 ({households.length})
-                </p>
-              </div>
-
-              <div className="space-y-1 bg-slate-900/40 p-1.5 rounded-2xl border border-slate-800/60">
-                {households.map((h) => {
-                  const isCurrent = activeLedger === 'household' && activeHouseholdId === h.id;
-                  return (
-                    <button
-                      key={h.id}
-                      onClick={() => {
-                        switchActiveHousehold(h.id);
-                        setActiveLedger('household');
-                        onClose();
-                      }}
-                      className={`w-full flex items-center justify-between px-3 py-2 rounded-xl transition text-left border ${
-                        isCurrent
-                          ? 'bg-purple-950/80 text-purple-300 font-bold border-purple-800/60 shadow'
-                          : 'border-transparent hover:bg-slate-800 text-slate-400 hover:text-slate-200'
-                      }`}
-                    >
-                      <div className="flex items-center gap-2 truncate">
-                        <Users className="w-3.5 h-3.5 text-purple-400 flex-shrink-0" />
-                        <span className="truncate">{h.name}</span>
-                      </div>
-                      {isCurrent && <Check className="w-3.5 h-3.5 text-purple-400 flex-shrink-0" />}
-                    </button>
-                  );
-                })}
-
-                <button
-                  onClick={() => handleOpenGroup('members')}
-                  className="w-full flex items-center gap-1.5 px-3 py-1.5 rounded-xl hover:bg-slate-800 text-slate-500 hover:text-slate-300 transition text-[11px] font-medium border border-transparent"
-                >
-                  <Plus className="w-3.5 h-3.5 text-purple-400" />
-                  <span>+ 建立或加入新群組</span>
-                </button>
-              </div>
-            </div>
-          )}
 
           {/* 主要功能區 */}
           <div className="space-y-1">
@@ -238,25 +233,57 @@ export const Sidebar: React.FC<SidebarProps> = ({
               <ChevronRight className="w-3.5 h-3.5 opacity-60" />
             </button>
 
-            {activeLedger === 'household' && households.length > 0 && household && (
-              <button
-                onClick={() => handleNav('family')}
-                className={`w-full flex items-center justify-between px-3 py-2.5 rounded-2xl transition font-medium border ${
-                  currentTab === 'family'
-                    ? 'bg-purple-600/20 text-purple-300 font-bold border-purple-500/30'
-                    : 'border-transparent hover:bg-slate-800 text-slate-300'
-                }`}
-              >
-                <div className="flex items-center gap-2.5">
-                  <Users className="w-4 h-4 text-purple-400" />
-                  <span>群組公帳與分帳結算</span>
-                </div>
-                <span className="text-[10px] bg-slate-800 text-purple-300 px-2 py-0.5 rounded-full border border-slate-700 truncate max-w-[80px]">
-                  {household.name}
-                </span>
-              </button>
-            )}
+            <button
+              onClick={() => handleNav('family')}
+              className={`w-full flex items-center justify-between px-3 py-2.5 rounded-2xl transition font-medium border ${
+                currentTab === 'family'
+                  ? 'bg-emerald-600/20 text-emerald-300 font-bold border-emerald-500/30'
+                  : 'border-transparent hover:bg-slate-800 text-slate-300'
+              }`}
+            >
+              <div className="flex items-center gap-2.5">
+                <Layers className="w-4 h-4 text-emerald-400" />
+                <span>帳本管理與共用中心</span>
+              </div>
+              <span className="text-[10px] bg-slate-800 text-emerald-300 px-2 py-0.5 rounded-full border border-slate-700">
+                {1 + households.length} 本
+              </span>
+            </button>
+
+            {/* 3. 財務報表與 AI 顧問 */}
+            <button
+              onClick={() => handleNav('reports')}
+              className={`w-full flex items-center justify-between px-3 py-2.5 rounded-2xl transition font-medium border ${
+                currentTab === 'reports'
+                  ? 'bg-emerald-600/20 text-emerald-400 font-bold border-emerald-500/30'
+                  : 'border-transparent hover:bg-slate-800 text-slate-300'
+              }`}
+            >
+              <div className="flex items-center gap-2.5">
+                <BarChart3 className="w-4 h-4 text-emerald-400" />
+                <span>財務報表與 AI 顧問</span>
+              </div>
+              <ChevronRight className="w-3.5 h-3.5 opacity-60" />
+            </button>
+
+            {/* 4. 手機條碼載具與發票 */}
+            <button
+              onClick={() => {
+                onOpenBarcode?.();
+                onClose();
+              }}
+              className="w-full flex items-center justify-between px-3 py-2.5 rounded-2xl transition font-medium border border-transparent hover:bg-slate-800 text-slate-300 group"
+            >
+              <div className="flex items-center gap-2.5">
+                <Barcode className="w-4 h-4 text-emerald-400" />
+                <span>手機條碼載具與發票</span>
+              </div>
+              <span className="text-[10px] bg-slate-800 text-emerald-300 px-2 py-0.5 rounded-full border border-slate-700 font-mono">
+                {user.defaultCarrierCode || '/AB1234+'}
+              </span>
+            </button>
           </div>
+
 
           {/* 👤 個人設定專區 (僅在個人私帳模式下顯示) */}
           {activeLedger === 'personal' && (
@@ -459,8 +486,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
             {user?.geminiApiKey && user.geminiApiKey.trim() ? (
               <button
                 onClick={() => {
-                  onOpenAssistant();
-                  onClose();
+                  handleNav('reports');
                 }}
                 className="w-full flex items-center justify-between px-3 py-2.5 rounded-2xl hover:bg-emerald-950/40 border border-transparent hover:border-emerald-800/50 text-slate-200 hover:text-emerald-300 transition font-medium group"
               >
@@ -468,7 +494,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
                   <div className="p-1 rounded-lg bg-emerald-500/20 text-emerald-400 group-hover:scale-110 transition-transform">
                     <Sparkles className="w-4 h-4" />
                   </div>
-                  <span>AI 理財顧問諮詢</span>
+                  <span>財務報表與 AI 顧問</span>
                 </div>
                 <span className="text-[10px] px-1.5 py-0.5 rounded-full bg-emerald-950 text-emerald-400 border border-emerald-800/80 font-mono">
                   已啟用

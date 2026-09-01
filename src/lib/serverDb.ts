@@ -453,6 +453,7 @@ export class ServerDb {
     const db = this.ensureDb();
     if (db.households[householdId]) {
       delete db.households[householdId];
+      db.transactions = db.transactions.filter((t) => t.householdId !== householdId);
       this.writeDb(db);
       return true;
     }

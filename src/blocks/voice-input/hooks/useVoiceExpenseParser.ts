@@ -1,13 +1,14 @@
 'use client';
 
 import { useState, useCallback } from 'react';
-import { parseExpenseWithGemini } from '@/lib/geminiClient';
+import { parseExpensesWithGemini } from '@/lib/geminiClient';
 import {
   DEFAULT_CATEGORIES,
   matchTagIntelligently,
 } from '@app/shared';
 
 export interface ParsedVoiceExpense {
+  id?: string;
   title: string;
   amount: number;
   categoryId: string;
@@ -37,7 +38,7 @@ export function useVoiceExpenseParser({
   learningEngine,
 }: UseVoiceExpenseParserOptions) {
   const [isParsing, setIsParsing] = useState(false);
-  const [parsedResult, setParsedResult] = useState<ParsedVoiceExpense | null>(null);
+  const [parsedResults, setParsedResults] = useState<ParsedVoiceExpense[]>([]);
   const [parseError, setParseError] = useState('');
 
   const parseVoice = useCallback(
@@ -52,7 +53,7 @@ export function useVoiceExpenseParser({
           ? `若輸入類似「${matchedRule.keywordPattern}」，優先歸類至「${matchedRule.targetCategoryName}」`
           : '';
 
-        const parsed = await parseExpenseWithGemini(
+        const rawParsedList = await parseExpensesWithGemini(
           text,
           geminiApiKey,
           fewShotPrompt,
@@ -60,50 +61,60 @@ export function useVoiceExpenseParser({
           currentTags
         );
 
-        const isExplicitPersonal = /個人|私帳|自己/.test(text);
-        const isExplicitHousehold = /家庭|公帳|公用|家裡|大家/.test(text);
-        const determinedLedgerType: 'personal' | 'household' = isExplicitHousehold
-          ? 'household'
-          : isExplicitPersonal
-          ? 'personal'
-          : (parsed.ledgerType || activeLedger || 'personal');
+        const mappedResults: ParsedVoiceExpense[] = rawParsedList.map((parsed, idx) => {
+          const itemRule = learningEngine?.matchRule(parsed.title || text);
+          const effectiveRule = itemRule || matchedRule;
 
-        const cat = DEFAULT_CATEGORIES.find(
-          (c) => c.id === (matchedRule ? matchedRule.targetCategoryId : parsed.categoryId)
-        );
+          const isExplicitPersonal = /個人|私帳|自己/.test(parsed.title || text);
+          const isExplicitHousehold = /家庭|公帳|公用|家裡|大家/.test(parsed.title || text);
+          const determinedLedgerType: 'personal' | 'household' = isExplicitHousehold
+            ? 'household'
+            : isExplicitPersonal
+            ? 'personal'
+            : (parsed.ledgerType || activeLedger || 'personal');
 
-        // 🎯 智慧標籤配對（優先依據個人自適應學習規則，次之依據食衣住行與自訂標籤關鍵字庫）
-        let resolvedTag = '未歸類';
-        if (
-          matchedRule?.targetTags &&
-          matchedRule.targetTags.length > 0 &&
-          currentTags.includes(matchedRule.targetTags[0])
-        ) {
-          resolvedTag = matchedRule.targetTags[0];
-        } else {
-          resolvedTag = matchTagIntelligently(
-            text,
-            parsed.title || text,
-            parsed.merchant,
-            currentTags,
-            learningEngine?.getRules()
-          );
-        }
+          const targetCatId = effectiveRule ? effectiveRule.targetCategoryId : parsed.categoryId;
+          const cat = DEFAULT_CATEGORIES.find((c) => c.id === targetCatId);
 
-        setParsedResult({
-          title: parsed.title || text,
-          amount: parsed.amount || 0,
-          categoryId: matchedRule ? matchedRule.targetCategoryId : parsed.categoryId,
-          categoryName: cat ? cat.name : parsed.categoryId,
-          subCategory: matchedRule?.targetSubCategory || parsed.subCategory,
-          paymentMethod:
-            matchedRule?.targetPaymentMethod || parsed.paymentMethod || defaultPaymentMethod || '現金',
-          tags: [resolvedTag],
-          ledgerType: determinedLedgerType,
-          merchant: parsed.merchant,
-          confidence: parsed.confidence,
-          engineType: parsed.engineType || (matchedRule ? 'local_zero_token' : 'gemini_cloud'),
+          // 🎯 智慧標籤配對
+          let resolvedTag = '未歸類';
+          if (
+            effectiveRule?.targetTags &&
+            effectiveRule.targetTags.length > 0 &&
+            currentTags.includes(effectiveRule.targetTags[0])
+          ) {
+            resolvedTag = effectiveRule.targetTags[0];
+          } else {
+            resolvedTag = matchTagIntelligently(
+              parsed.title || text,
+              parsed.title || text,
+              parsed.merchant,
+              currentTags,
+              learningEngine?.getRules()
+            );
+          }
+
+          return {
+            id: `item_${Date.now()}_${idx}`,
+            title: parsed.title || text,
+            amount: parsed.amount || 0,
+            categoryId: targetCatId,
+            categoryName: cat ? cat.name : parsed.categoryName || targetCatId,
+            subCategory: effectiveRule?.targetSubCategory || parsed.subCategory,
+            paymentMethod:
+              effectiveRule?.targetPaymentMethod ||
+              parsed.paymentMethod ||
+              defaultPaymentMethod ||
+              '現金',
+            tags: [resolvedTag],
+            ledgerType: determinedLedgerType,
+            merchant: parsed.merchant,
+            confidence: parsed.confidence,
+            engineType: parsed.engineType || (effectiveRule ? 'local_zero_token' : 'gemini_cloud'),
+          };
         });
+
+        setParsedResults(mappedResults);
       } catch (e: any) {
         setParseError(e.message || 'AI 解析失敗，請再試一次。');
       } finally {
@@ -113,15 +124,32 @@ export function useVoiceExpenseParser({
     [geminiApiKey, defaultPaymentMethod, currentTags, activeLedger, learningEngine]
   );
 
+  const updateItem = useCallback((index: number, changes: Partial<ParsedVoiceExpense>) => {
+    setParsedResults((prev) => {
+      const next = [...prev];
+      if (next[index]) {
+        next[index] = { ...next[index], ...changes };
+      }
+      return next;
+    });
+  }, []);
+
+  const removeItem = useCallback((index: number) => {
+    setParsedResults((prev) => prev.filter((_, i) => i !== index));
+  }, []);
+
   const resetParsedResult = useCallback(() => {
-    setParsedResult(null);
+    setParsedResults([]);
     setParseError('');
   }, []);
 
   return {
     isParsing,
-    parsedResult,
-    setParsedResult,
+    parsedResult: parsedResults[0] || null,
+    parsedResults,
+    setParsedResults,
+    updateItem,
+    removeItem,
     parseError,
     setParseError,
     parseVoice,

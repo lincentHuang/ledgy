@@ -226,6 +226,7 @@ const STORAGE_KEYS = {
   PAYMENT_METHODS: 'ai_expense_payment_methods_v6',
   TAGS: 'ai_expense_tags_v6',
   TAG_ITEMS: 'ai_expense_tag_items_v6',
+  VIEW_MODE: 'ai_expense_view_mode_v6',
 };
 
 export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
@@ -263,7 +264,13 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   const [availableTagItems, setAvailableTagItems] = useState<TagItem[]>(DEFAULT_TAG_ITEMS);
   const availableTags = availableTagItems.map((t) => t.name);
 
-  const [viewMode, setViewModeState] = useState<'list' | 'week' | 'month'>('list');
+  const [viewMode, setViewModeState] = useState<'list' | 'week' | 'month'>(() => {
+    if (typeof window !== 'undefined') {
+      const saved = localStorage.getItem('ai_expense_view_mode_v6');
+      if (saved === 'week' || saved === 'month') return saved;
+    }
+    return 'month';
+  });
   const [weekOffset, setWeekOffsetState] = useState<number>(0);
   const [calendarYear, setCalendarYearState] = useState<number>(() => new Date().getFullYear());
   const [calendarMonth, setCalendarMonthState] = useState<number>(() => new Date().getMonth() + 1);
@@ -276,6 +283,9 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   const setViewMode = (mode: 'list' | 'week' | 'month') => {
     setViewModeState(mode);
     setSelectedSubDates([]); // 切換模式時重設子日期選取
+    if (typeof window !== 'undefined') {
+      localStorage.setItem(STORAGE_KEYS.VIEW_MODE, mode);
+    }
   };
 
   const setWeekOffset: React.Dispatch<React.SetStateAction<number>> = (val) => {
@@ -295,7 +305,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
 
   const selectedTagFilter = selectedTagFilters[0] || 'all';
   const setSelectedTagFilter = (tag: string) => {
-    if (tag === 'all') {
+    if (tag === 'all' || !tag) {
       setSelectedTagFilters([]);
     } else {
       setSelectedTagFilters([tag]);
@@ -303,13 +313,13 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   };
 
   const toggleTagFilter = (tag: string) => {
-    if (tag === 'all') {
+    if (tag === 'all' || !tag) {
       setSelectedTagFilters([]);
     } else {
-      if (selectedTagFilters.includes(tag)) {
-        setSelectedTagFilters(selectedTagFilters.filter((t) => t !== tag));
+      if (selectedTagFilters.length === 1 && selectedTagFilters[0] === tag) {
+        setSelectedTagFilters([]);
       } else {
-        setSelectedTagFilters([...selectedTagFilters.filter((t) => t !== 'all'), tag]);
+        setSelectedTagFilters([tag]);
       }
     }
   };
@@ -790,6 +800,11 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
 
   const deleteHousehold = (targetHouseholdId: string) => {
     CloudApiClient.deleteHousehold(targetHouseholdId);
+    setTransactions((prev) => {
+      const updated = prev.filter((t) => t.householdId !== targetHouseholdId);
+      localStorage.setItem(STORAGE_KEYS.TRANSACTIONS, JSON.stringify(updated));
+      return updated;
+    });
     leaveHousehold(targetHouseholdId);
   };
 
@@ -1584,7 +1599,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
           const matchedTag = currentTagItems.find((ci) => ci.name === normalizedTags[0] || ci.id === normalizedTags[0]);
           const normalizedTagIds = updateData.tagIds !== undefined
             ? updateData.tagIds
-            : (matchedTag ? [matchedTag.id] : (t.tagIds || [generateTagKey(normalizedTags[0])]));
+            : (matchedTag ? [matchedTag.id] : [generateTagKey(normalizedTags[0])]);
 
           const u = {
             ...t,

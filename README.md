@@ -1,8 +1,8 @@
 <div align="center">
 
 # 🤖 智帳君 Ledgy
-### 台灣在地化 AI 智能發票載具與家庭多群組分帳系統
-**Full-Stack AI Accounting & Household Ledger with Real-time Cloud Sync & Native PWA**
+### 台灣在地化 AI 智慧記帳與多人多帳本協同記帳系統
+**Full-Stack AI Accounting & Collaborative Multi-Ledger with Real-time Cloud Sync & Native PWA**
 
 [![Next.js](https://img.shields.io/badge/Next.js-14.2_(App_Router)-black?style=for-the-badge&logo=next.js)](https://nextjs.org/)
 [![TypeScript](https://img.shields.io/badge/TypeScript-5.0-blue?style=for-the-badge&logo=typescript)](https://www.typescriptlang.org/)
@@ -11,7 +11,7 @@
 [![Capacitor](https://img.shields.io/badge/Capacitor-iOS_%26_Android-119EFF?style=for-the-badge&logo=capacitor)](https://capacitorjs.com/)
 [![License](https://img.shields.io/badge/License-MIT-green?style=for-the-badge)](#)
 
-[🚀 線上即時體驗 Demo](https://ledgy-be1e6.web.app) • [📘 使用者操作教學手冊](./docs/USER_GUIDE.md) • [✨ 技術亮點](#-核心技術亮點與架構特色) • [🛠️ 本地建置](#-本地開發與建置指南)
+[🚀 線上即時體驗 Demo](https://ledgy-be1e6.web.app) • [📘 使用者操作教學手冊](./docs/USER_GUIDE.md) • [📄 產品需求規格書 (PRD)](./docs/PRD.md) • [✨ 技術亮點](#-核心技術亮點與架構特色) • [🛠️ 本地建置](#-本地開發與建置指南)
 
 </div>
 
@@ -19,7 +19,7 @@
 
 ## 📖 專案概述 (Project Overview)
 
-**智帳君 (Ledgy)** 是一款專為台灣用戶打造的高效能、在地化 AI 智慧記帳與家庭分帳系統。系統融合了 **台灣電子發票手機載具**、**雙 QR Code 離線解碼**、**財政部發票雲端同步**、**0-Token 地端/雲端混合式 AI 語音自然語言記帳**、**多人家庭公帳與最小路徑債務清算演算法**，並透過 **PWA 2.0** 與 **Capacitor** 提供 100% 擬真原生 App 體驗。
+**智帳君 (Ledgy)** 是一款專為台灣用戶打造的高效能、在地化 AI 智慧記帳與多人多帳本協同記帳系統。系統融合了 **手機條碼載具快速出示**、**0-Token 地端/雲端混合式 AI 語音自然語言記帳**、**多人多帳本協同共同編輯與獨立預算管理**，並透過 **PWA 2.0** 與 **Capacitor** 提供 100% 擬真原生 App 體驗。
 
 ---
 
@@ -31,13 +31,13 @@
 - `src/blocks/`：依領域劃分的高內聚業務功能模組，每個 Block 自主封裝其 `views/`（畫面視圖）與 `hooks/`（業務邏輯）：
   - `auth/`：登入、註冊、四步驟新手設定精靈、個人檔案。
   - `dashboard/`：收支儀表板、趨勢圖表、交易清單、預算進度條。
-  - `family-ledger/`：多人家庭/情侶公帳、成員權限管理、邀請機制與 AA 債務結算。
+  - `family-ledger/`：多人多帳本中心、共享帳本建立、成員邀請與即時協同編輯。
   - `voice-input/`：Web Speech 語音辨識、麥克風動態反饋、語意結構化預覽。
-  - `invoice-scanner/`：相機雙 QR Code 即時辨識、手機條碼高對比出示、財政部發票同步。
+  - `invoice-scanner/`：手機條碼高對比出示（發票雲端串接與對獎因法規權限考量暫停）。
   - `ai-consultant/`：Gemini 財務諮詢顧問、資產分析對話。
   - `settings/`：食衣住行標籤庫管理、自訂付款方式、多維度預算配置。
   - `layout/`：頂部導航、側邊欄、底部選單、PWA 安裝導引、原生生命週期初始化。
-- `src/lib/shared/`：領域模型（Domain Types）、工具函式、開獎演算法與通用規則庫。
+- `src/lib/shared/`：領域模型（Domain Types）、工具函式與通用規則庫。
 
 ```mermaid
 graph TD
@@ -46,9 +46,9 @@ graph TD
     C --> D[src/blocks/ 業務領域模組]
     D --> D1[auth 新手精靈/驗證]
     D --> D2[dashboard 儀表板/明細]
-    D --> D3[family-ledger 多人群組公帳]
+    D --> D3[family-ledger 多帳本協同中心]
     D --> D4[voice-input 語音自然語言記帳]
-    D --> D5[invoice-scanner 發票/載具條碼]
+    D --> D5[invoice-scanner 手機載具條碼]
     D --> D6[ai-consultant Gemini 財務顧問]
     D --> D7[settings 標籤/預算/設定]
     D --> E[src/components/ 純樣式無狀態元件]
@@ -68,30 +68,29 @@ graph TD
 ---
 
 ### 3. 🔄 毫秒級 Cloud Firestore 即時雙向同步與離線優先 (Offline-First Real-time Sync)
-- **即時監聽 (Real-time Snapshot Listener)**：使用 Firestore `onSnapshot` 建立即時連線通道，手機記帳電腦秒更新、多成員家庭記帳即刻同步。
+- **即時監聽 (Real-time Snapshot Listener)**：使用 Firestore `onSnapshot` 建立即時連線通道，手機記帳電腦秒更新、多成員共享帳本即刻同步。
 - **全方位個人資料雲端化**：包含標籤庫 (`tagItems`)、總預算與標籤細項預算 (`tagBudgets`)、新手精靈狀態 (`hasCompletedOnboarding`)、付款方式與 Gemini 金鑰，皆自動雙向備份。
 - **無縫離線容錯機制**：在無網路或電梯等極端環境下，自動降級為 LocalStorage + Service Worker 離線模式，網路恢復後自動進行批次衝突協商並同步至雲端。
 
 ---
 
-### 4. 👥 多人家庭公帳與最小化債務沖銷演算法 (Debt Simplification Algorithm)
-- 支援多本公帳切換（例如「台北合租房」、「北海道員工旅遊」、「家庭生活公帳」）。
-- 支援 **均等 AA、自訂固定金額、自訂百分比** 等多元分攤模式。
-- 內建**圖論債務沖銷演算法 (Greedy Debt Settlement)**：將複雜的多角代墊關係自動化簡為最精簡的轉帳次數與金額，徹底免去繁瑣對帳之苦。
+### 4. 👥 多人多帳本協同共同編輯 (Collaborative Multi-Ledger System)
+- **多帳本切換**：支援自訂建立並自由切換「個人私帳」與多本「共享帳本」（例如「台北合租房」、「北海道旅遊」、「家庭生活公帳」）。
+- **多人即時協同**：透過 6 碼邀請碼或 Email 邀請成員加入，所有人皆可即時記帳、編輯與檢視帳本流水帳。
+- **獨立預算管控**：每本帳本皆可配置獨立的月預算額度與進度條，清晰掌握群組花費。
+- *(說明：已移除繁瑣之 AA 分帳與多角債務清算演算法，回歸最透明、直接的共同記帳)*。
 
 ---
 
-### 5. 🧾 台灣電子發票雙 QR Code 解碼與財政部自動對獎
-- **雙 QR Code 離線解碼**：支援台灣電子發票規格（包含左側與右側發票 QR Code），可直接解碼開立日期、發票號碼、隨機碼、銷售金額、買受人載具與多筆明細商品品項。
-- **自動對獎演算法**：完整實作統一發票中獎規則（特別獎 1000 萬、特獎 200 萬、頭獎至六獎、雲端發票專屬獎 500/800/2000/百萬獎），一鍵核對名下所有發票是否中獎。
-- **財政部 API 串接**：支援載入載具條碼與驗證碼，自動透過財政部電子發票整合服務平台 API 批量拉取雲端發票與真實明細。
+### 5. 💳 手機條碼載具快速出示 (台灣在地化)
+- **高對比手機條碼**：支援符合台灣財政部規範之手機條碼（Code 39），結帳一鍵出示掃描與複製。
+- *(說明：原統一發票 API 批量拉取與 QR 掃描對獎功能，因財政部資料串接授權與法務權限限制，現階段暫時關閉，專注於極速 0-Token 語音記帳與多帳本協同)*。
 
 ---
 
 ### 6. 📱 PWA 2.0 擬真原生 App 級體驗
 - **長按桌面圖示快速捷徑 (App Shortcuts)**：
   - 🎙️ **語音自然記帳** (`/?action=voice`)
-  - 📷 **掃描統一發票** (`/?action=scanner`)
   - 💳 **出示手機載具** (`/?action=barcode`)
   - ⚡ **快速手動記帳** (`/?action=quick-input`)
 - **iOS Safari 沉浸式透明狀態列**：`apple-mobile-web-app-status-bar-style: "black-translucent"`，網頁邊界無縫融入動態島與瀏海。

@@ -8,7 +8,7 @@ import { FamilyView } from '@/blocks/family-ledger';
 import { PersonalSettingsView, PersonalTabType, GroupSettingsView, GroupTabType } from '@/blocks/settings';
 import { BarcodeModal, InvoiceScannerModal } from '@/blocks/invoice-scanner';
 import { QuickInputModal } from '@/blocks/transactions';
-import { FinancialChatModal } from '@/blocks/ai-consultant';
+import { FinancialChatModal, FinancialReportView } from '@/blocks/ai-consultant';
 import { UserProfileModal, WelcomeView, OnboardingWizardModal } from '@/blocks/auth';
 import { VoiceInputModal } from '@/blocks/voice-input';
 
@@ -134,6 +134,8 @@ export default function Home() {
         onOpenAssistant={() => setIsAssistantOpen(true)}
         onOpenProfile={() => setIsProfileOpen(true)}
         onOpenOnboarding={() => setIsOnboardingManualOpen(true)}
+        onOpenBarcode={() => setIsBarcodeOpen(true)}
+        onOpenScanner={() => setIsScannerOpen(true)}
         personalTab={personalTab}
         groupTab={groupTab}
       />
@@ -142,13 +144,8 @@ export default function Home() {
       <div className="flex-1 min-w-0 flex flex-col h-full overflow-hidden">
         {/* 頂部導航欄 (固定於最上方) */}
         <Header
-          onOpenSidebar={() => setIsSidebarOpen(true)}
-          onOpenBarcode={() => setIsBarcodeOpen(true)}
-          onOpenQuickInput={() => setIsQuickInputOpen(true)}
-          onOpenAssistant={() => setIsAssistantOpen(true)}
           onOpenPersonalSettings={handleOpenPersonalSettings}
           onOpenGroupSettings={handleOpenGroupSettings}
-          onOpenScanner={() => setIsScannerOpen(true)}
           onOpenProfile={() => setIsProfileOpen(true)}
         />
 
@@ -178,7 +175,14 @@ export default function Home() {
               </div>
             )}
 
-            {/* 3. 群組分帳結算 */}
+            {/* 3. 📊 財務報表與 AI 顧問 (雙模式 + 彈性時間區間 + 預算合理性診斷) */}
+            {currentTab === 'reports' && (
+              <FinancialReportView
+                onBack={() => setCurrentTab('overview')}
+              />
+            )}
+
+            {/* 4. 群組分帳結算 */}
             {currentTab === 'family' && (
               <FamilyView onOpenQuickInput={() => setIsQuickInputOpen(true)} />
             )}
@@ -189,6 +193,7 @@ export default function Home() {
                 activeTab={personalTab}
                 onChangeTab={setPersonalTab}
                 onBack={() => setCurrentTab('overview')}
+                onSwitchToGroup={() => setCurrentTab('group-settings')}
               />
             )}
 
@@ -198,6 +203,7 @@ export default function Home() {
                 activeTab={groupTab}
                 onChangeTab={setGroupTab}
                 onBack={() => setCurrentTab('overview')}
+                onSwitchToPersonal={() => setCurrentTab('personal-settings')}
               />
             )}
 
@@ -207,6 +213,7 @@ export default function Home() {
                 activeTab={personalTab}
                 onChangeTab={setPersonalTab}
                 onBack={() => setCurrentTab('overview')}
+                onSwitchToGroup={() => setCurrentTab('group-settings')}
               />
             )}
           </main>
@@ -218,6 +225,8 @@ export default function Home() {
           onChangeTab={setCurrentTab}
           onOpenQuickInput={() => setIsQuickInputOpen(true)}
           onOpenVoiceInput={() => setIsVoiceOpen(true)}
+          onOpenSidebar={() => setIsSidebarOpen(true)}
+          onOpenBarcode={() => setIsBarcodeOpen(true)}
         />
       </div>
 

@@ -15,6 +15,7 @@ import {
   Trash2,
   Edit2,
   User,
+  Users,
   Sparkles,
   DollarSign,
   GripVertical,
@@ -34,6 +35,7 @@ interface PersonalSettingsViewProps {
   initialTab?: PersonalTabType;
   onChangeTab?: (tab: PersonalTabType) => void;
   onBack: () => void;
+  onSwitchToGroup?: () => void;
 }
 
 export const PersonalSettingsView: React.FC<PersonalSettingsViewProps> = ({
@@ -41,9 +43,11 @@ export const PersonalSettingsView: React.FC<PersonalSettingsViewProps> = ({
   initialTab = 'payments',
   onChangeTab,
   onBack,
+  onSwitchToGroup,
 }) => {
   const {
     user,
+    households,
     paymentMethods,
     addPaymentMethod,
     removePaymentMethod,
@@ -197,6 +201,92 @@ export const PersonalSettingsView: React.FC<PersonalSettingsViewProps> = ({
             </p>
           </div>
         </div>
+
+        {households.length > 0 && onSwitchToGroup && (
+          <button
+            onClick={onSwitchToGroup}
+            className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-purple-950/80 hover:bg-purple-900 border border-purple-800/80 text-purple-300 text-xs font-bold transition active:scale-95 shadow-sm shrink-0"
+            title="切換至群組公帳設定"
+          >
+            <Users className="w-3.5 h-3.5" />
+            <span className="hidden sm:inline">切換至</span>群組公帳設定
+          </button>
+        )}
+      </div>
+
+      {/* 📱 橫向切換 Tab Bar (支援手機滑動快速切換所有設定子頁) */}
+      <div className="flex gap-1.5 p-1 bg-slate-900/90 border border-slate-800 rounded-2xl text-xs font-semibold overflow-x-auto no-scrollbar shadow-sm">
+        <button
+          onClick={() => handleTabChange('payments')}
+          className={`px-3 py-2 rounded-xl transition flex-shrink-0 flex items-center gap-1.5 active:scale-95 ${
+            activeTab === 'payments'
+              ? 'bg-emerald-600 text-white shadow-md font-bold border border-emerald-500/50'
+              : 'text-slate-400 hover:text-slate-200 hover:bg-slate-800/60 border border-transparent'
+          }`}
+        >
+          <CreditCard className="w-3.5 h-3.5" />
+          <span>付款方式</span>
+        </button>
+
+        <button
+          onClick={() => handleTabChange('tags')}
+          className={`px-3 py-2 rounded-xl transition flex-shrink-0 flex items-center gap-1.5 active:scale-95 ${
+            activeTab === 'tags'
+              ? 'bg-emerald-600 text-white shadow-md font-bold border border-emerald-500/50'
+              : 'text-slate-400 hover:text-slate-200 hover:bg-slate-800/60 border border-transparent'
+          }`}
+        >
+          <Tag className="w-3.5 h-3.5" />
+          <span>標籤分類</span>
+        </button>
+
+        <button
+          onClick={() => handleTabChange('budget')}
+          className={`px-3 py-2 rounded-xl transition flex-shrink-0 flex items-center gap-1.5 active:scale-95 ${
+            activeTab === 'budget'
+              ? 'bg-emerald-600 text-white shadow-md font-bold border border-emerald-500/50'
+              : 'text-slate-400 hover:text-slate-200 hover:bg-slate-800/60 border border-transparent'
+          }`}
+        >
+          <DollarSign className="w-3.5 h-3.5" />
+          <span>預算總表</span>
+        </button>
+
+        <button
+          onClick={() => handleTabChange('general')}
+          className={`px-3 py-2 rounded-xl transition flex-shrink-0 flex items-center gap-1.5 active:scale-95 ${
+            activeTab === 'general'
+              ? 'bg-emerald-600 text-white shadow-md font-bold border border-emerald-500/50'
+              : 'text-slate-400 hover:text-slate-200 hover:bg-slate-800/60 border border-transparent'
+          }`}
+        >
+          <Key className="w-3.5 h-3.5" />
+          <span>基本設定與載具</span>
+        </button>
+
+        <button
+          onClick={() => handleTabChange('ai')}
+          className={`px-3 py-2 rounded-xl transition flex-shrink-0 flex items-center gap-1.5 active:scale-95 ${
+            activeTab === 'ai'
+              ? 'bg-emerald-600 text-white shadow-md font-bold border border-emerald-500/50'
+              : 'text-slate-400 hover:text-slate-200 hover:bg-slate-800/60 border border-transparent'
+          }`}
+        >
+          <Brain className="w-3.5 h-3.5" />
+          <span>AI 規則</span>
+        </button>
+
+        <button
+          onClick={() => handleTabChange('export')}
+          className={`px-3 py-2 rounded-xl transition flex-shrink-0 flex items-center gap-1.5 active:scale-95 ${
+            activeTab === 'export'
+              ? 'bg-emerald-600 text-white shadow-md font-bold border border-emerald-500/50'
+              : 'text-slate-400 hover:text-slate-200 hover:bg-slate-800/60 border border-transparent'
+          }`}
+        >
+          <Download className="w-3.5 h-3.5" />
+          <span>匯出私帳</span>
+        </button>
       </div>
 
       {/* 頁面內容 */}

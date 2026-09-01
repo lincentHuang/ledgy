@@ -26,20 +26,23 @@ export interface ParsedExpenseAIResult {
 }
 
 /**
- * 建立超低 Token 消耗的 Micro-Prompt (節省 90% 以上 Token 成本，回應 <200ms)
+ * 建立超低 Token 消耗的 Micro-Prompt (支援單筆或多筆消費智慧拆分)
  */
 export function buildNaturalLanguageExpensePrompt(customFewShot = '', availableTags?: string[]): string {
   const tagsConstraint = availableTags && availableTags.length > 0
     ? `\n【重要標籤限制】tags 陣列中只能選擇包含在以下清單的「單一標籤」(長度嚴格為1)：[${availableTags.join(', ')}]。若無合適標籤，tags 必須填寫 ["未歸類"]，嚴禁填寫複數標籤或自創標籤。`
     : '\n每筆記帳嚴格僅限單一標籤，若無法確定標籤，tags 請填寫 ["未歸類"]。';
 
-  return `你是台灣極速記帳助理。分析輸入並僅輸出單行JSON物件：
-{"title":str,"amount":num,"type":"expense"|"income","categoryId":str,"categoryName":str,"subCategory":str,"paymentMethod":str,"tags":["單一標籤"],"merchant":str}
+  return `你是台灣極速記帳助理。分析輸入並輸出合法JSON物件格式。
+若使用者一次說出多筆消費（如「午餐排骨飯120元 珍奶60元」或「加油150 買早餐65」），請自動拆分為多筆記錄輸出至 expenses 陣列。
+輸出格式為合法JSON：
+{"expenses":[{"title":str,"amount":num,"type":"expense"|"income","categoryId":str,"categoryName":str,"subCategory":str,"paymentMethod":str,"tags":["單一標籤"],"ledgerType":"personal"|"household","merchant":str}]}
 【數字與品名辨識關鍵規則】
-1. 月份（如「11月」、「8月份」）、日期（「15號」）、年份（「113年」）、數量單位（「3杯」、「2個」、「5包」）、品牌名稱（「50嵐」、「7-11」）皆為品名/標題的一部分，絕對不是消費金額！title 必須完整保留這些詞彙（如「11月的房貸」、「3杯50嵐珍奶」）。
-2. 若語音未提到具體消費金額（如「11月的房貸」），amount 請填寫 0。
-3. 每筆記帳僅能有「單一標籤」，tags 長度必須為 1。
-4. 可用categoryId代碼: food(餐飲), transport(交通), housing(居家), shopping(購物), entertainment(娛樂), medical(醫療), education(學習), family(家庭), other_expense(其他), income_salary(薪資收入)${tagsConstraint}
+1. 月份（如「11月」）、日期（「15號」）、年份（「113年」）、數量單位（「3杯」、「2個」、「5包」）、品牌名稱（「50嵐」、「7-11」）皆為品名/標題的一部分，絕對不是消費金額！title 必須完整保留這些詞彙（如「11月的房貸」、「3杯50嵐珍奶」）。
+2. 偵測到「數字＋元 / 塊 / 幣別」多個消費時，務必在 expenses 陣列中拆分成多個獨立消費物件。
+3. 若語音未提到具體消費金額，amount 請填寫 0。
+4. 每筆記帳僅能有「單一標籤」，tags 長度必須為 1。
+5. 可用categoryId代碼: food(餐飲), transport(交通), housing(居家), shopping(購物), entertainment(娛樂), medical(醫療), education(學習), family(家庭), other_expense(其他), income_salary(薪資收入)${tagsConstraint}
 ${customFewShot ? `偏好: ${customFewShot}` : ''}`;
 }
 
@@ -110,7 +113,159 @@ export function parseChineseNumber(str: string): number {
 }
 
 /**
- * 0 Token 零延遲 本地智慧語意與關鍵字分類引擎 (Local 0-Token Semantic Engine)
+ * 智慧切分語音字串中的多筆消費子句 (Multi-Expense Voice Splitter)
+ * 支援「數字＋元 / 塊 / 幣別」連續多筆消費與語意連接詞（還有、然後、接著、逗號等）
+ */
+export function splitMultiExpenseVoiceText(text: string): string[] {
+  const raw = text.trim();
+  if (!raw) return [];
+
+  // 先檢查是否有明確的換行或分號分隔
+  if (/[\n\r；;]/.test(raw)) {
+    const parts = raw.split(/[\n\r；;]+/).map((s) => s.trim()).filter(Boolean);
+    if (parts.length > 1) return parts;
+  }
+
+  // 1. 非金額數字保護 (Token Protection)
+  let tokenCounter = 0;
+  const protectedTokens: { token: string; original: string }[] = [];
+
+  const getNextToken = () => {
+    const letters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
+    const a = letters[Math.floor(tokenCounter / 26) % 26];
+    const b = letters[tokenCounter % 26];
+    tokenCounter++;
+    return `TOKENXYZ${a}${b}ABC`;
+  };
+
+  const protectPattern = (str: string, regex: RegExp): string => {
+    return str.replace(regex, (match) => {
+      const token = getNextToken();
+      protectedTokens.push({ token, original: match });
+      return token;
+    });
+  };
+
+  let working = raw;
+  working = protectPattern(working, /50嵐|五十嵐|85度c|85度C|85度|7-11|7-eleven|711/gi);
+  working = protectPattern(working, /9[258]無鉛(?:汽油)?|9[258]汽油/gi);
+  working = protectPattern(working, /(?:iphone|pixel|galaxy|ipad|macbook|ps|switch)\s*[0-9]+[a-z]*/gi);
+  working = protectPattern(working, /[0-9]+[kK]/g);
+  working = protectPattern(working, /3[cC]/g);
+  working = protectPattern(working, /台北\s*101/g);
+  working = protectPattern(working, /(?:[0-9]{1,4}|[一二兩三四五六七八九十百千]{1,4})\s*(?:年份|年度|年)/g);
+  working = protectPattern(working, /(?:[0-9]{1,2}|[一二兩三四五六七八九十]{1,3})\s*(?:月份|月)/g);
+  working = protectPattern(working, /(?:[0-9]{1,2}|[一二兩三四五六七八九十]{1,3})\s*(?:號|日|期|季)/g);
+  working = protectPattern(
+    working,
+    /(?:[0-9]+|[一二兩三四五六七八九十百千]+)\s*(?:杯|個|份|碗|包|盒|罐|瓶|顆|隻|支|條|張|本|雙|箱|袋|片|斤|公斤|台斤|棟|間|把|組|套|付|趟|節|堂|次|台|門|部|粒|卷|串|打|吋|寸|度|樓|[fF]|室|[gG]|[mM][lL]|[cC][cC])/g
+  );
+
+  // 2. 尋找所有金額出現的位置 (包含阿拉伯數字與中文數字)
+  const amountRegex =
+    /(?:花了|共|金額|費用|總共|一共|付了|收了|賺了|是|為)?\s*(?:NT\$?|\$|新台幣)?\s*([0-9]+(?:,[0-9]{3})*(?:\.[0-9]+)?|[零一壹二兩两貳三參叁四肆五伍六陸陆七柒八捌九玖十拾百佰千仟萬万]+)\s*(?:元整|元|塊錢|塊|TWD)?/gi;
+
+  const matches: { start: number; end: number; fullMatch: string; numStr: string }[] = [];
+  let m: RegExpExecArray | null;
+
+  while ((m = amountRegex.exec(working)) !== null) {
+    const matchedText = m[0].trim();
+    const numStr = m[1];
+    // 驗證是否為大於 0 的有效數字
+    let val = 0;
+    if (/^[0-9]+(?:\.[0-9]+)?$/.test(numStr.replace(/,/g, ''))) {
+      val = parseFloat(numStr.replace(/,/g, ''));
+    } else {
+      val = parseChineseNumber(numStr);
+    }
+
+    if (val > 0) {
+      matches.push({
+        start: m.index,
+        end: m.index + m[0].length,
+        fullMatch: matchedText,
+        numStr,
+      });
+    }
+  }
+
+  // 若找到的金額少於 2 個，直接以連接詞判斷或回傳單句
+  if (matches.length <= 1) {
+    const conjMatch = working.split(/(?:還有|然後|接著|另外|再來|以及)\s+/);
+    if (conjMatch.length > 1) {
+      return conjMatch.map((seg) => {
+        let restored = seg;
+        for (const pt of protectedTokens) {
+          restored = restored.replace(new RegExp(pt.token, 'g'), pt.original);
+        }
+        return restored.trim();
+      }).filter(Boolean);
+    }
+    return [raw];
+  }
+
+  // 3. 有 2 個以上的金額：精準計算子句切割點
+  const splitIndices: number[] = [0];
+
+  for (let i = 0; i < matches.length - 1; i++) {
+    const curEnd = matches[i].end;
+    const nextStart = matches[i + 1].start;
+    const betweenText = working.substring(curEnd, nextStart);
+
+    // 檢查 betweenText 是否包含付款方式、公私帳或連接詞
+    // 例如："街口 還有 珍奶"、"算公帳 然後 買咖啡"、" 珍奶"、"珍奶"
+    let cutPoint = curEnd;
+
+    const methodOrLedgerMatch = betweenText.match(
+      /(?:街口支付|line\s*pay|全支付|px\s*pay|悠遊卡|一卡通|apple\s*pay|google\s*pay|信用卡|刷卡|現金|銀行轉帳|轉帳|匯款|算公帳|算私帳|家庭公帳|公帳|私帳|家庭|公用|個人)/i
+    );
+
+    const conjMatchInBetween = betweenText.match(/(?:還有|然後|接著|另外|再來|以及|，|、|。)/);
+
+    if (methodOrLedgerMatch) {
+      const matchPos = betweenText.indexOf(methodOrLedgerMatch[0]);
+      cutPoint = curEnd + matchPos + methodOrLedgerMatch[0].length;
+      // 若後面緊接著連接詞或逗號，跨過連接詞
+      const restBetween = betweenText.substring(matchPos + methodOrLedgerMatch[0].length);
+      const subConj = restBetween.match(/^\s*(?:還有|然後|接著|另外|再來|以及|，|、|。)\s*/);
+      if (subConj) {
+        cutPoint += subConj[0].length;
+      }
+    } else if (conjMatchInBetween) {
+      const matchPos = betweenText.indexOf(conjMatchInBetween[0]);
+      cutPoint = curEnd + matchPos + conjMatchInBetween[0].length;
+    } else {
+      // 若無連接詞，找第一個空格或直接在目前金額結尾處切分
+      const spaceIdx = betweenText.search(/\s+/);
+      if (spaceIdx >= 0) {
+        cutPoint = curEnd + spaceIdx + 1;
+      } else {
+        cutPoint = curEnd;
+      }
+    }
+
+    splitIndices.push(cutPoint);
+  }
+
+  splitIndices.push(working.length);
+
+  const rawSegments: string[] = [];
+  for (let i = 0; i < splitIndices.length - 1; i++) {
+    const chunk = working.substring(splitIndices[i], splitIndices[i + 1]).trim();
+    if (chunk) {
+      let restored = chunk;
+      for (const pt of protectedTokens) {
+        restored = restored.replace(new RegExp(pt.token, 'g'), pt.original);
+      }
+      rawSegments.push(restored.trim());
+    }
+  }
+
+  return rawSegments.length > 0 ? rawSegments : [raw];
+}
+
+/**
+ * 0 Token 零延遲 本地智慧語意與關鍵字分類引擎 (Local 0-Token Semantic Engine - 單筆)
  * 精準區分「真正金額」與「月份、日期、年份、數量詞單位、品牌型號」，絕不吃掉品名中的月份與數字。
  * 依照使用者「現有的標籤庫 (existingTags)」進行歸類；若無匹配標籤則預設為「未歸類」。
  */
@@ -130,7 +285,6 @@ export function fallbackLocalRuleParser(text: string, existingTags?: string[]): 
   let type: 'expense' | 'income' = 'expense';
 
   // ================= 1. 非金額數字保護 (Token Protection) =================
-  // 建立純英文字母 safe token (不含任何阿拉伯數字或中文字)，防止金額正則誤抓
   let tokenCounter = 0;
   const protectedTokens: { token: string; original: string }[] = [];
 
@@ -436,6 +590,31 @@ export function fallbackLocalRuleParser(text: string, existingTags?: string[]): 
 }
 
 /**
+ * 0 Token 零延遲 本地智慧語意與關鍵字多筆分類引擎 (Local 0-Token Semantic Engine - 多筆)
+ * 自動切分單次語音中的多個記帳子句並分別歸類
+ */
+export function parseMultiVoiceExpensesLocal(text: string, existingTags?: string[]): ParsedExpenseAIResult[] {
+  const segments = splitMultiExpenseVoiceText(text);
+  if (!segments || segments.length === 0) return [];
+
+  // 全域意圖偵測（若整體句子有明確的「都算公帳」或「全都用街口」等全域特徵）
+  const hasGlobalHousehold = /全都?算公帳|全部?公帳|都是?公帳|家裡用的/i.test(text);
+  const hasGlobalPersonal = /全都?算私帳|全部?私帳|自己出的/i.test(text);
+
+  const results = segments.map((seg) => {
+    const parsed = fallbackLocalRuleParser(seg, existingTags);
+    if (hasGlobalHousehold && parsed.ledgerType === 'personal') {
+      parsed.ledgerType = 'household';
+    } else if (hasGlobalPersonal) {
+      parsed.ledgerType = 'personal';
+    }
+    return parsed;
+  });
+
+  return results;
+}
+
+/**
  * 建立發票 / 收據 Vision OCR 提示詞
  */
 export function buildReceiptOcrPrompt(): string {
@@ -475,7 +654,7 @@ export function buildReceiptOcrPrompt(): string {
 }
 
 /**
- * 建立智慧財務問答助理的 Context Prompt
+ * 建立智慧財務問答助理的 Context Prompt (支援動態月份或自訂日期區間與預算診斷)
  */
 export function buildFinancialAssistantPrompt(
   transactions: Transaction[],
@@ -484,19 +663,37 @@ export function buildFinancialAssistantPrompt(
   budgetInfo?: {
     monthlyBudget?: number;
     tagBudgets?: Record<string, number>;
+  },
+  dateRange?: {
+    startDate?: string;
+    endDate?: string;
+    label?: string;
   }
 ): string {
   const currentMonth = new Date().toISOString().substring(0, 7);
-  const thisMonthTx = transactions.filter(t => t.date.startsWith(currentMonth));
+  const periodLabel = dateRange?.label || currentMonth;
+
+  const relevantTx = transactions.filter((t) => {
+    if (dateRange?.startDate && dateRange?.endDate) {
+      return t.date >= dateRange.startDate && t.date <= dateRange.endDate;
+    }
+    if (dateRange?.startDate) {
+      return t.date.startsWith(dateRange.startDate);
+    }
+    return t.date.startsWith(currentMonth);
+  });
 
   let totalExpense = 0;
+  let totalIncome = 0;
   const tagExpenseMap: Record<string, number> = {};
 
-  thisMonthTx.forEach(t => {
+  relevantTx.forEach((t) => {
     if (t.type === 'expense') {
       totalExpense += t.amount;
       const tag = t.tags?.[0] || t.categoryName || t.categoryId || '未歸類';
       tagExpenseMap[tag] = (tagExpenseMap[tag] || 0) + t.amount;
+    } else if (t.type === 'income') {
+      totalIncome += t.amount;
     }
   });
 
@@ -508,37 +705,41 @@ export function buildFinancialAssistantPrompt(
     .sort((a, b) => b[1] - a[1])
     .map(([cat, amt]) => {
       const tagBudget = budgetInfo?.tagBudgets?.[cat];
-      const tagBudgetStr = tagBudget ? ` (標籤預算 NT$ ${tagBudget.toLocaleString()}，已用 ${Math.round((amt / tagBudget) * 100)}%)` : '';
+      const tagBudgetStr = tagBudget
+        ? ` (標籤預算 NT$ ${tagBudget.toLocaleString()}，已用 ${Math.round((amt / tagBudget) * 100)}%)`
+        : '';
       return `- #${cat}: NT$ ${amt.toLocaleString()} (${Math.round((amt / (totalExpense || 1)) * 100)}%)${tagBudgetStr}`;
     })
     .join('\n');
 
-  const recentTxList = transactions.slice(0, 20).map(t => 
+  const recentTxList = relevantTx.slice(0, 25).map((t) => 
     `- [${t.date}] ${t.title || '消費'} (${(t.tags || []).join(', ') || t.categoryName || '未歸類'}) NT$ ${t.amount.toLocaleString()} [${t.paymentMethod || '一般'}] ${t.ledgerType === 'household' ? '【公帳】' : '【私帳】'}${t.isAnomaly ? ' ⚠️[疑似重複扣款]' : ''}`
   ).join('\n');
 
-  return `你是一位頂尖、專業且精通台灣生活與個人財務規劃的「AI 智慧財務與預算分配顧問」。
-你有權存取使用者的本地/家庭帳本資料，請根據以下真實財務數據回答使用者的問題，並給予具體、客觀且有溫度的財務洞察與省錢建議。
+  return `你是一位頂尖、專業且精通台灣生活與個人財務規劃的「AI 智慧財務、報表與預算分配顧問」。
+你有權存取使用者的本地/家庭帳本資料，請根據以下指定週期 (${periodLabel}) 的真實財務與預算數據回答使用者的問題，並給予具體、客觀且有溫度的財務洞察、預算合理性評估與省錢建議。
 
-【當前帳本與預算分配摘要 (${currentMonth} 當月)】：
-- 當月目標總預算：NT$ ${monthlyBudget.toLocaleString()}
-- 當月累積總支出：NT$ ${totalExpense.toLocaleString()}
-- 當月累計省下金額：NT$ ${savedMoney.toLocaleString()} ${savedMoney >= 0 ? '（在預算內正常控制）' : '（⚠️ 已超出預算）'}
+【當前帳本與預算分配摘要 (${periodLabel})】：
+- 分析週期維度：${periodLabel} (共計 ${relevantTx.length} 筆交易紀錄)
+- 目標總預算額度：NT$ ${monthlyBudget.toLocaleString()}
+- 該週期累積總支出：NT$ ${totalExpense.toLocaleString()}
+- 該週期累積總收入：NT$ ${totalIncome.toLocaleString()}
+- 預算結餘/超支：NT$ ${savedMoney.toLocaleString()} ${savedMoney >= 0 ? '（在預算內正常控制）' : '（⚠️ 已超出預算）'}
 - 預算消耗進度：${budgetUsagePercent}%
 ${householdName ? `- 所在家庭空間：${householdName}` : '- 所在空間：個人私帳'}
 
-【支出分類/標籤排行】：
+【支出分類/標籤排行與預算使用狀態】：
 ${topCategories || '無紀錄'}
 
-【最近 20 筆消費明細】：
-${recentTxList || '無近期紀錄'}
+【該週期主要消費明細 (最多 25 筆)】：
+${recentTxList || '無此週期交易紀錄'}
 
 【使用者提問】：
 ${userPrompt}
 
 【回答準則】：
 1. 語氣溫暖鼓勵、條理清晰，以精準的繁體中文（台灣慣用詞彙：新台幣、外食、外送、手搖飲、捷運、超商等）回答。
-2. 主動引用上述真實財務數據、百分比與預算消耗進度，給予使用者一目了然的分析。
+2. 主動引用上述真實財務數據、百分比與預算消耗進度，給予使用者一目了然的分析。若使用者詢問預算是否合理夠用，請客觀剖析日均消耗速度、各類別支出佔比，並提出可行的預算調整與節流方針。
 3. 針對提問提供具體可行、貼近台灣生活的省錢節流建議或消費習慣優化策略。
-4. 使用 Markdown 格式排版（粗體、列表、條列分點），讓排版賞心悅目。`;
+4. 使用 Markdown 格式排版（粗體、列表、條列分點、Emoji），讓排版賞心悅目。`;
 }

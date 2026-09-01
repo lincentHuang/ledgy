@@ -35,6 +35,7 @@ import {
 } from 'lucide-react';
 import { Button, Card } from '@/components';
 import { BudgetAllocationView } from './BudgetAllocationView';
+import { DeleteLedgerModal } from '@/blocks/family-ledger/views/DeleteLedgerModal';
 
 export type GroupTabType = 'members' | 'payments' | 'tags' | 'budget' | 'export';
 
@@ -43,6 +44,7 @@ interface GroupSettingsViewProps {
   initialTab?: GroupTabType;
   onChangeTab?: (tab: GroupTabType) => void;
   onBack: () => void;
+  onSwitchToPersonal?: () => void;
 }
 
 export const GroupSettingsView: React.FC<GroupSettingsViewProps> = ({
@@ -50,6 +52,7 @@ export const GroupSettingsView: React.FC<GroupSettingsViewProps> = ({
   initialTab = 'members',
   onChangeTab,
   onBack,
+  onSwitchToPersonal,
 }) => {
   const {
     user,
@@ -92,6 +95,7 @@ export const GroupSettingsView: React.FC<GroupSettingsViewProps> = ({
   const [houseName, setHouseName] = useState('');
   const [houseBudget, setHouseBudget] = useState(40000);
   const [joinCode, setJoinCode] = useState('');
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [copiedCode, setCopiedCode] = useState(false);
   const [isEditingGroupName, setIsEditingGroupName] = useState(false);
   const [editGroupNameInput, setEditGroupNameInput] = useState(household?.name || '');
@@ -290,23 +294,36 @@ export const GroupSettingsView: React.FC<GroupSettingsViewProps> = ({
           </button>
           <div>
             <h1 className="text-base sm:text-lg font-black tracking-tight text-white flex items-center gap-2">
-              <span>群組設定</span>
+              <span>帳本設定與共用管理</span>
               <span className="text-[10px] font-extrabold uppercase px-2 py-0.5 rounded-md bg-purple-950/80 text-purple-300 border border-purple-800">
-                GROUPS
+                LEDGERS
               </span>
             </h1>
             <p className="text-xs text-slate-400">
-              群組成員與審核、公帳專用付款方式、公用標籤庫與預算
+              帳本成員與邀請、專用付款方式、標籤庫與月預算管理
             </p>
           </div>
         </div>
 
-        <button
-          onClick={onBack}
-          className="hidden sm:inline-flex px-3 py-1.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs font-bold transition border border-slate-700"
-        >
-          返回記帳
-        </button>
+        <div className="flex items-center gap-2">
+          {onSwitchToPersonal && (
+            <button
+              onClick={onSwitchToPersonal}
+              className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-emerald-950/80 hover:bg-emerald-900 border border-emerald-800/80 text-emerald-300 text-xs font-bold transition active:scale-95 shadow-sm shrink-0"
+              title="切換至個人私帳設定"
+            >
+              <CreditCard className="w-3.5 h-3.5" />
+              <span className="hidden sm:inline">切換至</span>個人私帳設定
+            </button>
+          )}
+
+          <button
+            onClick={onBack}
+            className="hidden sm:inline-flex px-3 py-1.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs font-bold transition border border-slate-700"
+          >
+            返回記帳
+          </button>
+        </div>
       </div>
 
       {/* ✉️ 收到群組邀請通知卡片 */}
@@ -616,6 +633,72 @@ export const GroupSettingsView: React.FC<GroupSettingsViewProps> = ({
             </div>
           </div>
 
+          {/* 📱 橫向切換 Tab Bar (群組子設定快速切換) */}
+          <div className="flex gap-1.5 p-1 bg-slate-900/90 border border-slate-800 rounded-2xl text-xs font-semibold overflow-x-auto no-scrollbar shadow-sm">
+            <button
+              onClick={() => handleTabChange('members')}
+              className={`px-3.5 py-2 rounded-xl transition flex-shrink-0 flex items-center gap-1.5 active:scale-95 ${
+                activeTab === 'members'
+                  ? 'bg-purple-600 text-white shadow-md font-bold border border-purple-500/50'
+                  : 'text-slate-400 hover:text-slate-200 hover:bg-slate-800/60 border border-transparent'
+              }`}
+            >
+              <Users className="w-3.5 h-3.5" />
+              <span>成員與審核</span>
+              {pendingJoinRequests.length > 0 && isLeader && (
+                <span className="w-2 h-2 rounded-full bg-rose-500" />
+              )}
+            </button>
+
+            <button
+              onClick={() => handleTabChange('payments')}
+              className={`px-3.5 py-2 rounded-xl transition flex-shrink-0 flex items-center gap-1.5 active:scale-95 ${
+                activeTab === 'payments'
+                  ? 'bg-purple-600 text-white shadow-md font-bold border border-purple-500/50'
+                  : 'text-slate-400 hover:text-slate-200 hover:bg-slate-800/60 border border-transparent'
+              }`}
+            >
+              <CreditCard className="w-3.5 h-3.5" />
+              <span>付款方式</span>
+            </button>
+
+            <button
+              onClick={() => handleTabChange('tags')}
+              className={`px-3.5 py-2 rounded-xl transition flex-shrink-0 flex items-center gap-1.5 active:scale-95 ${
+                activeTab === 'tags'
+                  ? 'bg-purple-600 text-white shadow-md font-bold border border-purple-500/50'
+                  : 'text-slate-400 hover:text-slate-200 hover:bg-slate-800/60 border border-transparent'
+              }`}
+            >
+              <Tag className="w-3.5 h-3.5" />
+              <span>公用標籤</span>
+            </button>
+
+            <button
+              onClick={() => handleTabChange('budget')}
+              className={`px-3.5 py-2 rounded-xl transition flex-shrink-0 flex items-center gap-1.5 active:scale-95 ${
+                activeTab === 'budget'
+                  ? 'bg-purple-600 text-white shadow-md font-bold border border-purple-500/50'
+                  : 'text-slate-400 hover:text-slate-200 hover:bg-slate-800/60 border border-transparent'
+              }`}
+            >
+              <DollarSign className="w-3.5 h-3.5" />
+              <span>預算資訊</span>
+            </button>
+
+            <button
+              onClick={() => handleTabChange('export')}
+              className={`px-3.5 py-2 rounded-xl transition flex-shrink-0 flex items-center gap-1.5 active:scale-95 ${
+                activeTab === 'export'
+                  ? 'bg-purple-600 text-white shadow-md font-bold border border-purple-500/50'
+                  : 'text-slate-400 hover:text-slate-200 hover:bg-slate-800/60 border border-transparent'
+              }`}
+            >
+              <Download className="w-3.5 h-3.5" />
+              <span>匯出公帳</span>
+            </button>
+          </div>
+
           {/* 1. 成員名單、Email 邀請與申請審核列表 */}
           {activeTab === 'members' && (
             <div className="space-y-4">
@@ -860,16 +943,7 @@ export const GroupSettingsView: React.FC<GroupSettingsViewProps> = ({
               <div className="pt-2 flex justify-between items-center">
                 {isLeader && (
                   <button
-                    onClick={() => {
-                      if (
-                        confirm(
-                          `【危險操作】您是組長，確定要「解散並刪除」群組「${household.name}」嗎？所有成員將一併退出。`
-                        )
-                      ) {
-                        deleteHousehold(household.id);
-                        alert('已解散並刪除此群組。');
-                      }
-                    }}
+                    onClick={() => setShowDeleteModal(true)}
                     className="px-3 py-1.5 rounded-xl bg-rose-950/30 hover:bg-rose-950/60 border border-rose-900/40 text-rose-400 text-xs font-bold transition flex items-center gap-1"
                   >
                     <Trash2 className="w-3.5 h-3.5" />
@@ -878,12 +952,7 @@ export const GroupSettingsView: React.FC<GroupSettingsViewProps> = ({
                 )}
 
                 <button
-                  onClick={() => {
-                    if (confirm(`確定要退出「${household.name}」群組嗎？`)) {
-                      leaveHousehold(household.id);
-                      alert('已退出此群組。');
-                    }
-                  }}
+                  onClick={() => setShowDeleteModal(true)}
                   className="px-4 py-2 bg-slate-800 hover:bg-rose-950/60 border border-slate-700 hover:border-rose-900/50 text-slate-400 hover:text-rose-400 rounded-xl text-xs font-bold transition flex items-center gap-1.5 ml-auto"
                 >
                   <LogOut className="w-3.5 h-3.5" />
@@ -1291,6 +1360,27 @@ export const GroupSettingsView: React.FC<GroupSettingsViewProps> = ({
           )}
         </>
       )}
+
+      {/* 刪除/退出群組安全確認 Modal */}
+      <DeleteLedgerModal
+        isOpen={showDeleteModal}
+        onClose={() => setShowDeleteModal(false)}
+        household={household || null}
+        currentUserId={user.uid}
+        transactionCount={
+          household
+            ? transactions.filter((t) => t.householdId === household.id || (t.ledgerType === 'household' && !t.householdId)).length
+            : 0
+        }
+        onConfirmDelete={(hId) => {
+          deleteHousehold(hId);
+          onBack();
+        }}
+        onConfirmLeave={(hId) => {
+          leaveHousehold(hId);
+          onBack();
+        }}
+      />
     </div>
   );
 };

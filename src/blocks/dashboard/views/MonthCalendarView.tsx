@@ -1,20 +1,15 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { useAppStore } from '@/lib/store';
 import { Transaction } from '@app/shared';
 import {
   ChevronLeft,
   ChevronRight,
-  Calendar as CalendarIcon,
-  CreditCard,
-  Trash2,
-  Edit2,
+  CalendarDays,
   X,
-  Plus,
-  Check,
-  SlidersHorizontal,
 } from 'lucide-react';
+import { TransactionGroupedList } from './TransactionGroupedList';
 
 interface MonthCalendarViewProps {
   onEditTransaction: (tx: Transaction) => void;
@@ -22,6 +17,7 @@ interface MonthCalendarViewProps {
   isBatchMode?: boolean;
   selectedTxIds?: string[];
   onToggleSelectTx?: (id: string) => void;
+  onEnterBatchModeWithTx?: (id: string) => void;
 }
 
 export const MonthCalendarView: React.FC<MonthCalendarViewProps> = ({
@@ -30,13 +26,13 @@ export const MonthCalendarView: React.FC<MonthCalendarViewProps> = ({
   isBatchMode = false,
   selectedTxIds = [],
   onToggleSelectTx,
+  onEnterBatchModeWithTx,
 }) => {
   const {
     user,
     filteredTransactions,
     selectedTagFilters,
     searchQuery,
-    deleteTransaction,
     calendarYear,
     setCalendarYear,
     calendarMonth,
@@ -45,22 +41,18 @@ export const MonthCalendarView: React.FC<MonthCalendarViewProps> = ({
     setSelectedSubDates,
   } = useAppStore();
 
+  const [isMonthModalOpen, setIsMonthModalOpen] = useState(false);
   const today = new Date();
   const selectedDates = selectedSubDates; // 空陣列代表預設檢視全月全部
 
+  // 拖曳框選狀態
+  const [isDragging, setIsDragging] = useState(false);
+  const [dragStartIndex, setDragStartIndex] = useState<number | null>(null);
+  const [dragHoverIndex, setDragHoverIndex] = useState<number | null>(null);
+  const [hasMovedDuringDrag, setHasMovedDuringDrag] = useState(false);
+
   const weekStartDay = user.preferences?.weekStartDay ?? 1; // 0 = 週日, 1 = 週一 (預設), 6 = 週六
   const monthStartDay = user.preferences?.monthStartDay ?? 1; // 1 ~ 28
-
-  const calendarCardRef = React.useRef<HTMLDivElement>(null);
-  const [isRangeAdjustMode, setIsRangeAdjustMode] = useState(false);
-
-  const handleToggleRangeAdjustMode = () => {
-    const next = !isRangeAdjustMode;
-    setIsRangeAdjustMode(next);
-    if (next) {
-      calendarCardRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
-    }
-  };
 
   const handlePrevMonth = () => {
     setSelectedSubDates([]);
@@ -191,42 +183,46 @@ export const MonthCalendarView: React.FC<MonthCalendarViewProps> = ({
       ? monthTransactions.filter((tx) => selectedDates.includes(tx.date))
       : monthTransactions;
 
-  // 拖曳框選狀態
-  const [isDragging, setIsDragging] = useState(false);
-  const [dragStartIndex, setDragStartIndex] = useState<number | null>(null);
-  const [dragHoverIndex, setDragHoverIndex] = useState<number | null>(null);
-  const [hasMovedDuringDrag, setHasMovedDuringDrag] = useState(false);
-
   // 星期抬頭定義 (依據 weekStartDay 排列)
   const BASE_WEEK_DAYS = ['日', '一', '二', '三', '四', '五', '六'];
   const WEEK_DAYS = Array.from({ length: 7 }).map((_, i) => BASE_WEEK_DAYS[(weekStartDay + i) % 7]);
 
-  // 複選操作
+  // 點擊切換處理 (如果不選取是全部，全部選取也會自動變成空陣列全部)
   const handleToggleDate = (dateStr: string) => {
-    if (selectedDates.includes(dateStr)) {
-      setSelectedSubDates(selectedDates.filter((d) => d !== dateStr));
+    let next: string[];
+    if (selectedDates.length === 0) {
+      next = [dateStr];
+    } else if (selectedDates.includes(dateStr)) {
+      next = selectedDates.filter((d) => d !== dateStr);
     } else {
-      setSelectedSubDates([...selectedDates, dateStr]);
+      next = [...selectedDates, dateStr];
+    }
+
+    if (next.length === periodDays.length || next.length === 0) {
+      setSelectedSubDates([]);
+    } else {
+      setSelectedSubDates(next);
     }
   };
 
   const handleSelectAllPeriodDays = () => {
-    if (selectedDates.length === periodDays.length) {
-      setSelectedSubDates([]);
-    } else {
-      setSelectedSubDates(periodDays.map((d) => d.dateStr));
-    }
+    // 全選即是全部 (空陣列)
+    setSelectedSubDates([]);
   };
 
   const handleSelectActiveDaysOnly = () => {
     const activeDates = periodDays
       .filter((d) => (dailyTransactionsMap[d.dateStr]?.length || 0) > 0)
       .map((d) => d.dateStr);
-    setSelectedSubDates(activeDates);
+    if (activeDates.length === periodDays.length || activeDates.length === 0) {
+      setSelectedSubDates([]);
+    } else {
+      setSelectedSubDates(activeDates);
+    }
   };
 
   // 拖曳框選中即時預覽範圍
-  const draggingRangeDates = React.useMemo(() => {
+  const draggingRangeDates = useMemo(() => {
     if (!isDragging || dragStartIndex === null || dragHoverIndex === null || !hasMovedDuringDrag) {
       return null;
     }
@@ -272,7 +268,7 @@ export const MonthCalendarView: React.FC<MonthCalendarViewProps> = ({
     }
   };
 
-  React.useEffect(() => {
+  useEffect(() => {
     const handleGlobalMouseUp = () => {
       if (isDragging) {
         if (dragStartIndex !== null && dragHoverIndex !== null) {
@@ -280,7 +276,11 @@ export const MonthCalendarView: React.FC<MonthCalendarViewProps> = ({
             const start = Math.min(dragStartIndex, dragHoverIndex);
             const end = Math.max(dragStartIndex, dragHoverIndex);
             const range = periodDays.slice(start, end + 1).map((d) => d.dateStr);
-            setSelectedSubDates(range);
+            if (range.length === periodDays.length || range.length === 0) {
+              setSelectedSubDates([]);
+            } else {
+              setSelectedSubDates(range);
+            }
           } else {
             handleToggleDate(periodDays[dragStartIndex].dateStr);
           }
@@ -301,349 +301,238 @@ export const MonthCalendarView: React.FC<MonthCalendarViewProps> = ({
   }, [isDragging, dragStartIndex, dragHoverIndex, hasMovedDuringDrag, periodDays, selectedDates]);
 
   return (
-    <div className="space-y-4 animate-in fade-in duration-200 select-none">
-      {/* 月份導航控制列 */}
-      <div className="flex items-center justify-between bg-slate-900/90 border border-slate-800 p-3 rounded-2xl shadow-sm">
-        <div className="flex items-center gap-2">
+    <div className="space-y-3.5 animate-in fade-in duration-200">
+      {/* 月份導航控制列 (點擊月份直接展開月曆) */}
+      <div className="flex items-center justify-between gap-2.5 bg-slate-900/90 border border-slate-800 p-3 rounded-2xl shadow-sm">
+        <div className="flex items-center gap-1.5">
           <button
             onClick={handlePrevMonth}
-            className="p-1.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 transition"
-            title="上一週期"
+            className="p-1.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 transition active:scale-95"
+            title="上一月份"
           >
             <ChevronLeft className="w-4 h-4" />
           </button>
           <button
-            onClick={handleResetThisMonth}
-            className="px-3 py-1 text-xs font-bold rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 transition"
+            type="button"
+            onClick={() => setIsMonthModalOpen(true)}
+            className="px-3 py-1.5 text-xs font-bold rounded-xl bg-slate-800/90 hover:bg-slate-700 text-slate-200 hover:text-emerald-300 transition active:scale-95 flex items-center gap-1.5 border border-slate-700/60 shadow-sm"
+            title="點擊展開月曆"
           >
-            {periodTitle}
+            <CalendarDays className="w-3.5 h-3.5 text-emerald-400" />
+            <span>{periodTitle}</span>
+            {selectedDates.length > 0 && (
+              <span className="px-1.5 py-0.2 rounded-full bg-emerald-500 text-slate-950 text-[10px] font-black">
+                {selectedDates.length}日
+              </span>
+            )}
           </button>
           <button
             onClick={handleNextMonth}
-            className="p-1.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 transition"
-            title="下一週期"
+            className="p-1.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 transition active:scale-95"
+            title="下一月份"
           >
             <ChevronRight className="w-4 h-4" />
           </button>
         </div>
 
         <div className="text-right">
-          <p className="text-[10px] text-slate-400">當期筆數</p>
-          <p className="text-sm font-black text-slate-200 font-mono">
+          <p className="text-xs font-black text-slate-200">
             {monthTransactions.length} 筆
+          </p>
+          <p className="text-[10px] text-slate-400">
+            總計 NT$ {totalMonthAmount.toLocaleString()}
           </p>
         </div>
       </div>
 
-      {/* 🗓️ 月曆網格與拖曳框選控制 */}
-      <div
-        ref={calendarCardRef}
-        className="bg-slate-900/80 border border-slate-800 p-3 sm:p-4 rounded-2xl sm:rounded-3xl space-y-3 w-full scroll-mt-4"
-      >
-        <div className="flex flex-wrap items-center justify-between gap-2 text-xs text-slate-400">
-          <div className="flex items-center gap-2">
-            <span className="font-bold text-slate-300">月曆記帳分佈</span>
-            <span className="text-[11px] text-slate-500 hidden sm:inline">
-              {isDragging && hasMovedDuringDrag
-                ? `🔄 正在拖曳框選：已選取 ${draggingRangeDates?.size || 0} 天`
-                : '(點選或按住滑鼠拖曳連續框選)'}
-            </span>
-          </div>
+      {/* 篩選標籤提示 (若有選取特定幾天) */}
+      {selectedDates.length > 0 && (
+        <div className="flex items-center justify-between px-3 py-2 rounded-xl bg-emerald-950/60 border border-emerald-800/60 text-emerald-300 text-xs">
+          <span>已選取 {selectedDates.length} 天的明細清單</span>
+          <button
+            onClick={() => setSelectedSubDates([])}
+            className="underline text-[11px] hover:text-white transition"
+          >
+            看全部 (看全月)
+          </button>
+        </div>
+      )}
 
-          {/* 操作按鈕組：調整範圍、全選、只選有支出、清除 */}
-          <div className="flex flex-wrap items-center gap-1.5">
-            <button
-              type="button"
-              onClick={handleToggleRangeAdjustMode}
-              className={`px-2.5 py-1 rounded-xl text-[11px] font-bold transition-all flex items-center gap-1 shadow-sm ${
-                isRangeAdjustMode
-                  ? 'bg-emerald-500 text-slate-950 ring-2 ring-emerald-400 ring-offset-2 ring-offset-slate-950 font-black animate-pulse'
-                  : 'bg-emerald-950/80 border border-emerald-700/80 text-emerald-300 hover:bg-emerald-900/80'
-              }`}
-            >
-              <SlidersHorizontal className="w-3.5 h-3.5" />
-              <span>{isRangeAdjustMode ? '✓ 完成範圍調整' : '調整範圍 (滑動框選)'}</span>
-            </button>
-
-            <button
-              type="button"
-              onClick={handleSelectAllPeriodDays}
-              className={`px-2 py-0.5 rounded-lg text-[10px] sm:text-[11px] font-bold transition border ${
-                selectedDates.length === periodDays.length
-                  ? 'bg-emerald-600 border-emerald-500 text-white'
-                  : 'bg-slate-800 border-slate-700 text-slate-300 hover:text-emerald-400'
-              }`}
-            >
-              {selectedDates.length === periodDays.length ? '✓ 已全選' : `全選 (${periodDays.length}天)`}
-            </button>
-            <button
-              type="button"
-              onClick={handleSelectActiveDaysOnly}
-              className="px-2 py-0.5 rounded-lg text-[10px] sm:text-[11px] font-bold bg-slate-800 border border-slate-700 text-slate-300 hover:text-emerald-400 transition"
-            >
-              只選有支出
-            </button>
-            {selectedDates.length > 0 && (
+      {/* 🗓️ 月曆檢視 Modal (支援滑鼠/觸控拖曳框選與點選，精簡適中不佔滿畫面) */}
+      {isMonthModalOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-black/80 backdrop-blur-md animate-in fade-in duration-200 select-none">
+          <div
+            className="relative w-full max-w-md rounded-3xl glass-modal border border-emerald-500/30 bg-slate-900/95 shadow-2xl p-4 sm:p-5 space-y-4 text-slate-100 animate-in zoom-in-95 duration-200"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="flex items-center justify-between border-b border-slate-800 pb-3">
+              <div className="flex items-center gap-2">
+                <CalendarDays className="w-4 h-4 text-emerald-400" />
+                <h3 className="font-bold text-sm text-white">
+                  {periodTitle} 月曆分佈
+                </h3>
+              </div>
               <button
-                type="button"
-                onClick={() => setSelectedSubDates([])}
-                className="px-2 py-0.5 rounded-lg text-[10px] sm:text-[11px] text-slate-400 hover:text-rose-400 underline transition"
+                onClick={() => setIsMonthModalOpen(false)}
+                className="p-1 rounded-xl text-slate-400 hover:text-white hover:bg-slate-800 transition"
               >
-                看全月
+                <X className="w-4 h-4" />
               </button>
-            )}
-          </div>
-        </div>
+            </div>
 
-        {/* 🎯 調整範圍模式鎖定提示橫幅 */}
-        {isRangeAdjustMode && (
-          <div className="flex items-center justify-between p-2.5 rounded-xl bg-emerald-950/90 border border-emerald-600/80 text-emerald-200 text-xs animate-in fade-in">
-            <span className="flex items-center gap-1.5 font-medium">
-              <span className="w-2 h-2 rounded-full bg-emerald-400 animate-ping" />
-              <span>
-                <strong>滑動框選模式中</strong>：畫面已鎖定滾動，請在格子上滑動連選多日。
-              </span>
-            </span>
-            <button
-              type="button"
-              onClick={handleToggleRangeAdjustMode}
-              className="px-2.5 py-1 rounded-lg bg-emerald-500 text-slate-950 font-bold hover:bg-emerald-400 transition ml-2 flex-shrink-0 shadow-sm"
+            {/* 月曆快速篩選按鈕列 */}
+            <div className="flex flex-wrap items-center justify-between gap-2 text-xs">
+              <span className="text-[11px] text-slate-400">點選或拖曳框選 (不選即為全部)：</span>
+              <div className="flex items-center gap-1.5">
+                <button
+                  type="button"
+                  onClick={handleSelectAllPeriodDays}
+                  className={`px-2 py-0.5 rounded-lg text-[10px] font-bold transition border ${
+                    selectedDates.length === 0
+                      ? 'bg-emerald-600 border-emerald-500 text-white'
+                      : 'bg-slate-800 border-slate-700 text-slate-300 hover:text-emerald-400'
+                  }`}
+                >
+                  {selectedDates.length === 0 ? '✓ 全選 (看全月)' : '看全月'}
+                </button>
+                <button
+                  type="button"
+                  onClick={handleSelectActiveDaysOnly}
+                  className="px-2 py-0.5 rounded-lg text-[10px] font-bold bg-slate-800 border border-slate-700 text-slate-300 hover:text-emerald-400 transition"
+                >
+                  只選有支出
+                </button>
+                {selectedDates.length > 0 && (
+                  <button
+                    type="button"
+                    onClick={() => setSelectedSubDates([])}
+                    className="px-2 py-0.5 text-[10px] text-slate-400 hover:text-rose-400 underline transition"
+                  >
+                    重設全部
+                  </button>
+                )}
+              </div>
+            </div>
+
+            {/* 星期抬頭 */}
+            <div className="grid grid-cols-7 gap-1 text-center text-xs font-bold text-slate-400">
+              {WEEK_DAYS.map((wd) => (
+                <span key={wd} className={wd === '日' || wd === '六' ? 'text-amber-400/80' : ''}>
+                  {wd}
+                </span>
+              ))}
+            </div>
+
+            {/* 精簡月曆網格 (支援滑鼠/觸控拖曳框選與點選) */}
+            <div
+              className="grid grid-cols-7 gap-1 sm:gap-1.5 touch-none"
+              onTouchMove={handleTouchMove}
             >
-              完成
-            </button>
-          </div>
-        )}
+              {/* 前置空白格 */}
+              {Array.from({ length: firstDayOfWeek }).map((_, i) => (
+                <div key={`empty-${i}`} className="h-10 sm:h-11 rounded-xl bg-slate-950/20" />
+              ))}
 
-        {/* 星期抬頭 */}
-        <div className="grid grid-cols-7 gap-0.5 sm:gap-1 text-center text-[10px] sm:text-xs font-bold text-slate-400 pb-0.5 sm:pb-1">
-          {WEEK_DAYS.map((wd) => (
-            <span key={wd} className={wd === '日' || wd === '六' ? 'text-amber-400/80' : ''}>
-              {wd}
-            </span>
-          ))}
-        </div>
+              {/* 各日期格子 */}
+              {periodDays.map((d, index) => {
+                const dateStr = d.dateStr;
+                const isToday = dateStr === today.toISOString().split('T')[0];
+                const isSelected = draggingRangeDates
+                  ? draggingRangeDates.has(dateStr)
+                  : selectedDates.length === 0 || selectedDates.includes(dateStr);
+                const isExplicitlySingleOrMulti = selectedDates.includes(dateStr);
+                const dayTxs = dailyTransactionsMap[dateStr] || [];
+                const daySum = dayTxs.reduce((acc, cur) => acc + (cur.amount || 0), 0);
 
-        {/* 日期網格：若在調整範圍模式則鎖定 touch-none，平時為 touch-pan-y */}
-        <div
-          className={`grid grid-cols-7 gap-1 sm:gap-1.5 ${
-            isRangeAdjustMode ? 'touch-none select-none' : 'touch-pan-y'
-          }`}
-          onTouchMove={isRangeAdjustMode ? handleTouchMove : undefined}
-        >
-          {/* 前置空白格 */}
-          {Array.from({ length: firstDayOfWeek }).map((_, i) => (
-            <div key={`empty-${i}`} className="h-12 sm:h-20 rounded-xl sm:rounded-2xl bg-slate-950/20" />
-          ))}
-
-          {/* 各日期格子 */}
-          {periodDays.map((d, index) => {
-            const dateStr = d.dateStr;
-            const isToday = dateStr === today.toISOString().split('T')[0];
-            const isSelected = draggingRangeDates
-              ? draggingRangeDates.has(dateStr)
-              : selectedDates.includes(dateStr);
-            const dayTxs = dailyTransactionsMap[dateStr] || [];
-            const daySum = dayTxs.reduce((acc, cur) => acc + (cur.amount || 0), 0);
-
-            return (
-              <div
-                key={dateStr}
-                data-month-day-idx={index}
-                onClick={() => {
-                  if (!isRangeAdjustMode) {
-                    handleToggleDate(dateStr);
-                  }
-                }}
-                onMouseDown={() => handleDayMouseDown(index)}
-                onMouseEnter={() => handleDayMouseEnter(index)}
-                onTouchStart={() => {
-                  if (isRangeAdjustMode) {
-                    handleDayMouseDown(index);
-                  }
-                }}
-                className={`h-12 sm:h-20 p-1 sm:p-1.5 rounded-xl sm:rounded-2xl border sm:border-2 flex flex-col justify-between text-left transition-colors relative cursor-pointer select-none group ${
-                  isSelected
-                    ? 'border-emerald-500 bg-emerald-950/70 shadow-md shadow-emerald-950/40'
-                    : isDragging && !isSelected
-                    ? 'opacity-60 border-slate-800/40 bg-slate-900/30'
-                    : isToday
-                    ? 'border-slate-600 bg-slate-800/80 hover:border-slate-500'
-                    : 'border-slate-800/80 bg-slate-900/50 hover:border-slate-700 hover:bg-slate-800/60'
-                }`}
-              >
-                {/* 頂部：日期數字與今天標記 */}
-                <div className="flex items-center justify-between w-full pointer-events-none">
-                  <div className="flex items-center gap-0.5 sm:gap-1">
+                return (
+                  <div
+                    key={dateStr}
+                    data-month-day-idx={index}
+                    onMouseDown={() => handleDayMouseDown(index)}
+                    onMouseEnter={() => handleDayMouseEnter(index)}
+                    onTouchStart={() => handleDayMouseDown(index)}
+                    className={`h-10 sm:h-11 p-1 rounded-xl border flex flex-col justify-between items-center transition relative cursor-pointer group select-none ${
+                      isDragging && isSelected
+                        ? 'border-emerald-400 bg-emerald-950/90 shadow ring-1 ring-emerald-400/50'
+                        : isExplicitlySingleOrMulti
+                        ? 'border-emerald-500 bg-emerald-950/80 shadow ring-1 ring-emerald-400/40'
+                        : isToday
+                        ? 'border-slate-600 bg-slate-800/80 hover:border-slate-500'
+                        : 'border-slate-800/80 bg-slate-900/50 hover:border-slate-700 hover:bg-slate-800/60'
+                    }`}
+                  >
+                    {/* 日期數字 */}
                     <span
-                      className={`text-[10px] sm:text-xs font-mono font-black ${
-                        isSelected
+                      className={`text-[11px] font-mono font-bold leading-tight pointer-events-none ${
+                        isExplicitlySingleOrMulti
                           ? 'text-emerald-300'
                           : isToday
-                          ? 'text-emerald-400'
+                          ? 'text-emerald-400 underline'
                           : 'text-slate-300'
                       }`}
                     >
                       {d.dayNum}
                     </span>
-                    {monthStartDay > 1 && d.dayNum === 1 && (
-                      <span className="text-[8px] sm:text-[9px] text-slate-500 font-bold">
-                        {d.monthNum}月
+
+                    {/* 金額標籤或小圓點 */}
+                    {daySum > 0 ? (
+                      <span className="text-[8px] sm:text-[9px] font-mono font-bold text-emerald-400 truncate max-w-full leading-none pointer-events-none">
+                        ${daySum >= 1000 ? `${(daySum / 1000).toFixed(1)}k` : daySum}
                       </span>
+                    ) : (
+                      <span className="h-1.5 pointer-events-none" />
+                    )}
+
+                    {/* 選取勾選點 */}
+                    {isExplicitlySingleOrMulti && (
+                      <span className="w-2 h-2 rounded-full bg-emerald-400 absolute top-0.5 right-0.5 shadow pointer-events-none" />
                     )}
                   </div>
+                );
+              })}
+            </div>
 
-                  {/* 勾選徽章或今天圓點 */}
-                  {isSelected ? (
-                    <span className="w-3 h-3 sm:w-3.5 sm:h-3.5 rounded-full bg-emerald-500 text-slate-950 flex items-center justify-center font-bold text-[7px] sm:text-[8px] shadow animate-in zoom-in-75 duration-100">
-                      ✓
-                    </span>
-                  ) : isToday ? (
-                    <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 shadow-sm shadow-emerald-400/80" />
-                  ) : dayTxs.length > 0 ? (
-                    <span className="text-[8px] sm:text-[9px] font-mono text-slate-500">{dayTxs.length}筆</span>
-                  ) : null}
-                </div>
-
-                {/* 底部：花費金額標籤 */}
-                {daySum > 0 ? (
-                  <div className="w-full pointer-events-none">
-                    <span className="text-[8px] sm:text-[10px] font-mono font-bold text-emerald-400 block truncate">
-                      ${daySum >= 1000 ? `${(daySum / 1000).toFixed(1)}k` : daySum}
-                    </span>
-                  </div>
-                ) : (
-                  <div className="w-full h-2 sm:h-3 pointer-events-none" />
-                )}
+            {/* Modal 底部 */}
+            <div className="flex items-center justify-between pt-3 border-t border-slate-800 text-xs">
+              <div className="text-slate-400">
+                {selectedDates.length > 0
+                  ? `已選取 ${selectedDates.length} 天`
+                  : '檢視全部 (當月)'}
+                ：
+                <strong className="text-emerald-400 font-mono font-bold text-sm ml-1">
+                  NT${' '}
+                  {(selectedDates.length > 0
+                    ? periodDays
+                        .filter((d) => selectedDates.includes(d.dateStr))
+                        .reduce((acc, cur) => acc + ((dailyTransactionsMap[cur.dateStr] || []).reduce((s, t) => s + (t.amount || 0), 0)), 0)
+                    : totalMonthAmount
+                  ).toLocaleString()}
+                </strong>
               </div>
-            );
-          })}
+              <button
+                type="button"
+                onClick={() => setIsMonthModalOpen(false)}
+                className="px-4 py-1.5 rounded-xl bg-emerald-600 text-white font-bold text-xs hover:bg-emerald-700 shadow-md transition"
+              >
+                完成
+              </button>
+            </div>
+          </div>
         </div>
-      </div>
+      )}
 
-      {/* 📌 交易明細清單 (直接自然展開排版，無多餘外層卡片包裹) */}
-      <div className="space-y-2.5 pt-1 animate-in fade-in">
-        <div className="flex items-center justify-between px-1">
-          <div className="flex items-center gap-2">
-            <CalendarIcon className="w-4 h-4 text-emerald-400" />
-            <h3 className="text-xs font-bold text-slate-300">
-              {selectedDates.length > 0
-                ? `已選取 ${selectedDates.length} 天明細`
-                : '當期全部支出明細'}
-              <span className="text-slate-500 font-normal ml-1">（{displayTransactions.length} 筆）</span>
-            </h3>
-          </div>
-
-          {selectedDates.length > 0 && (
-            <button
-              onClick={() => setSelectedSubDates([])}
-              className="text-xs text-emerald-400 hover:text-emerald-300 font-medium px-2.5 py-1 rounded-xl bg-emerald-950/60 border border-emerald-800/60 hover:bg-emerald-900/60 transition"
-            >
-              查看全月
-            </button>
-          )}
-        </div>
-
-        {displayTransactions.length === 0 ? (
-          <div className="py-10 text-center text-slate-500 text-xs bg-slate-900/40 border border-slate-800/60 rounded-2xl">
-            <p>選取的期間尚無任何記帳記錄</p>
-            <button
-              onClick={onOpenQuickInput}
-              className="mt-2 text-emerald-400 hover:underline font-bold text-xs"
-            >
-              + 新增第一筆支出
-            </button>
-          </div>
-        ) : (
-          <div className="space-y-1.5 sm:space-y-2">
-            {displayTransactions.map((tx) => {
-              const isSelected = selectedTxIds?.includes(tx.id);
-              return (
-                <div
-                  key={tx.id}
-                  onClick={() => {
-                    if (isBatchMode && onToggleSelectTx) {
-                      onToggleSelectTx(tx.id);
-                    } else {
-                      onEditTransaction(tx);
-                    }
-                  }}
-                  className={`flex items-center justify-between p-2.5 sm:p-3 rounded-2xl transition cursor-pointer border ${isBatchMode
-                      ? isSelected
-                        ? 'bg-emerald-950/40 border-emerald-500/50'
-                        : 'bg-slate-900/40 border-slate-800/60 hover:border-slate-700'
-                      : 'bg-slate-900/80 hover:bg-slate-900 border-slate-800/80 hover:border-slate-700 active:scale-[0.99]'
-                    }`}
-                >
-                  <div className="flex items-center gap-2.5 min-w-0">
-                    {/* 批次模式勾選框 */}
-                    {isBatchMode && (
-                      <div
-                        className={`w-4 h-4 rounded-lg flex items-center justify-center transition border ${isSelected
-                            ? 'bg-emerald-500 border-emerald-400 text-slate-950 font-bold'
-                            : 'border-slate-700 bg-slate-800'
-                          }`}
-                      >
-                        {isSelected && <Check className="w-3 h-3 stroke-[3]" />}
-                      </div>
-                    )}
-
-                    <div className="w-8 h-8 rounded-xl bg-slate-900 border border-slate-700 text-emerald-400 flex items-center justify-center font-black text-xs flex-shrink-0">
-                      #{tx.tags?.[0]?.[0] || '記'}
-                    </div>
-                    <div className="min-w-0">
-                      <p className="text-xs font-bold text-slate-100 truncate">{tx.title}</p>
-                      <div className="flex items-center gap-1.5 text-[10px] text-slate-400 font-mono">
-                        <span>{tx.date}</span>
-                        <span>·</span>
-                        <span className="flex items-center gap-0.5 text-slate-300">
-                          <CreditCard className="w-3 h-3 text-sky-400" />
-                          {tx.paymentMethod}
-                        </span>
-                        {tx.tags && tx.tags.length > 0 && (
-                          <span>#{tx.tags[0]}</span>
-                        )}
-                      </div>
-                    </div>
-                  </div>
-
-                  <div className="flex items-center gap-2 flex-shrink-0">
-                    <span className="text-xs font-black font-mono text-emerald-400">
-                      -NT$ {tx.amount.toLocaleString()}
-                    </span>
-                    {!isBatchMode && (
-                      <div className="flex items-center gap-1">
-                        <button
-                          type="button"
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            onEditTransaction(tx);
-                          }}
-                          className="p-1 rounded-lg text-slate-400 hover:text-white hover:bg-slate-700 transition"
-                          title="編輯"
-                        >
-                          <Edit2 className="w-3.5 h-3.5" />
-                        </button>
-                        <button
-                          type="button"
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            if (confirm(`確定要刪除「${tx.title}」嗎？`)) {
-                              deleteTransaction(tx.id);
-                            }
-                          }}
-                          className="p-1 rounded-lg text-slate-400 hover:text-red-400 hover:bg-slate-700 transition"
-                          title="刪除"
-                        >
-                          <Trash2 className="w-3.5 h-3.5" />
-                        </button>
-                      </div>
-                    )}
-                  </div>
-                </div>
-              );
-            })}
-          </div>
-        )}
+      {/* 📌 交易明細清單 */}
+      <div className="space-y-2 pt-1">
+        <TransactionGroupedList
+          transactions={displayTransactions}
+          onEditTransaction={onEditTransaction}
+          onOpenQuickInput={onOpenQuickInput}
+          isBatchMode={isBatchMode}
+          selectedTxIds={selectedTxIds}
+          onToggleSelectTx={onToggleSelectTx}
+          onEnterBatchModeWithTx={onEnterBatchModeWithTx}
+          emptyMessage="當月尚無任何記帳記錄"
+        />
       </div>
     </div>
   );

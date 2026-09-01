@@ -1,6 +1,7 @@
 import {
   buildNaturalLanguageExpensePrompt,
   fallbackLocalRuleParser,
+  parseMultiVoiceExpensesLocal,
   buildReceiptOcrPrompt,
   buildFinancialAssistantPrompt,
   classifyInvoiceItemCategory,
@@ -8,12 +9,13 @@ import {
   Transaction,
 } from '@app/shared';
 
-// 支援的 Gemini 模型候選清單（優先使用 Google 最新建議的 gemini-3.6-flash / gemini-3.7-flash，並具備自動降級容錯機制）
+// 支援的 Gemini 模型候選清單（優先使用高速穩定的 flash 模型，並具備自動降級容錯機制）
 const CANDIDATE_GEMINI_MODELS = [
-  'gemini-3.6-flash',
-  'gemini-3.7-flash',
   'gemini-2.5-flash',
   'gemini-1.5-flash',
+  'gemini-2.0-flash',
+  'gemini-3.6-flash',
+  'gemini-3.7-flash',
 ];
 
 /**
@@ -70,24 +72,25 @@ async function callGeminiApiWithFallback(
 }
 
 /**
- * 智慧自然語言記帳解析 (優先使用 0 Token 本地高準度語意引擎；必要時切換至超輕量 Gemini Micro-Prompt)
+ * 智慧多筆自然語言記帳解析 (優先使用 0 Token 本地高準度切分與語意引擎；必要時切換至超輕量 Gemini Micro-Prompt)
  */
-export async function parseExpenseWithGemini(
+export async function parseExpensesWithGemini(
   input: string,
   apiKey?: string,
   customFewShotPrompt = '',
   forceCloud = false,
   availableTags?: string[]
-): Promise<ParsedExpenseAIResult> {
-  // 1. 0 毫秒執行在地端語意與關鍵字解析引擎 (嚴格依據現有標籤庫 availableTags 歸類，若無則為「未歸類」)
-  const localResult = fallbackLocalRuleParser(input, availableTags);
+): Promise<ParsedExpenseAIResult[]> {
+  // 1. 0 毫秒執行在地端語意與多品項切分引擎
+  const localResults = parseMultiVoiceExpensesLocal(input, availableTags);
 
-  // 2. 若未設定 API Key，或本地端已具備高度辨識信心 (>= 0.9)，0 Token 瞬間完成！
-  if (!apiKey || apiKey.trim() === '' || (!forceCloud && localResult.confidence >= 0.9)) {
-    return {
-      ...localResult,
+  // 2. 若未設定 API Key，或本地端各筆已具備高度辨識信心 (>= 0.9)，0 Token 瞬間完成！
+  const allLocalConfident = localResults.length > 0 && localResults.every((r) => r.confidence >= 0.9);
+  if (!apiKey || apiKey.trim() === '' || (!forceCloud && allLocalConfident)) {
+    return localResults.map((r) => ({
+      ...r,
       engineType: 'local_zero_token',
-    };
+    }));
   }
 
   try {
@@ -102,47 +105,98 @@ export async function parseExpenseWithGemini(
       generationConfig: {
         responseMimeType: 'application/json',
         temperature: 0.1,
-        maxOutputTokens: 150,
+        maxOutputTokens: 500,
       },
     });
 
     if (!result.ok || !result.data) {
       console.warn('Gemini API request failed, using local 0-token parser:', result.errorMsg);
-      return {
-        ...localResult,
+      return localResults.map((r) => ({
+        ...r,
         engineType: 'local_zero_token',
-      };
+      }));
     }
 
     const rawJsonText = result.data.candidates?.[0]?.content?.parts?.[0]?.text;
     if (!rawJsonText) {
-      return {
-        ...localResult,
+      return localResults.map((r) => ({
+        ...r,
         engineType: 'local_zero_token',
+      }));
+    }
+
+    const parsedJson = JSON.parse(rawJsonText);
+    let rawList: any[] = [];
+    if (Array.isArray(parsedJson.expenses)) {
+      rawList = parsedJson.expenses;
+    } else if (Array.isArray(parsedJson)) {
+      rawList = parsedJson;
+    } else if (parsedJson && typeof parsedJson === 'object') {
+      rawList = [parsedJson];
+    }
+
+    if (rawList.length === 0) {
+      return localResults.map((r) => ({
+        ...r,
+        engineType: 'local_zero_token',
+      }));
+    }
+
+    return rawList.map((item: any) => {
+      let resolvedTags = (item.tags || []).filter((t: string) => !availableTags || availableTags.includes(t));
+      if (resolvedTags.length === 0) {
+        resolvedTags = ['未歸類'];
+      } else {
+        resolvedTags = [resolvedTags[0]];
+      }
+
+      return {
+        title: item.title || input,
+        amount: Number(item.amount) || 0,
+        type: (item.type === 'income' ? 'income' : 'expense') as 'expense' | 'income',
+        categoryId: item.categoryId || 'other_expense',
+        categoryName: item.categoryName || '其他支出',
+        subCategory: item.subCategory,
+        paymentMethod: item.paymentMethod || '現金',
+        tags: resolvedTags,
+        ledgerType: item.ledgerType || 'personal',
+        merchant: item.merchant,
+        confidence: 0.98,
+        engineType: 'gemini_cloud',
       };
-    }
-
-    const parsed: ParsedExpenseAIResult = JSON.parse(rawJsonText);
-    let resolvedTags = (parsed.tags || []).filter((t) => !availableTags || availableTags.includes(t));
-    if (resolvedTags.length === 0) {
-      resolvedTags = ['未歸類'];
-    } else {
-      resolvedTags = [resolvedTags[0]];
-    }
-
-    return {
-      ...parsed,
-      tags: resolvedTags,
-      confidence: 0.98,
-      engineType: 'gemini_cloud',
-    };
+    });
   } catch (error) {
     console.error('Gemini parse error, using local fallback:', error);
-    return {
-      ...localResult,
+    return localResults.map((r) => ({
+      ...r,
       engineType: 'local_zero_token',
-    };
+    }));
   }
+}
+
+/**
+ * 智慧單筆自然語言記帳解析 (向下相容)
+ */
+export async function parseExpenseWithGemini(
+  input: string,
+  apiKey?: string,
+  customFewShotPrompt = '',
+  forceCloud = false,
+  availableTags?: string[]
+): Promise<ParsedExpenseAIResult> {
+  const results = await parseExpensesWithGemini(
+    input,
+    apiKey,
+    customFewShotPrompt,
+    forceCloud,
+    availableTags
+  );
+  return (
+    results[0] || {
+      ...fallbackLocalRuleParser(input, availableTags),
+      engineType: 'local_zero_token',
+    }
+  );
 }
 
 /**
@@ -236,9 +290,14 @@ export async function askFinancialAdvisor(
   budgetInfo?: {
     monthlyBudget?: number;
     tagBudgets?: Record<string, number>;
+  },
+  dateRange?: {
+    startDate?: string;
+    endDate?: string;
+    label?: string;
   }
 ): Promise<string> {
-  const contextPrompt = buildFinancialAssistantPrompt(transactions, question, householdName, budgetInfo);
+  const contextPrompt = buildFinancialAssistantPrompt(transactions, question, householdName, budgetInfo, dateRange);
 
   if (!apiKey || apiKey.trim() === '') {
     throw new Error('尚未設定 Gemini API Key，請先至「設定 > API 金鑰」填入您的 Google Gemini API 金鑰。');
@@ -253,7 +312,7 @@ export async function askFinancialAdvisor(
         },
       ],
       generationConfig: {
-        temperature: 0.5,
+        temperature: 0.4,
       },
     });
 
@@ -267,3 +326,152 @@ export async function askFinancialAdvisor(
     throw error;
   }
 }
+
+/**
+ * 呼叫 Gemini 進行財務顧問智慧對話 (支援 SSE 即時打字串流，大幅降低延遲)
+ */
+export async function streamFinancialAdvisor(
+  transactions: Transaction[],
+  question: string,
+  apiKey: string,
+  options?: {
+    householdName?: string;
+    budgetInfo?: {
+      monthlyBudget?: number;
+      tagBudgets?: Record<string, number>;
+    };
+    dateRange?: {
+      startDate?: string;
+      endDate?: string;
+      label?: string;
+    };
+    onChunk?: (accumulatedText: string, newChunk: string) => void;
+  }
+): Promise<string> {
+  const contextPrompt = buildFinancialAssistantPrompt(
+    transactions,
+    question,
+    options?.householdName,
+    options?.budgetInfo,
+    options?.dateRange
+  );
+
+  const cleanKey = apiKey.trim();
+  if (!cleanKey) {
+    throw new Error('尚未設定 Gemini API Key，請先至「設定 > API 金鑰」填入您的 Google Gemini API 金鑰。');
+  }
+
+  const payload = {
+    contents: [
+      {
+        role: 'user',
+        parts: [{ text: contextPrompt }],
+      },
+    ],
+    generationConfig: {
+      temperature: 0.4,
+    },
+  };
+
+  for (const model of CANDIDATE_GEMINI_MODELS) {
+    try {
+      const response = await fetch(
+        `https://generativelanguage.googleapis.com/v1beta/models/${model}:streamGenerateContent?key=${cleanKey}&alt=sse`,
+        {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload),
+        }
+      );
+
+      if (!response.ok) {
+        const errData = await response.json().catch(() => ({}));
+        const msg = errData.error?.message || `HTTP ${response.status}`;
+
+        const isModelUnavailable =
+          response.status === 404 ||
+          msg.includes('no longer available') ||
+          msg.includes('is not found') ||
+          msg.includes('not supported');
+
+        if (isModelUnavailable) {
+          console.warn(`[GeminiStream] Model ${model} unavailable (${msg}), trying next...`);
+          continue;
+        }
+        throw new Error(msg);
+      }
+
+      if (!response.body) {
+        throw new Error('ReadableStream not supported');
+      }
+
+      const reader = response.body.getReader();
+      const decoder = new TextDecoder('utf-8');
+      let accumulatedText = '';
+      let buffer = '';
+
+      while (true) {
+        const { done, value } = await reader.read();
+        if (done) break;
+
+        buffer += decoder.decode(value, { stream: true });
+        const lines = buffer.split('\n');
+        buffer = lines.pop() || '';
+
+        for (const line of lines) {
+          const trimmed = line.trim();
+          if (trimmed.startsWith('data: ')) {
+            const jsonStr = trimmed.slice(6).trim();
+            if (!jsonStr || jsonStr === '[DONE]') continue;
+
+            try {
+              const parsed = JSON.parse(jsonStr);
+              const chunk = parsed.candidates?.[0]?.content?.parts?.[0]?.text || '';
+              if (chunk) {
+                accumulatedText += chunk;
+                options?.onChunk?.(accumulatedText, chunk);
+              }
+            } catch {
+              // Ignore partial JSON parse errors
+            }
+          }
+        }
+      }
+
+      // Flush remaining buffer
+      if (buffer.trim().startsWith('data: ')) {
+        const jsonStr = buffer.trim().slice(6).trim();
+        if (jsonStr && jsonStr !== '[DONE]') {
+          try {
+            const parsed = JSON.parse(jsonStr);
+            const chunk = parsed.candidates?.[0]?.content?.parts?.[0]?.text || '';
+            if (chunk) {
+              accumulatedText += chunk;
+              options?.onChunk?.(accumulatedText, chunk);
+            }
+          } catch {
+            // Ignore
+          }
+        }
+      }
+
+      if (accumulatedText.trim()) {
+        return accumulatedText;
+      }
+    } catch (err: any) {
+      console.warn(`[GeminiStream] Stream failed with model ${model}, trying fallback:`, err);
+    }
+  }
+
+  // 若 SSE 串流因環境或網路限制失敗，退回標準非串流呼叫
+  const fallbackResult = await askFinancialAdvisor(
+    transactions,
+    question,
+    apiKey,
+    options?.householdName,
+    options?.budgetInfo
+  );
+  options?.onChunk?.(fallbackResult, fallbackResult);
+  return fallbackResult;
+}
+

@@ -2,6 +2,12 @@
 @tailwind components;
 @tailwind utilities;
 
+@layer base {
+  button {
+    flex-shrink: 0;
+  }
+}
+
 :root {
   --foreground-rgb: 248, 250, 252;
   --background-start-rgb: 8, 12, 22;

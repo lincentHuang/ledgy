@@ -44,6 +44,7 @@ export const TagPill: React.FC<TagPillProps> = ({
     <button
       type="button"
       onClick={onClick}
+      data-active={active ? 'true' : 'false'}
       className={`inline-flex items-center gap-1 rounded-xl border flex-shrink-0 font-medium select-none transition-all duration-200 active:scale-95 ${
         active ? activeClasses : inactiveClasses
       } ${sizeClasses} ${className}`}

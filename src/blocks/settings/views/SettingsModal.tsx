@@ -24,6 +24,7 @@ import {
 } from 'lucide-react';
 
 import { SettingsTabType } from './SettingsView';
+import { DeleteLedgerModal } from '@/blocks/family-ledger/views/DeleteLedgerModal';
 
 interface SettingsModalProps {
   isOpen: boolean;
@@ -51,6 +52,7 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
     createHousehold,
     joinHousehold,
     leaveHousehold,
+    deleteHousehold,
     transactions,
   } = useAppStore();
 
@@ -61,6 +63,7 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
   const [copiedCode, setCopiedCode] = useState(false);
   const [savedSuccess, setSavedSuccess] = useState(false);
   const [activeTab, setActiveTab] = useState<SettingsTabType>(initialTab);
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
 
   // 付款方式新增 / 編輯狀態
   const [newPaymentInput, setNewPaymentInput] = useState('');
@@ -356,16 +359,21 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
                     </div>
                   </div>
 
-                  {/* 退出群組按鈕 */}
-                  <div className="pt-2 border-t border-slate-800 flex justify-end">
+                  {/* 退出與解散群組按鈕 */}
+                  <div className="pt-2 border-t border-slate-800 flex justify-between items-center">
+                    {household.ownerId === user.uid && (
+                      <button
+                        onClick={() => setShowDeleteModal(true)}
+                        className="px-3 py-1.5 bg-rose-950/30 hover:bg-rose-950/60 border border-rose-900/40 text-rose-400 rounded-xl text-xs font-bold transition flex items-center gap-1.5"
+                      >
+                        <Trash2 className="w-3.5 h-3.5" />
+                        <span>解散群組 (組長)</span>
+                      </button>
+                    )}
+
                     <button
-                      onClick={() => {
-                        if (confirm(`確定要退出「${household.name}」記帳群組嗎？退出後將切換為個人私帳。`)) {
-                          leaveHousehold();
-                          alert('已退出群組，切換為個人模式。');
-                        }
-                      }}
-                      className="px-3 py-1.5 bg-rose-950/40 hover:bg-rose-950/70 border border-rose-900/50 text-rose-400 rounded-xl text-xs font-bold transition flex items-center gap-1.5"
+                      onClick={() => setShowDeleteModal(true)}
+                      className="px-3 py-1.5 bg-rose-950/40 hover:bg-rose-950/70 border border-rose-900/50 text-rose-400 rounded-xl text-xs font-bold transition flex items-center gap-1.5 ml-auto"
                     >
                       <LogOut className="w-3.5 h-3.5" />
                       <span>退出此群組</span>
@@ -677,6 +685,27 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
           )}
         </div>
       </div>
+
+      {/* 刪除/退出群組安全確認 Modal */}
+      <DeleteLedgerModal
+        isOpen={showDeleteModal}
+        onClose={() => setShowDeleteModal(false)}
+        household={household || null}
+        currentUserId={user.uid}
+        transactionCount={
+          household
+            ? transactions.filter((t) => t.householdId === household.id || (t.ledgerType === 'household' && !t.householdId)).length
+            : 0
+        }
+        onConfirmDelete={(hId) => {
+          deleteHousehold(hId);
+          onClose();
+        }}
+        onConfirmLeave={(hId) => {
+          leaveHousehold(hId);
+          onClose();
+        }}
+      />
     </div>
   );
 };
