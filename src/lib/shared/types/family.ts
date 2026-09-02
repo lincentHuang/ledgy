@@ -49,6 +49,7 @@ export interface Household {
   defaultSplitMethod: 'equal' | 'exact' | 'percentage';
   monthlyBudget?: number;
   tagBudgets?: Record<string, number>;
+  monthlyBudgets?: Record<string, import('./user').MonthlyBudgetRecord>; // Key: "YYYY-MM"
   createdAt: number;
   updatedAt: number;
 }

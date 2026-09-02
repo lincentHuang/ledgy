@@ -129,6 +129,7 @@ export class AuthService {
           defaultPaymentMethod: existingProfile?.defaultPaymentMethod || 'LINE Pay',
           monthlyBudget: existingProfile?.monthlyBudget || 35000,
           tagBudgets: existingProfile?.tagBudgets,
+          monthlyBudgets: existingProfile?.monthlyBudgets,
           tagItems: existingProfile?.tagItems,
           geminiApiKey: existingProfile?.geminiApiKey,
           hasCompletedOnboarding:
@@ -339,6 +340,7 @@ export class AuthService {
           defaultPaymentMethod: existingProfile?.defaultPaymentMethod || 'Google Pay',
           monthlyBudget: existingProfile?.monthlyBudget || 35000,
           tagBudgets: existingProfile?.tagBudgets,
+          monthlyBudgets: existingProfile?.monthlyBudgets,
           tagItems: existingProfile?.tagItems,
           geminiApiKey: existingProfile?.geminiApiKey,
           hasCompletedOnboarding:

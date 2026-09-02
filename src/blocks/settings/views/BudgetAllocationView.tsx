@@ -16,7 +16,7 @@ import {
   ChevronRight,
   Info,
 } from 'lucide-react';
-import { useAppStore, DEFAULT_GROUP_TAG_ITEMS, normalizeTagItems } from '@/lib/store';
+import { useAppStore, DEFAULT_GROUP_TAG_ITEMS, normalizeTagItems, sanitizeTagBudgets } from '@/lib/store';
 import { Card, Button, TagPill, ProgressBar, Badge, Input } from '@/components';
 
 interface BudgetAllocationViewProps {
@@ -38,19 +38,20 @@ export const BudgetAllocationView: React.FC<BudgetAllocationViewProps> = ({
     availableTags,
     updateUserProfile,
     updateHousehold,
+    settleMonthlyBudget,
   } = useAppStore();
 
   const targetHousehold = householdId
     ? households.find((h) => h.id === householdId) || household
     : household;
 
-  // 1. 取得當前總預算與標籤預算表 (支援永久 Key 與 Name)
+  // 1. 取得當前總預算與標籤預算表
   const initialTotalBudget =
     type === 'household'
       ? targetHousehold?.monthlyBudget || 40000
       : user.monthlyBudget || 35000;
 
-  const initialTagBudgets: Record<string, number> =
+  const rawTagBudgets: Record<string, number> =
     type === 'household'
       ? targetHousehold?.tagBudgets || {}
       : user.tagBudgets || {};
@@ -67,6 +68,11 @@ export const BudgetAllocationView: React.FC<BudgetAllocationViewProps> = ({
     }
     return availableTagItems;
   }, [type, targetHousehold, availableTagItems, groupTagItems]);
+
+  // 規範化預算字典：將技術 ID 鍵值清理轉為標準標籤名稱，並剔除幽靈項目
+  const initialTagBudgets = useMemo(() => {
+    return sanitizeTagBudgets(rawTagBudgets, targetTagItems);
+  }, [rawTagBudgets, targetTagItems]);
 
   const [totalBudget, setTotalBudget] = useState<number>(initialTotalBudget);
   const [tagBudgets, setTagBudgets] = useState<Record<string, number>>(initialTagBudgets);
@@ -100,7 +106,7 @@ export const BudgetAllocationView: React.FC<BudgetAllocationViewProps> = ({
   // 3. 計算已分配與未分配預算
   const allocatedTotal = useMemo(() => {
     return targetTagItems.reduce((sum, item) => {
-      const b = tagBudgets[item.id] ?? tagBudgets[item.name] ?? 0;
+      const b = tagBudgets[item.name] ?? tagBudgets[item.id] ?? 0;
       return sum + (Number(b) || 0);
     }, 0);
   }, [tagBudgets, targetTagItems]);
@@ -108,36 +114,39 @@ export const BudgetAllocationView: React.FC<BudgetAllocationViewProps> = ({
   const remainingUnallocated = totalBudget - allocatedTotal;
   const allocationPercent = Math.round((allocatedTotal / (totalBudget || 1)) * 100);
 
-  // 4. 更新單一標籤預算 (同步 key 與 name，更名無縫相容)
+  // 4. 更新單一標籤預算 (統一以乾淨標籤名稱為準，移除技術 ID 鍵值)
   const handleSetTagBudget = (tagItem: { id: string; name: string }, amount: number) => {
     setTagBudgets((prev) => {
       const next = { ...prev };
+      delete next[tagItem.id];
       if (amount <= 0 || isNaN(amount)) {
-        delete next[tagItem.id];
         delete next[tagItem.name];
       } else {
-        next[tagItem.id] = amount;
         next[tagItem.name] = amount;
       }
       return next;
     });
   };
 
-  // 5. 儲存設定
+  // 5. 儲存設定 (同時更新全域設定與當月獨立紀錄)
   const handleSave = () => {
+    const cleanBudgets = sanitizeTagBudgets(tagBudgets, targetTagItems);
+
     if (type === 'household' && targetHousehold) {
       updateHousehold(
         {
           monthlyBudget: totalBudget,
-          tagBudgets,
+          tagBudgets: cleanBudgets,
         },
         targetHousehold.id
       );
+      settleMonthlyBudget(currentMonth, totalBudget, cleanBudgets, targetHousehold.id);
     } else {
       updateUserProfile({
         monthlyBudget: totalBudget,
-        tagBudgets,
+        tagBudgets: cleanBudgets,
       });
+      settleMonthlyBudget(currentMonth, totalBudget, cleanBudgets);
     }
 
     setSavedSuccess(true);
@@ -175,7 +184,6 @@ export const BudgetAllocationView: React.FC<BudgetAllocationViewProps> = ({
       if (spent > 0) {
         const ratio = spent / allHistSum;
         const suggested = Math.max(500, Math.round((targetPool * ratio) / 100) * 100);
-        newBudgets[item.id] = suggested;
         newBudgets[item.name] = suggested;
       }
     });
@@ -343,8 +351,8 @@ export const BudgetAllocationView: React.FC<BudgetAllocationViewProps> = ({
         {/* 標籤預算項目 Grid (自然展開，隨頁面整體滾動) */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-2.5">
           {filteredTagItems.map((tagItem) => {
-            const budget = tagBudgets[tagItem.id] ?? tagBudgets[tagItem.name] ?? 0;
-            const spent = tagSpendingMap[tagItem.id] ?? tagSpendingMap[tagItem.name] ?? 0;
+            const budget = tagBudgets[tagItem.name] ?? tagBudgets[tagItem.id] ?? 0;
+            const spent = tagSpendingMap[tagItem.name] ?? tagSpendingMap[tagItem.id] ?? 0;
             const hasBudget = budget > 0;
             const usagePercent = hasBudget ? Math.round((spent / budget) * 100) : 0;
             const isOverBudget = hasBudget && spent > budget;

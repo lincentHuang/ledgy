@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState, useRef, useEffect, useMemo } from 'react';
-import { useAppStore } from '@/lib/store';
+import { useAppStore, sanitizeTagBudgets } from '@/lib/store';
 import {
   Sparkles,
   Send,
@@ -91,8 +91,19 @@ export const FinancialReportView: React.FC<FinancialReportViewProps> = ({
   isModal = false,
   onClose,
 }) => {
-  const { user, household, transactions, updateUserProfile } = useAppStore();
+  const {
+    user,
+    household,
+    transactions,
+    activeLedger,
+    availableTagItems,
+    groupTagItems,
+    updateUserProfile,
+    settleMonthlyBudget,
+  } = useAppStore();
   const hasGeminiApiKey = Boolean(user.geminiApiKey && user.geminiApiKey.trim());
+
+  const [settlingNotice, setSettlingNotice] = useState<string | null>(null);
 
   // 模式切換：'report' (視覺報表) vs 'advisor' (AI 顧問對話)
   const [activeMode, setActiveMode] = useState<'report' | 'advisor'>('report');
@@ -251,10 +262,13 @@ export const FinancialReportView: React.FC<FinancialReportViewProps> = ({
       }
     }
 
+    const monthKey = `${selectedYear}-${String(selectedMonth).padStart(2, '0')}`;
+
     return {
       startDateStr,
       endDateStr,
       label,
+      monthKey,
       daysPassed: Math.max(1, daysPassed),
       totalDays,
       daysRemaining: Math.max(1, totalDays - daysPassed + 1),
@@ -264,7 +278,7 @@ export const FinancialReportView: React.FC<FinancialReportViewProps> = ({
 
   // 4. 精算選定週期的財務與預算合理性指標
   const financialMetrics = useMemo(() => {
-    const { startDateStr, endDateStr, daysPassed, totalDays, daysRemaining, label } = periodInfo;
+    const { startDateStr, endDateStr, daysPassed, totalDays, daysRemaining, label, monthKey } = periodInfo;
 
     const filteredTx = transactions.filter((t) => {
       return t.date >= startDateStr && t.date <= endDateStr;
@@ -293,9 +307,28 @@ export const FinancialReportView: React.FC<FinancialReportViewProps> = ({
       }
     });
 
-    // 基準每月預算 (月預算設定)
-    const baseMonthlyBudget = household?.monthlyBudget || user.monthlyBudget || 35000;
-    const tagBudgets = (household?.tagBudgets || user.tagBudgets || {}) as Record<string, number>;
+    // 基準每月預算 (支援月度獨立快照與結算封存紀錄)
+    const monthlyBudgets =
+      (activeLedger === 'household' ? household?.monthlyBudgets : user.monthlyBudgets) || {};
+    const recordedMonthBudget = timeMode === 'month' ? monthlyBudgets[monthKey] : undefined;
+
+    const baseMonthlyBudget =
+      recordedMonthBudget?.totalBudget ??
+      (activeLedger === 'household' ? household?.monthlyBudget : user.monthlyBudget) ??
+      35000;
+
+    const rawTagBudgets = (recordedMonthBudget?.tagBudgets ??
+      (activeLedger === 'household' ? household?.tagBudgets : user.tagBudgets) ??
+      {}) as Record<string, number>;
+
+    const validTagItems =
+      activeLedger === 'household'
+        ? (household?.tagItems || groupTagItems || [])
+        : (availableTagItems || []);
+
+    const activeExpenseTags = Object.keys(tagExpenseMap);
+    // 徹底清理標籤預算：將技術 ID 還原、剔除幽靈與已刪除項目
+    const cleanTagBudgets = sanitizeTagBudgets(rawTagBudgets, validTagItems, activeExpenseTags);
 
     // 依天數等比例換算該週期的總預算額度 (按月為整月預算，區間為等比換算)
     const allocatedBudget =
@@ -361,16 +394,16 @@ export const FinancialReportView: React.FC<FinancialReportViewProps> = ({
     }
     const healthScore = Math.max(20, Math.min(100, Math.round(score)));
 
-    // 彙整所有有消費或有設定預算的標籤集合 (全方位標籤預算清冊)
+    // 彙整該週期內：1. 有真實消費的標籤 + 2. 本期有分配預算的乾淨標籤 (排除技術代碼與幽靈標籤)
     const allTagKeysSet = new Set<string>([
-      ...Object.keys(tagExpenseMap),
-      ...Object.keys(tagBudgets).filter((k) => (tagBudgets[k] || 0) > 0),
+      ...activeExpenseTags.filter((t) => t && !t.startsWith('tag_')),
+      ...Object.keys(cleanTagBudgets).filter((k) => (cleanTagBudgets[k] || 0) > 0),
     ]);
 
     const tagProgressList = Array.from(allTagKeysSet)
       .map((tagName, idx) => {
         const amount = tagExpenseMap[tagName] || 0;
-        const baseTagBudget = tagBudgets[tagName];
+        const baseTagBudget = cleanTagBudgets[tagName];
         // 等比計算該週期的標籤預算額度
         const periodTagBudget =
           baseTagBudget !== undefined
@@ -440,6 +473,10 @@ export const FinancialReportView: React.FC<FinancialReportViewProps> = ({
 
     return {
       periodLabel: label,
+      monthKey,
+      isSettled: recordedMonthBudget?.isSettled ?? false,
+      settledAt: recordedMonthBudget?.settledAt,
+      cleanTagBudgets,
       startDateStr,
       endDateStr,
       totalExpense,
@@ -465,7 +502,7 @@ export const FinancialReportView: React.FC<FinancialReportViewProps> = ({
       chartPoints,
       maxSingleDayExpense,
     };
-  }, [periodInfo, transactions, household, user, timeMode]);
+  }, [periodInfo, transactions, household, user, timeMode, activeLedger, availableTagItems, groupTagItems]);
 
   // 5. 篩選後的標籤進度表列表
   const displayedTags = useMemo(() => {
@@ -714,6 +751,18 @@ export const FinancialReportView: React.FC<FinancialReportViewProps> = ({
       query: `幫我檢查【${financialMetrics.periodLabel}】有沒有重複扣款、疑似異常或過高的大額支出？`,
     },
   ];
+
+  // 結算並鎖定當月標籤與預算紀錄
+  const handleSettleCurrentMonth = () => {
+    if (timeMode !== 'month') return;
+    settleMonthlyBudget(
+      periodInfo.monthKey,
+      financialMetrics.allocatedBudget,
+      financialMetrics.cleanTagBudgets
+    );
+    setSettlingNotice(`✅ 已成功結算並獨立保存【${periodInfo.label}】標籤與預算清單！未來變更不影響本月紀錄。`);
+    setTimeout(() => setSettlingNotice(null), 3500);
+  };
 
   return (
     <div className={`space-y-3.5 sm:space-y-4 pb-24 lg:pb-8 animate-in fade-in duration-200 ${isModal ? 'p-1' : ''}`}>
@@ -1143,6 +1192,52 @@ export const FinancialReportView: React.FC<FinancialReportViewProps> = ({
                 </button>
               </div>
             </div>
+
+            {/* 提示通知 */}
+            {settlingNotice && (
+              <div className="p-3 rounded-2xl bg-emerald-950/80 border border-emerald-700 text-emerald-300 text-xs font-bold flex items-center gap-2 animate-in fade-in">
+                <CheckCircle2 className="w-4 h-4 text-emerald-400 shrink-0" />
+                <span>{settlingNotice}</span>
+              </div>
+            )}
+
+            {/* 📅 月度獨立結算與快照封存控制器 */}
+            {timeMode === 'month' && (
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2.5 p-3 rounded-2xl bg-slate-900/90 border border-slate-800 text-xs">
+                <div className="flex items-center gap-2 flex-wrap">
+                  {financialMetrics.isSettled ? (
+                    <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-xl bg-emerald-950 text-emerald-300 border border-emerald-700 font-bold text-[11px] shadow-sm">
+                      <CheckCircle2 className="w-3.5 h-3.5 text-emerald-400" />
+                      <span>已結算封存 ({periodInfo.label})</span>
+                    </span>
+                  ) : (
+                    <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-xl bg-slate-800 text-slate-300 border border-slate-700 font-medium text-[11px]">
+                      <Clock className="w-3.5 h-3.5 text-amber-400" />
+                      <span>尚未結算</span>
+                    </span>
+                  )}
+                  <span className="text-[11px] text-slate-400">
+                    {financialMetrics.isSettled
+                      ? '此月標籤與預算已獨立保存，未來變更不影響本月紀錄。'
+                      : '記錄該月有哪些標籤與預算，結算後獨立保存，下月不同也不動上月。'}
+                  </span>
+                </div>
+
+                <button
+                  type="button"
+                  onClick={handleSettleCurrentMonth}
+                  className={`px-3 py-1.5 rounded-xl font-bold transition active:scale-95 flex items-center justify-center gap-1.5 text-xs shrink-0 ${
+                    financialMetrics.isSettled
+                      ? 'bg-slate-800 hover:bg-slate-700 text-slate-300 border border-slate-700'
+                      : 'bg-emerald-600 hover:bg-emerald-500 text-white shadow-sm shadow-emerald-900/30'
+                  }`}
+                  title="記錄該月份的標籤與預算配額，結算後鎖定，後續更動不影響此月"
+                >
+                  <Check className="w-3.5 h-3.5" />
+                  <span>{financialMetrics.isSettled ? '重新結算更新此月' : '結算並記錄本月預算'}</span>
+                </button>
+              </div>
+            )}
 
             {/* 標籤進度列表 */}
             {displayedTags.length === 0 ? (

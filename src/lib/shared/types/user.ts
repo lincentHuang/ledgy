@@ -8,6 +8,14 @@ export interface UserPreferences {
   monthStartDay?: number; // 1 ~ 28 (預設 1 號)
 }
 
+export interface MonthlyBudgetRecord {
+  totalBudget: number;
+  tagBudgets: Record<string, number>;
+  isSettled?: boolean;
+  settledAt?: number;
+  settledBy?: string;
+}
+
 export interface UserProfile {
   uid: string;
   email: string;
@@ -19,6 +27,7 @@ export interface UserProfile {
   geminiApiKey?: string;
   monthlyBudget?: number;
   tagBudgets?: Record<string, number>;
+  monthlyBudgets?: Record<string, MonthlyBudgetRecord>; // Key: "YYYY-MM" (如 "2026-09")
   tagItems?: import('./expense').TagItem[];
   isAnonymous?: boolean;
   hasCompletedOnboarding?: boolean;

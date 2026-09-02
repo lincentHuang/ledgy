@@ -89,6 +89,60 @@ export const normalizeTagItems = (
   });
 };
 
+/**
+ * 徹底清理並規範化標籤預算字典：
+ * 1. 將技術代碼 (如 tag_legacy_8_保險 或 tagItem.id) 還原為乾淨的標籤名稱 (如 保險)。
+ * 2. 剔除無效的幽靈 ID 與未識別的隨機鍵值。
+ * 3. 剔除已被使用者刪除、且當期無消費紀錄的殘留舊標籤 (如已更名廢棄的 房屋)。
+ * 4. 確保輸出字典僅包含乾淨合法的標籤名稱與大於 0 的預算金額。
+ */
+export const sanitizeTagBudgets = (
+  rawBudgets: Record<string, number> | undefined,
+  validTagItems: TagItem[] = DEFAULT_TAG_ITEMS,
+  activeExpenseTags: string[] = []
+): Record<string, number> => {
+  if (!rawBudgets || typeof rawBudgets !== 'object') return {};
+
+  const cleanMap: Record<string, number> = {};
+  const validNamesSet = new Set(validTagItems.map((t) => (t.name || '').trim().replace(/^#/, '')));
+  const expenseTagsSet = new Set(activeExpenseTags.map((t) => (t || '').trim().replace(/^#/, '')));
+
+  Object.entries(rawBudgets).forEach(([key, val]) => {
+    const amount = Number(val);
+    if (isNaN(amount) || amount <= 0) return;
+
+    let targetName: string | null = null;
+    const cleanKey = key.trim().replace(/^#/, '');
+
+    // 1. 若 key 為內部技術代碼 (例如 tag_legacy_8_保險 或 tag_mti9vv4u_tk57s)
+    if (cleanKey.startsWith('tag_')) {
+      const matchedItem = validTagItems.find((t) => t.id === cleanKey);
+      if (matchedItem) {
+        targetName = (matchedItem.name || '').trim().replace(/^#/, '');
+      } else {
+        const legacyMatch = cleanKey.match(/^tag_legacy_\d+_(.+)$/);
+        if (legacyMatch && legacyMatch[1]) {
+          const extracted = legacyMatch[1].trim();
+          if (validNamesSet.has(extracted) || expenseTagsSet.has(extracted)) {
+            targetName = extracted;
+          }
+        }
+      }
+    } else {
+      // 2. key 為一般標籤名稱
+      if (validNamesSet.has(cleanKey) || expenseTagsSet.has(cleanKey)) {
+        targetName = cleanKey;
+      }
+    }
+
+    if (targetName) {
+      cleanMap[targetName] = Math.max(cleanMap[targetName] || 0, amount);
+    }
+  });
+
+  return cleanMap;
+};
+
 interface AppContextType {
   user: UserProfile;
   isAuthenticated: boolean;
@@ -145,6 +199,14 @@ interface AppContextType {
   removeCustomTag: (tagOrKey: string) => void;
   updateCustomTag: (oldTagOrKey: string, newName: string) => void;
   reorderCustomTags: (newTagsOrItems: (string | TagItem)[]) => void;
+
+  // 📅 月度獨立預算與結算機制
+  settleMonthlyBudget: (
+    monthKey: string,
+    totalBudget: number,
+    tagBudgets: Record<string, number>,
+    targetHouseholdId?: string
+  ) => void;
 
   // 根據當前帳本自動切換的付款方式與標籤
   currentPaymentMethods: string[];
@@ -380,6 +442,9 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
           active.hasCompletedOnboarding = true;
           AuthService.saveActiveSession(active);
         }
+        if (active.tagBudgets) {
+          active.tagBudgets = sanitizeTagBudgets(active.tagBudgets, active.tagItems || DEFAULT_TAG_ITEMS);
+        }
         setUser(active);
         setIsAuthenticated(true);
       } else {
@@ -393,6 +458,10 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       if (storedHouseholds) {
         try {
           parsedHouseholds = JSON.parse(storedHouseholds);
+          parsedHouseholds = parsedHouseholds.map((h) => ({
+            ...h,
+            tagBudgets: h.tagBudgets ? sanitizeTagBudgets(h.tagBudgets, h.tagItems || DEFAULT_GROUP_TAG_ITEMS) : h.tagBudgets,
+          }));
           setHouseholds(parsedHouseholds);
         } catch {
           setHouseholds([]);
@@ -562,8 +631,12 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     // 2. 建立 Firestore onSnapshot 即時監聽器 (個人檔案：標籤庫、預算、設定精靈狀態)
     const unsubscribeUser = FirestoreService.subscribeToUserProfile(user.uid, (cloudUser) => {
       if (cloudUser) {
+        const sanitizedCloudUser = {
+          ...cloudUser,
+          tagBudgets: cloudUser.tagBudgets ? sanitizeTagBudgets(cloudUser.tagBudgets, cloudUser.tagItems || availableTagItems) : cloudUser.tagBudgets,
+        };
         setUser((prev) => {
-          const merged = { ...prev, ...cloudUser };
+          const merged = { ...prev, ...sanitizedCloudUser };
           AuthService.saveActiveSession(merged as AuthUser);
           return merged;
         });
@@ -927,11 +1000,20 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     const targetH = households.find((h) => h.id === householdId);
     if (!targetH) return;
     const currentItems = normalizeTagItems(targetH.tagItems || targetH.tags, DEFAULT_GROUP_TAG_ITEMS);
+    const targetItem = currentItems.find((t) => t.id === tagOrKey || t.name === tagOrKey);
+    const idToRemove = targetItem?.id || tagOrKey;
+    const nameToRemove = targetItem?.name || tagOrKey;
+
     const updatedItems = currentItems.filter((t) => t.id !== tagOrKey && t.name !== tagOrKey);
+    const updatedTagBudgets = { ...(targetH.tagBudgets || {}) };
+    delete updatedTagBudgets[idToRemove];
+    delete updatedTagBudgets[nameToRemove];
+
     updateHousehold(
       {
         tagItems: updatedItems,
         tags: updatedItems.map((t) => t.name),
+        tagBudgets: updatedTagBudgets,
       },
       householdId
     );
@@ -953,12 +1035,12 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     // 1. 更新群組 tagItems (Key 保持永久不變)
     const updatedItems = currentItems.map((t) => (t.id === tagKey ? { ...t, name: clean } : t));
 
-    // 2. 連動更新群組標籤預算
+    // 2. 連動更新群組標籤預算 (僅保留乾淨標籤名稱，清理技術 ID 與舊名稱)
     const updatedTagBudgets = { ...(targetH.tagBudgets || {}) };
     const oldBudget = updatedTagBudgets[tagKey] ?? updatedTagBudgets[oldName];
     if (oldBudget !== undefined) {
       updatedTagBudgets[clean] = oldBudget;
-      updatedTagBudgets[tagKey] = oldBudget;
+      delete updatedTagBudgets[tagKey];
       delete updatedTagBudgets[oldName];
     }
 
@@ -1093,13 +1175,28 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   };
 
   const removeCustomTag = (tagOrKey: string) => {
+    const targetItem = availableTagItems.find((t) => t.id === tagOrKey || t.name === tagOrKey);
+    const idToRemove = targetItem?.id || tagOrKey;
+    const nameToRemove = targetItem?.name || tagOrKey;
+
     const updated = availableTagItems.filter((t) => t.id !== tagOrKey && t.name !== tagOrKey);
     setAvailableTagItems(updated);
     localStorage.setItem(STORAGE_KEYS.TAG_ITEMS, JSON.stringify(updated));
     localStorage.setItem(STORAGE_KEYS.TAGS, JSON.stringify(updated.map((t) => t.name)));
+
+    // 清理個人標籤預算中的殘留 (避免技術 ID 與已刪除標籤滯留)
+    let nextTagBudgets = user.tagBudgets;
+    if (user.tagBudgets) {
+      const updatedBudgets = { ...user.tagBudgets };
+      delete updatedBudgets[idToRemove];
+      delete updatedBudgets[nameToRemove];
+      nextTagBudgets = updatedBudgets;
+      updateUserProfile({ tagBudgets: updatedBudgets });
+    }
+
     if (user.uid) {
-      FirestoreService.saveUserProfile({ ...user, tagItems: updated });
-      CloudApiClient.saveUserProfile({ ...user, tagItems: updated });
+      FirestoreService.saveUserProfile({ ...user, tagItems: updated, tagBudgets: nextTagBudgets });
+      CloudApiClient.saveUserProfile({ ...user, tagItems: updated, tagBudgets: nextTagBudgets });
     }
   };
 
@@ -1119,14 +1216,14 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     localStorage.setItem(STORAGE_KEYS.TAG_ITEMS, JSON.stringify(updatedTagItems));
     localStorage.setItem(STORAGE_KEYS.TAGS, JSON.stringify(updatedTagItems.map((t) => t.name)));
 
-    // 2. 連動更新個人標籤預算 (Key 和 Name 雙向更新，確保更名後預算不遺失)
+    // 2. 連動更新個人標籤預算 (僅保留乾淨標籤名稱，清理技術 ID 與舊名稱)
     let nextTagBudgets = user.tagBudgets;
     if (user.tagBudgets) {
       const updatedBudgets = { ...user.tagBudgets };
       const oldBudget = updatedBudgets[tagKey] ?? updatedBudgets[oldName];
       if (oldBudget !== undefined) {
         updatedBudgets[clean] = oldBudget;
-        updatedBudgets[tagKey] = oldBudget;
+        delete updatedBudgets[tagKey];
         delete updatedBudgets[oldName];
         nextTagBudgets = updatedBudgets;
         updateUserProfile({ tagBudgets: updatedBudgets });
@@ -1204,6 +1301,60 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     if (user.uid) {
       FirestoreService.saveUserProfile({ ...user, tagItems: updatedItems });
       CloudApiClient.saveUserProfile({ ...user, tagItems: updatedItems });
+    }
+  };
+
+  // 📅 月度獨立預算與結算機制 (確保各月標籤與預算獨立保存，下月更動不影響過去月份)
+  const settleMonthlyBudget = (
+    monthKey: string,
+    totalBudget: number,
+    tagBudgets: Record<string, number>,
+    targetHouseholdId?: string
+  ) => {
+    const isGroup = activeLedger === 'household' || Boolean(targetHouseholdId);
+    const targetHId = targetHouseholdId || activeHouseholdId;
+
+    if (isGroup && targetHId) {
+      const targetH = households.find((h) => h.id === targetHId);
+      if (!targetH) return;
+      const targetItems = targetH.tagItems || normalizeTagItems(targetH.tags, DEFAULT_GROUP_TAG_ITEMS);
+      const cleanBudgets = sanitizeTagBudgets(tagBudgets, targetItems);
+
+      const existingMonthly = targetH.monthlyBudgets || {};
+      const updatedMonthly = {
+        ...existingMonthly,
+        [monthKey]: {
+          totalBudget,
+          tagBudgets: cleanBudgets,
+          isSettled: true,
+          settledAt: Date.now(),
+          settledBy: user.displayName || user.email || '成員',
+        },
+      };
+
+      updateHousehold(
+        {
+          monthlyBudgets: updatedMonthly,
+        },
+        targetHId
+      );
+    } else {
+      const cleanBudgets = sanitizeTagBudgets(tagBudgets, availableTagItems);
+      const existingMonthly = user.monthlyBudgets || {};
+      const updatedMonthly = {
+        ...existingMonthly,
+        [monthKey]: {
+          totalBudget,
+          tagBudgets: cleanBudgets,
+          isSettled: true,
+          settledAt: Date.now(),
+          settledBy: user.displayName || '個人',
+        },
+      };
+
+      updateUserProfile({
+        monthlyBudgets: updatedMonthly,
+      });
     }
   };
 
@@ -1905,6 +2056,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         syncMofInvoices,
         settleTransfer,
         updateUserProfile,
+        settleMonthlyBudget,
         viewMode,
         setViewMode,
         weekOffset,
