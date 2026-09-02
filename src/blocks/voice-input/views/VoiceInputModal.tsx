@@ -248,8 +248,8 @@ export const VoiceInputModal: React.FC<VoiceInputModalProps> = ({
           <div className="absolute bottom-1/4 right-1/4 w-[300px] h-[300px] sm:w-[400px] sm:h-[400px] rounded-full bg-teal-600/10 blur-[100px] pointer-events-none" />
         </div>
 
-        {/* 1. 頂部簡潔標題列 (Fixed Header) */}
-        <header className="shrink-0 z-20 w-full px-5 py-4 flex items-center justify-between border-b border-slate-800/60 bg-slate-950/80 backdrop-blur-md">
+        {/* 1. 頂部簡潔標題列 (Fixed Header - 支援 Android & iOS 狀態列安全區) */}
+        <header className="shrink-0 z-20 w-full px-5 pt-[calc(1rem+env(safe-area-inset-top,0px))] pb-4 sm:pt-4 sm:pb-4 pl-[max(1.25rem,calc(0.75rem+env(safe-area-inset-left,0px)))] pr-[max(1.25rem,calc(0.75rem+env(safe-area-inset-right,0px)))] sm:px-5 flex items-center justify-between border-b border-slate-800/60 bg-slate-950/80 backdrop-blur-md">
           <div className="flex items-center gap-2.5">
             <div className="p-1.5 rounded-xl bg-emerald-500/20 border border-emerald-500/30 text-emerald-400 shadow-md shadow-emerald-950/40">
               <Sparkles className="w-4 h-4 animate-pulse" />
@@ -299,7 +299,13 @@ export const VoiceInputModal: React.FC<VoiceInputModalProps> = ({
         </header>
 
         {/* 2. 中間滾動內容區 (Scrollable Main Content Area) */}
-        <main className="relative z-10 flex-1 overflow-y-auto min-h-0 w-full px-4 py-4 flex flex-col items-center justify-between">
+        <main
+          className={`relative z-10 flex-1 overflow-y-auto min-h-0 w-full px-4 pt-4 flex flex-col items-center justify-between pl-[max(1rem,calc(0.5rem+env(safe-area-inset-left,0px)))] pr-[max(1rem,calc(0.5rem+env(safe-area-inset-right,0px)))] sm:px-4 ${
+            parsedResults.length === 0
+              ? 'pb-[calc(1.5rem+env(safe-area-inset-bottom,0px))] sm:pb-4'
+              : 'pb-4'
+          }`}
+        >
           {/* 未解析完成時的動態輸入舞台 (依模式顯示語音收音或手動打字) */}
           {parsedResults.length === 0 ? (
             <div className="flex-1 flex flex-col items-center justify-center text-center w-full my-auto">
@@ -652,9 +658,9 @@ export const VoiceInputModal: React.FC<VoiceInputModalProps> = ({
           )}
         </main>
 
-        {/* 3. 底部固定操作按鈕列 (Fixed Bottom Action Bar - 永遠保持在視窗內，含手機安全邊距) */}
+        {/* 3. 底部固定操作按鈕列 (Fixed Bottom Action Bar - 永遠保持在視窗內，含 Android & iOS 安全邊距) */}
         {parsedResults.length > 0 && (
-          <footer className="shrink-0 z-20 w-full px-4 py-2.5 bg-slate-950/95 backdrop-blur-md border-t border-slate-800/70 flex items-center justify-center">
+          <footer className="shrink-0 z-20 w-full px-4 pt-3 pb-[calc(1rem+env(safe-area-inset-bottom,0px))] sm:py-3 pl-[max(1rem,calc(0.5rem+env(safe-area-inset-left,0px)))] pr-[max(1rem,calc(0.5rem+env(safe-area-inset-right,0px)))] sm:px-4 bg-slate-950/95 backdrop-blur-md border-t border-slate-800/70 flex items-center justify-center">
             <div className="w-full flex items-center gap-2.5">
               <button
                 type="button"
