@@ -193,14 +193,14 @@ export const BarcodeModal: React.FC<BarcodeModalProps> = ({ isOpen, onClose, onO
               </div>
               <div>
                 <p className="font-bold text-slate-200 group-hover:text-emerald-300 transition flex items-center gap-1.5">
-                  <span>掃描發票範例體驗</span>
-                  <Sparkles className="w-3 h-3 text-amber-400" />
+                  <span>掃描紙本發票 QR Code</span>
+                  <Sparkles className="w-3 h-3 text-emerald-400" />
                 </p>
-                <p className="text-[11px] text-slate-400">免相機權限 · 立即體驗發票明細與 AI 分類</p>
+                <p className="text-[11px] text-slate-400">相機對準發票 · AI 自動逐項分類與對獎</p>
               </div>
             </div>
             <span className="text-xs font-bold text-emerald-400 bg-emerald-950/70 border border-emerald-800/70 px-3 py-1.5 rounded-xl group-hover:bg-emerald-600 group-hover:text-white transition shrink-0 ml-2">
-              查看範例
+              開啟掃描
             </span>
           </button>
         )}

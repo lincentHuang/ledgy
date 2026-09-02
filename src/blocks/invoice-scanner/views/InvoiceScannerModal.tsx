@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect, useRef, useMemo } from 'react';
 import { useAppStore } from '@/lib/store';
 import {
   X,
@@ -9,16 +9,18 @@ import {
   Trophy,
   RotateCcw,
   ShoppingBag,
-  Store,
   Receipt,
   ChevronRight,
   Zap,
+  Camera,
+  AlertCircle,
+  ScanLine,
 } from 'lucide-react';
+import { Html5Qrcode } from 'html5-qrcode';
 import confetti from 'canvas-confetti';
 import {
   generateMockInvoiceQrCode,
   parseTaiwanInvoiceQrCode,
-  autoCategorizeInvoice,
   checkLotteryWinning,
   TaiwanInvoice,
 } from '@app/shared';
@@ -31,17 +33,98 @@ interface InvoiceScannerModalProps {
 export const InvoiceScannerModal: React.FC<InvoiceScannerModalProps> = ({ isOpen, onClose }) => {
   const { addInvoice } = useAppStore();
   const [scannedResult, setScannedResult] = useState<TaiwanInvoice | null>(null);
+  const [isScanning, setIsScanning] = useState(false);
+  const [cameraError, setCameraError] = useState<string | null>(null);
+  const [scanHint, setScanHint] = useState<string | null>(null);
 
-  // 當彈窗開啟或關閉時重置狀態與處理 ESC 關閉
-  useEffect(() => {
-    if (isOpen) {
-      setScannedResult(null);
+  const html5QrCodeRef = useRef<Html5Qrcode | null>(null);
+
+  // 關閉相機掃描器
+  const stopScanner = async () => {
+    if (html5QrCodeRef.current) {
+      try {
+        if (html5QrCodeRef.current.isScanning) {
+          await html5QrCodeRef.current.stop();
+        }
+        html5QrCodeRef.current.clear();
+      } catch (e) {
+        console.warn('Error stopping scanner:', e);
+      } finally {
+        html5QrCodeRef.current = null;
+        setIsScanning(false);
+      }
     }
-  }, [isOpen]);
+  };
 
+  // 啟動相機掃描器
+  const startScanner = async () => {
+    const container = document.getElementById('qr-reader');
+    if (!container) return;
+
+    // 若原本已有執行中的實例，先停止
+    if (html5QrCodeRef.current?.isScanning) {
+      try {
+        await html5QrCodeRef.current.stop();
+      } catch {}
+    }
+
+    try {
+      setCameraError(null);
+      setIsScanning(true);
+      const scanner = new Html5Qrcode('qr-reader');
+      html5QrCodeRef.current = scanner;
+
+      await scanner.start(
+        { facingMode: 'environment' },
+        {
+          fps: 12,
+          qrbox: { width: 230, height: 230 },
+          aspectRatio: 1.0,
+        },
+        (decodedText) => {
+          handleQrDecoded(decodedText);
+        },
+        () => {
+          // 忽略單幀未偵測到條碼的微小錯誤
+        }
+      );
+    } catch (err: any) {
+      console.warn('Camera failed to start:', err);
+      setCameraError('未偵測到可用相機或相機權限未開放。您也可以直接點擊下方範例進行體驗。');
+      setIsScanning(false);
+    }
+  };
+
+  // 監聽彈窗開關與結果狀態，自動啟動/停止相機
+  useEffect(() => {
+    let isMounted = true;
+    if (isOpen && !scannedResult) {
+      const timer = setTimeout(() => {
+        if (isMounted) {
+          startScanner();
+        }
+      }, 150);
+      return () => {
+        isMounted = false;
+        clearTimeout(timer);
+        stopScanner();
+      };
+    } else {
+      stopScanner();
+    }
+    return () => {
+      isMounted = false;
+      stopScanner();
+    };
+  }, [isOpen, scannedResult]);
+
+  // ESC 鍵監聽
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') onClose();
+      if (e.key === 'Escape') {
+        stopScanner();
+        onClose();
+      }
     };
     if (isOpen) {
       window.addEventListener('keydown', handleKeyDown);
@@ -53,35 +136,44 @@ export const InvoiceScannerModal: React.FC<InvoiceScannerModalProps> = ({ isOpen
     };
   }, [isOpen, onClose]);
 
-  const handleSelectSample = (type: 'pxmart' | 'seven' | 'lottery') => {
-    let mockData;
-    if (type === 'pxmart') {
-      mockData = generateMockInvoiceQrCode('PX88991234', '1130816', 540, '16740494', [
-        { name: '冷藏美國牛五花肉片', qty: 1, price: 180 },
-        { name: '舒潔抽取式衛生紙(8包)', qty: 1, price: 270 },
-        { name: '原萃無糖日式綠茶', qty: 2, price: 45 },
-      ]);
-    } else if (type === 'seven') {
-      mockData = generateMockInvoiceQrCode('UN55667788', '1130816', 225, '22555003', [
-        { name: '7-11 御飯糰 (鮪魚)', qty: 1, price: 35 },
-        { name: '特選拿鐵大杯', qty: 1, price: 55 },
-        { name: '森田藥粧玻尿酸面膜', qty: 1, price: 135 },
-      ]);
+  // QR Code 解碼與台灣電子發票解析
+  const handleQrDecoded = (decodedText: string) => {
+    const invoice = parseTaiwanInvoiceQrCode(decodedText);
+    if (invoice) {
+      stopScanner();
+      const prize = checkLotteryWinning(invoice.invoiceNumber, invoice.date);
+      invoice.lotteryResult = prize;
+      setScannedResult(invoice);
+
+      if (prize.isWon) {
+        confetti({
+          particleCount: 150,
+          spread: 80,
+          origin: { y: 0.5 },
+        });
+      }
     } else {
-      mockData = generateMockInvoiceQrCode('AB32117043', '1130816', 320, '23060248', [
-        { name: '全家大杯經典美式', qty: 2, price: 45 },
-        { name: '極鬆餅 (經典蜂蜜)', qty: 2, price: 35 },
-        { name: '鹼性離子水 800ml', qty: 2, price: 25 },
-        { name: '黑人抗敏牙膏', qty: 1, price: 110 },
-      ]);
+      setScanHint('已偵測到 QR Code，請對準電子發票「左側」主要條碼（包含金額與品項）');
+      setTimeout(() => {
+        setScanHint(null);
+      }, 3500);
     }
+  };
+
+  // 單一範例發票載入（全聯超市採買）
+  const handleLoadSample = () => {
+    stopScanner();
+    const mockData = generateMockInvoiceQrCode('PX88991234', '1130816', 540, '16740494', [
+      { name: '冷藏美國牛五花肉片', qty: 1, price: 180 },
+      { name: '舒潔抽取式衛生紙(8包)', qty: 1, price: 270 },
+      { name: '原萃無糖日式綠茶', qty: 2, price: 45 },
+    ]);
 
     const invoice = parseTaiwanInvoiceQrCode(mockData.qr1, mockData.qr2);
     if (invoice) {
-      const enriched = autoCategorizeInvoice(invoice);
-      const prize = checkLotteryWinning(enriched.invoiceNumber, enriched.date);
-      enriched.lotteryResult = prize;
-      setScannedResult(enriched);
+      const prize = checkLotteryWinning(invoice.invoiceNumber, invoice.date);
+      invoice.lotteryResult = prize;
+      setScannedResult(invoice);
 
       if (prize.isWon) {
         confetti({
@@ -96,11 +188,17 @@ export const InvoiceScannerModal: React.FC<InvoiceScannerModalProps> = ({ isOpen
   const handleConfirmAdd = () => {
     if (scannedResult) {
       addInvoice(scannedResult);
+      stopScanner();
       onClose();
     }
   };
 
-  // 計算各分類小計金額
+  const handleModalClose = () => {
+    stopScanner();
+    onClose();
+  };
+
+  // 計算分類小計金額
   const categorySummary = useMemo(() => {
     if (!scannedResult || !scannedResult.items) return [];
     const map: Record<string, { name: string; amount: number; count: number }> = {};
@@ -119,10 +217,10 @@ export const InvoiceScannerModal: React.FC<InvoiceScannerModalProps> = ({ isOpen
   return (
     <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center p-0 sm:p-4 bg-black/80 backdrop-blur-md animate-in fade-in duration-200">
       {/* 點擊遮罩關閉 */}
-      <div className="fixed inset-0" onClick={onClose} />
+      <div className="fixed inset-0" onClick={handleModalClose} />
 
       {/* 彈窗主體 (手機端為 Bottom-Sheet，電腦端為置中卡片) */}
-      <div className="relative w-full sm:max-w-lg max-h-[92dvh] rounded-t-[32px] sm:rounded-3xl bg-slate-900 text-slate-100 shadow-2xl border-t sm:border border-slate-800 p-5 sm:p-6 overflow-hidden flex flex-col z-10 animate-in slide-in-from-bottom-6 sm:slide-in-from-bottom-0 sm:zoom-in-95 duration-200 pb-8 sm:pb-6">
+      <div className="relative w-full sm:max-w-md max-h-[92dvh] rounded-t-[32px] sm:rounded-3xl bg-slate-900 text-slate-100 shadow-2xl border-t sm:border border-slate-800 p-5 sm:p-6 overflow-hidden flex flex-col z-10 animate-in slide-in-from-bottom-6 sm:slide-in-from-bottom-0 sm:zoom-in-95 duration-200 pb-8 sm:pb-6">
         {/* 背景光暈效果 */}
         <div className="absolute top-0 right-0 w-64 h-32 bg-emerald-500/10 rounded-full blur-3xl pointer-events-none" />
 
@@ -133,17 +231,17 @@ export const InvoiceScannerModal: React.FC<InvoiceScannerModalProps> = ({ isOpen
         <div className="flex items-center justify-between pb-3 border-b border-slate-800 shrink-0">
           <div className="flex items-center gap-2.5">
             <div className="w-9 h-9 rounded-xl bg-emerald-950/80 border border-emerald-800 text-emerald-400 flex items-center justify-center font-bold shrink-0">
-              <Receipt className="w-4 h-4" />
+              <ScanLine className="w-4 h-4" />
             </div>
             <div>
-              <h2 className="text-base font-extrabold text-white">台灣電子發票明細與智慧分類</h2>
+              <h2 className="text-base font-extrabold text-white">台灣電子發票掃描</h2>
               <p className="text-[11px] text-slate-400">
-                點選發票範例 · 體驗 AI 逐項辨識分類與自動對獎
+                對準發票左側 QR Code · AI 自動逐項分類與對獎
               </p>
             </div>
           </div>
           <button
-            onClick={onClose}
+            onClick={handleModalClose}
             className="p-1.5 rounded-full hover:bg-slate-800 text-slate-400 hover:text-slate-200 transition"
             aria-label="關閉"
           >
@@ -151,124 +249,92 @@ export const InvoiceScannerModal: React.FC<InvoiceScannerModalProps> = ({ isOpen
           </button>
         </div>
 
-        {/* 1. 範例選擇列表 (保留發票範例，去除相機/OCR掃描畫面) */}
+        {/* 1. 相機掃描視窗 + 快速測試範例（未掃描時顯示） */}
         {!scannedResult && (
           <div className="my-3 space-y-3 overflow-y-auto pr-0.5 flex-1">
-            <div className="p-3 rounded-2xl bg-emerald-950/40 border border-emerald-800/60 text-xs text-emerald-300 flex items-start gap-2.5">
-              <Zap className="w-4 h-4 text-emerald-400 shrink-0 mt-0.5" />
-              <span className="leading-relaxed">
-                點擊下方真實電子發票範例，系統將立即讀取並展示 AI 多品項智慧分類、明細歸檔與統一發票開獎對獎流程。
-              </span>
+            {/* 📷 相機掃描視窗 (手機版優先尺寸) */}
+            <div className="relative w-full rounded-2xl overflow-hidden bg-slate-950 border border-slate-800 flex items-center justify-center min-h-[250px] max-h-[300px] shadow-inner [&_video]:w-full [&_video]:h-full [&_video]:object-cover [&_video]:rounded-2xl [&>div]:!border-none [&>div]:!shadow-none [&_img]:hidden">
+              <div id="qr-reader" className="w-full h-full" />
+
+              {/* 掃描對焦框裝飾 (當相機運作中顯示) */}
+              {isScanning && !cameraError && (
+                <div className="absolute inset-0 pointer-events-none flex flex-col items-center justify-center">
+                  <div className="relative w-48 h-48 sm:w-52 sm:h-52">
+                    {/* 四個綠色轉角引導線 */}
+                    <div className="absolute top-0 left-0 w-6 h-6 border-t-2 border-l-2 border-emerald-400 rounded-tl-lg" />
+                    <div className="absolute top-0 right-0 w-6 h-6 border-t-2 border-r-2 border-emerald-400 rounded-tr-lg" />
+                    <div className="absolute bottom-0 left-0 w-6 h-6 border-b-2 border-l-2 border-emerald-400 rounded-bl-lg" />
+                    <div className="absolute bottom-0 right-0 w-6 h-6 border-b-2 border-r-2 border-emerald-400 rounded-br-lg" />
+                    {/* 掃描動態雷射線 */}
+                    <div className="absolute left-2 right-2 h-0.5 bg-gradient-to-r from-transparent via-emerald-400 to-transparent shadow-[0_0_8px_#34d399] animate-pulse top-1/2" />
+                  </div>
+                  <p className="mt-3 text-[11px] font-medium text-slate-300 bg-slate-900/80 px-3 py-1 rounded-full border border-slate-700/60 backdrop-blur-sm shadow-md">
+                    請將發票左側 QR Code 置於方框內
+                  </p>
+                </div>
+              )}
+
+              {/* 相機未開啟/錯誤狀態提示 */}
+              {cameraError && (
+                <div className="absolute inset-0 p-5 flex flex-col items-center justify-center text-center bg-slate-950/95 text-slate-400 space-y-2">
+                  <Camera className="w-10 h-10 text-slate-600 mb-1" />
+                  <p className="text-xs text-slate-300 font-medium max-w-xs leading-relaxed">{cameraError}</p>
+                  <button
+                    onClick={startScanner}
+                    className="mt-1 px-3 py-1.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs font-bold border border-slate-700 transition"
+                  >
+                    重新啟動相機
+                  </button>
+                </div>
+              )}
             </div>
 
-            <div className="space-y-2.5 pt-1">
-              {/* 範例 1：全聯超市採買 */}
+            {/* 提示訊息 */}
+            {scanHint && (
+              <div className="p-2.5 rounded-xl bg-amber-950/70 border border-amber-800 text-amber-300 text-xs flex items-center gap-2 animate-in fade-in">
+                <AlertCircle className="w-4 h-4 shrink-0" />
+                <span className="leading-snug">{scanHint}</span>
+              </div>
+            )}
+
+            {/* ⚡ 快速測試範例（只保留一個範例） */}
+            <div className="pt-2 border-t border-slate-800 space-y-1.5">
+              <p className="text-[11px] font-bold text-slate-400 flex items-center gap-1">
+                <Zap className="w-3.5 h-3.5 text-amber-400" />
+                沒有紙本發票？點擊一鍵載入範例：
+              </p>
               <button
-                onClick={() => handleSelectSample('pxmart')}
-                className="w-full p-4 rounded-2xl bg-slate-800/70 hover:bg-slate-800 border border-slate-700/80 hover:border-emerald-500/50 flex items-center justify-between text-left transition active:scale-[0.98] group shadow-sm"
+                onClick={handleLoadSample}
+                className="w-full p-3 rounded-2xl bg-slate-800/70 hover:bg-slate-800 border border-slate-700/80 hover:border-emerald-500/50 flex items-center justify-between text-left transition active:scale-[0.98] group shadow-sm"
               >
-                <div className="flex items-start gap-3 min-w-0">
-                  <div className="w-10 h-10 rounded-xl bg-emerald-950/90 border border-emerald-800/80 text-emerald-400 flex items-center justify-center shrink-0 mt-0.5 group-hover:scale-105 transition-transform">
-                    <ShoppingBag className="w-5 h-5" />
+                <div className="flex items-center gap-3 min-w-0">
+                  <div className="w-9 h-9 rounded-xl bg-emerald-950/90 border border-emerald-800/80 text-emerald-400 flex items-center justify-center shrink-0 group-hover:scale-105 transition-transform">
+                    <ShoppingBag className="w-4 h-4" />
                   </div>
                   <div className="min-w-0">
-                    <div className="flex items-center gap-2">
-                      <h3 className="font-bold text-sm text-slate-100 group-hover:text-emerald-300 transition">
-                        全聯超市採買
-                      </h3>
-                      <span className="text-[10px] px-1.5 py-0.5 rounded-md bg-slate-700 text-slate-300 font-mono">
+                    <div className="flex items-center gap-1.5">
+                      <span className="font-bold text-xs text-slate-100 group-hover:text-emerald-300 transition">
+                        全聯超市採買發票
+                      </span>
+                      <span className="text-[10px] px-1.5 py-0.2 rounded bg-slate-700 text-slate-300 font-mono">
                         PX88991234
                       </span>
                     </div>
-                    <p className="text-xs text-slate-400 mt-1 truncate">
-                      冷藏美國牛五花肉片、舒潔衛生紙、原萃綠茶
+                    <p className="text-[11px] text-slate-400 mt-0.5 truncate">
+                      牛五花肉片、舒潔衛生紙、原萃綠茶 · 3項品項 AI 分類
                     </p>
-                    <div className="flex items-center gap-2 mt-1.5">
-                      <span className="text-[10px] px-2 py-0.5 rounded-full bg-emerald-950/70 border border-emerald-800/70 text-emerald-300 font-medium">
-                        3 項品項 · 生鮮雜貨 AI 分類
-                      </span>
-                    </div>
                   </div>
                 </div>
-                <div className="text-right shrink-0 pl-2 flex items-center gap-1.5">
-                  <span className="font-mono text-sm font-extrabold text-white">NT$ 540</span>
+                <div className="text-right shrink-0 pl-2 flex items-center gap-1">
+                  <span className="font-mono text-xs font-bold text-emerald-400">NT$ 540</span>
                   <ChevronRight className="w-4 h-4 text-slate-500 group-hover:text-emerald-400 transition" />
-                </div>
-              </button>
-
-              {/* 範例 2：7-11 複合採買 */}
-              <button
-                onClick={() => handleSelectSample('seven')}
-                className="w-full p-4 rounded-2xl bg-slate-800/70 hover:bg-slate-800 border border-slate-700/80 hover:border-teal-500/50 flex items-center justify-between text-left transition active:scale-[0.98] group shadow-sm"
-              >
-                <div className="flex items-start gap-3 min-w-0">
-                  <div className="w-10 h-10 rounded-xl bg-teal-950/90 border border-teal-800/80 text-teal-400 flex items-center justify-center shrink-0 mt-0.5 group-hover:scale-105 transition-transform">
-                    <Store className="w-5 h-5" />
-                  </div>
-                  <div className="min-w-0">
-                    <div className="flex items-center gap-2">
-                      <h3 className="font-bold text-sm text-slate-100 group-hover:text-teal-300 transition">
-                        7-ELEVEN 複合採買
-                      </h3>
-                      <span className="text-[10px] px-1.5 py-0.5 rounded-md bg-slate-700 text-slate-300 font-mono">
-                        UN55667788
-                      </span>
-                    </div>
-                    <p className="text-xs text-slate-400 mt-1 truncate">
-                      7-11 御飯糰 (鮪魚)、特選拿鐵大杯、森田藥粧面膜
-                    </p>
-                    <div className="flex items-center gap-2 mt-1.5">
-                      <span className="text-[10px] px-2 py-0.5 rounded-full bg-teal-950/70 border border-teal-800/70 text-teal-300 font-medium">
-                        3 項品項 · 餐飲與美妝混合辨識
-                      </span>
-                    </div>
-                  </div>
-                </div>
-                <div className="text-right shrink-0 pl-2 flex items-center gap-1.5">
-                  <span className="font-mono text-sm font-extrabold text-white">NT$ 225</span>
-                  <ChevronRight className="w-4 h-4 text-slate-500 group-hover:text-teal-400 transition" />
-                </div>
-              </button>
-
-              {/* 範例 3：中獎發票測試 (幸運頭獎 20 萬) */}
-              <button
-                onClick={() => handleSelectSample('lottery')}
-                className="w-full p-4 rounded-2xl bg-gradient-to-r from-amber-950/40 via-slate-800/80 to-slate-800/70 hover:from-amber-950/60 border border-amber-500/50 hover:border-amber-400 flex items-center justify-between text-left transition active:scale-[0.98] group shadow-md"
-              >
-                <div className="flex items-start gap-3 min-w-0">
-                  <div className="w-10 h-10 rounded-xl bg-amber-500/20 border border-amber-500/40 text-amber-300 flex items-center justify-center shrink-0 mt-0.5 group-hover:scale-105 transition-transform">
-                    <Trophy className="w-5 h-5 text-amber-400" />
-                  </div>
-                  <div className="min-w-0">
-                    <div className="flex items-center gap-2">
-                      <h3 className="font-bold text-sm text-amber-300 group-hover:text-amber-200 transition flex items-center gap-1">
-                        <span>全家超商中獎發票</span>
-                        <Sparkles className="w-3.5 h-3.5 text-amber-400 animate-pulse" />
-                      </h3>
-                      <span className="text-[10px] px-1.5 py-0.5 rounded-md bg-amber-950/80 text-amber-300 border border-amber-700/60 font-mono">
-                        AB32117043
-                      </span>
-                    </div>
-                    <p className="text-xs text-slate-300 mt-1 truncate">
-                      大杯美式、經典蜂蜜鬆餅、離子水、抗敏牙膏
-                    </p>
-                    <div className="flex items-center gap-2 mt-1.5">
-                      <span className="text-[10px] px-2 py-0.5 rounded-full bg-gradient-to-r from-amber-500/20 to-orange-500/20 border border-amber-500/40 text-amber-300 font-bold">
-                        🎉 對中統一發票頭獎 NT$ 200,000！
-                      </span>
-                    </div>
-                  </div>
-                </div>
-                <div className="text-right shrink-0 pl-2 flex items-center gap-1.5">
-                  <span className="font-mono text-sm font-extrabold text-amber-400">NT$ 320</span>
-                  <ChevronRight className="w-4 h-4 text-amber-400/70 group-hover:text-amber-300 transition" />
                 </div>
               </button>
             </div>
           </div>
         )}
 
-        {/* 2. 範例載入後的詳細明細與 AI 分類結果卡片 */}
+        {/* 2. 掃描或範例載入後的詳細明細與 AI 分類結果卡片 */}
         {scannedResult && (
           <div className="my-2 space-y-3.5 overflow-y-auto pr-0.5 flex-1 animate-in zoom-in-95 duration-200">
             {/* 中獎提示 */}
@@ -320,7 +386,7 @@ export const InvoiceScannerModal: React.FC<InvoiceScannerModalProps> = ({ isOpen
                   <div className="flex items-center justify-between">
                     <p className="text-[11px] font-bold text-emerald-400 flex items-center gap-1">
                       <Sparkles className="w-3.5 h-3.5" />
-                      真實購物清單 ({scannedResult.items.length} 項品項已完成 AI 分類)
+                      發票購物清單 ({scannedResult.items.length} 項品項 AI 自動分類)
                     </p>
                   </div>
 
@@ -380,7 +446,7 @@ export const InvoiceScannerModal: React.FC<InvoiceScannerModalProps> = ({ isOpen
                 className="flex-1 py-3 rounded-2xl bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs font-bold transition flex items-center justify-center gap-1 active:scale-95"
               >
                 <RotateCcw className="w-3.5 h-3.5" />
-                重新選擇範例
+                重新掃描
               </button>
               <button
                 onClick={handleConfirmAdd}
