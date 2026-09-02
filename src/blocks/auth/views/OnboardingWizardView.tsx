@@ -207,33 +207,33 @@ export const OnboardingWizardView: React.FC<OnboardingWizardViewProps> = ({
   ];
 
   return (
-    <div className="min-h-screen bg-slate-950 text-slate-100 flex flex-col justify-between relative overflow-x-hidden selection:bg-emerald-500 selection:text-white">
+    <div className="h-[100dvh] max-h-[100dvh] bg-slate-950 text-slate-100 flex flex-col justify-between relative overflow-y-auto overflow-x-hidden selection:bg-emerald-500 selection:text-white overscroll-contain">
       {/* 背景柔和氛圍光暈 */}
       <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[600px] h-[300px] bg-emerald-600/15 rounded-full blur-3xl pointer-events-none" />
       <div className="absolute bottom-0 right-0 w-[400px] h-[300px] bg-teal-600/10 rounded-full blur-3xl pointer-events-none" />
 
       {/* 頂部 Header */}
-      <header className="w-full max-w-3xl mx-auto px-4 sm:px-6 pt-6 pb-2 z-10 flex items-center justify-between">
-        <div className="flex items-center gap-3">
+      <header className="w-full max-w-3xl mx-auto px-4 sm:px-6 pt-3.5 sm:pt-6 pb-2 z-10 flex items-center justify-between shrink-0 pt-safe">
+        <div className="flex items-center gap-2 sm:gap-3">
           {onBackToLogin && (
             <button
               type="button"
               onClick={onBackToLogin}
-              className="p-2 rounded-2xl bg-slate-900 border border-slate-800 text-slate-400 hover:text-white transition"
+              className="p-1.5 sm:p-2 rounded-2xl bg-slate-900 border border-slate-800 text-slate-400 hover:text-white transition"
               title="返回登入"
             >
               <ArrowLeft className="w-4 h-4" />
             </button>
           )}
-          <div className="flex items-center gap-2.5">
+          <div className="flex items-center gap-2 sm:gap-2.5">
             <img
               src="/logo.png"
               alt="智帳君 Ledgy"
-              className="w-9 h-9 rounded-xl object-cover shadow-md shadow-emerald-500/20 border border-emerald-500/30"
+              className="w-8 h-8 sm:w-9 sm:h-9 rounded-xl object-cover shadow-md shadow-emerald-500/20 border border-emerald-500/30"
             />
             <div>
-              <h1 className="text-sm font-black text-white leading-tight">智帳君 Ledgy</h1>
-              <p className="text-[10px] text-emerald-400 font-bold">新手專屬設定精靈</p>
+              <h1 className="text-xs sm:text-sm font-black text-white leading-tight">智帳君 Ledgy</h1>
+              <p className="text-[9px] sm:text-[10px] text-emerald-400 font-bold">新手專屬設定精靈</p>
             </div>
           </div>
         </div>
@@ -242,19 +242,19 @@ export const OnboardingWizardView: React.FC<OnboardingWizardViewProps> = ({
           <button
             type="button"
             onClick={onBackToLogin}
-            className="text-xs font-bold text-slate-400 hover:text-emerald-400 transition"
+            className="text-[11px] sm:text-xs font-bold text-slate-400 hover:text-emerald-400 transition"
           >
-            已有帳號？直接登入
+            已有帳號？登入
           </button>
         )}
       </header>
 
       {/* 主要精靈主卡片區 */}
-      <main className="w-full max-w-2xl mx-auto px-4 sm:px-6 py-4 flex-1 flex flex-col justify-center z-10">
-        <div className="rounded-3xl bg-slate-900/90 border border-slate-800 p-6 sm:p-8 shadow-2xl backdrop-blur-xl">
+      <main className="w-full max-w-2xl mx-auto px-3 sm:px-6 py-2 sm:py-6 flex-1 flex flex-col justify-start sm:justify-center z-10">
+        <div className="rounded-2xl sm:rounded-3xl bg-slate-900/90 border border-slate-800 p-4 sm:p-8 shadow-2xl backdrop-blur-xl flex flex-col">
           {/* 4 步驟進度列導航 */}
-          <div className="mb-6 space-y-3">
-            <div className="grid grid-cols-4 gap-2">
+          <div className="mb-4 sm:mb-6 space-y-2 sm:space-y-3">
+            <div className="grid grid-cols-4 gap-1.5 sm:gap-2">
               {stepsInfo.map((s) => {
                 const isActive = s.num === step;
                 const isPassed = s.num < step;
@@ -277,17 +277,17 @@ export const OnboardingWizardView: React.FC<OnboardingWizardViewProps> = ({
               })}
             </div>
 
-            <div className="sm:hidden flex items-center justify-between text-xs pt-1">
+            <div className="sm:hidden flex items-center justify-between text-[11px] pt-0.5">
               <span className="text-emerald-400 font-bold">
                 步驟 {step} / 4：{stepsInfo[step - 1].title}
               </span>
-              <span className="text-slate-500 text-[11px]">{stepsInfo[step - 1].desc}</span>
+              <span className="text-slate-500 text-[10px]">{stepsInfo[step - 1].desc}</span>
             </div>
           </div>
 
           {/* 錯誤提示 */}
           {errorMessage && (
-            <div className="mb-5 p-3.5 rounded-2xl bg-rose-950/60 border border-rose-800/80 text-rose-300 text-xs flex items-center gap-2 animate-in fade-in">
+            <div className="mb-4 p-3 rounded-xl sm:rounded-2xl bg-rose-950/60 border border-rose-800/80 text-rose-300 text-xs flex items-center gap-2 animate-in fade-in">
               <AlertCircle className="w-4 h-4 flex-shrink-0" />
               <span>{errorMessage}</span>
             </div>
@@ -295,10 +295,10 @@ export const OnboardingWizardView: React.FC<OnboardingWizardViewProps> = ({
 
           {/* ────────── STEP 1: 基本資料、載具與常用付款方式 ────────── */}
           {step === 1 && (
-            <div className="space-y-5 animate-in fade-in duration-200 text-left">
+            <div className="space-y-3.5 sm:space-y-5 animate-in fade-in duration-200 text-left">
               <div>
-                <h2 className="text-xl font-black text-white flex items-center gap-2">
-                  <User className="w-5 h-5 text-emerald-400" />
+                <h2 className="text-lg sm:text-xl font-black text-white flex items-center gap-2">
+                  <User className="w-4 h-4 sm:w-5 sm:h-5 text-emerald-400" />
                   設定您的基本資料與常用載具
                 </h2>
                 <p className="text-xs text-slate-400 mt-1 leading-relaxed">
@@ -306,9 +306,9 @@ export const OnboardingWizardView: React.FC<OnboardingWizardViewProps> = ({
                 </p>
               </div>
 
-              <div className="space-y-3.5">
+              <div className="space-y-3 sm:space-y-3.5">
                 <div>
-                  <label className="block text-xs font-bold text-slate-300 mb-1.5">
+                  <label className="block text-xs font-bold text-slate-300 mb-1">
                     個人暱稱 / 稱呼 <span className="text-rose-400">*</span>
                   </label>
                   <div className="relative">
@@ -318,7 +318,7 @@ export const OnboardingWizardView: React.FC<OnboardingWizardViewProps> = ({
                       value={displayName}
                       onChange={(e) => setDisplayName(e.target.value)}
                       placeholder="例如：王小明、Chen"
-                      className="w-full pl-10 pr-4 py-2.5 rounded-2xl border border-slate-700 bg-slate-950 text-white font-bold text-sm outline-none focus:ring-2 focus:ring-emerald-500"
+                      className="w-full pl-10 pr-4 py-2 sm:py-2.5 rounded-xl sm:rounded-2xl border border-slate-700 bg-slate-950 text-white font-bold text-sm outline-none focus:ring-2 focus:ring-emerald-500"
                     />
                   </div>
                 </div>
@@ -326,7 +326,7 @@ export const OnboardingWizardView: React.FC<OnboardingWizardViewProps> = ({
                 {!isRegisteredUser && (
                   <>
                     <div>
-                      <label className="block text-xs font-bold text-slate-300 mb-1.5">
+                      <label className="block text-xs font-bold text-slate-300 mb-1">
                         電子郵件 (Email 登入帳號) <span className="text-rose-400">*</span>
                       </label>
                       <div className="relative">
@@ -336,13 +336,13 @@ export const OnboardingWizardView: React.FC<OnboardingWizardViewProps> = ({
                           value={email}
                           onChange={(e) => setEmail(e.target.value)}
                           placeholder="name@example.com"
-                          className="w-full pl-10 pr-4 py-2.5 rounded-2xl border border-slate-700 bg-slate-950 text-white text-sm outline-none focus:ring-2 focus:ring-emerald-500"
+                          className="w-full pl-10 pr-4 py-2 sm:py-2.5 rounded-xl sm:rounded-2xl border border-slate-700 bg-slate-950 text-white text-sm outline-none focus:ring-2 focus:ring-emerald-500"
                         />
                       </div>
                     </div>
 
                     <div>
-                      <label className="block text-xs font-bold text-slate-300 mb-1.5">
+                      <label className="block text-xs font-bold text-slate-300 mb-1">
                         設定登入密碼 (至少 6 碼) <span className="text-rose-400">*</span>
                       </label>
                       <div className="relative">
@@ -352,7 +352,7 @@ export const OnboardingWizardView: React.FC<OnboardingWizardViewProps> = ({
                           value={password}
                           onChange={(e) => setPassword(e.target.value)}
                           placeholder="請設定密碼"
-                          className="w-full pl-10 pr-10 py-2.5 rounded-2xl border border-slate-700 bg-slate-950 text-white text-sm outline-none focus:ring-2 focus:ring-emerald-500 font-mono"
+                          className="w-full pl-10 pr-10 py-2 sm:py-2.5 rounded-xl sm:rounded-2xl border border-slate-700 bg-slate-950 text-white text-sm outline-none focus:ring-2 focus:ring-emerald-500 font-mono"
                         />
                         <button
                           type="button"
@@ -367,7 +367,7 @@ export const OnboardingWizardView: React.FC<OnboardingWizardViewProps> = ({
                 )}
 
                 <div>
-                  <label className="block text-xs font-bold text-slate-300 mb-1.5 flex items-center justify-between">
+                  <label className="block text-xs font-bold text-slate-300 mb-1 flex items-center justify-between">
                     <span className="flex items-center gap-1.5">
                       <Barcode className="w-4 h-4 text-emerald-400" />
                       手機條碼載具
@@ -379,20 +379,20 @@ export const OnboardingWizardView: React.FC<OnboardingWizardViewProps> = ({
                     value={carrierCode}
                     onChange={(e) => setCarrierCode(e.target.value.toUpperCase())}
                     placeholder="/AB1234+"
-                    className="w-full px-4 py-2.5 rounded-2xl border border-slate-700 bg-slate-950 text-emerald-400 font-mono font-bold text-base uppercase outline-none focus:ring-2 focus:ring-emerald-500 tracking-wider"
+                    className="w-full px-4 py-2 sm:py-2.5 rounded-xl sm:rounded-2xl border border-slate-700 bg-slate-950 text-emerald-400 font-mono font-bold text-base uppercase outline-none focus:ring-2 focus:ring-emerald-500 tracking-wider"
                     maxLength={8}
                   />
                 </div>
 
                 <div>
-                  <label className="block text-xs font-bold text-slate-300 mb-1.5 flex items-center gap-1.5">
+                  <label className="block text-xs font-bold text-slate-300 mb-1 flex items-center gap-1.5">
                     <CreditCard className="w-4 h-4 text-teal-400" />
                     常用預設付款方式
                   </label>
                   <select
                     value={defaultPaymentMethod}
                     onChange={(e) => setDefaultPaymentMethod(e.target.value)}
-                    className="w-full px-4 py-2.5 rounded-2xl border border-slate-700 bg-slate-950 text-white font-bold text-sm outline-none focus:ring-2 focus:ring-teal-500"
+                    className="w-full px-4 py-2 sm:py-2.5 rounded-xl sm:rounded-2xl border border-slate-700 bg-slate-950 text-white font-bold text-sm outline-none focus:ring-2 focus:ring-teal-500"
                   >
                     {['現金', '信用卡', 'LINE Pay', '街口支付', '悠遊卡', 'Apple Pay', 'Google Pay'].map(
                       (pm) => (
@@ -409,10 +409,10 @@ export const OnboardingWizardView: React.FC<OnboardingWizardViewProps> = ({
 
           {/* ────────── STEP 2: 標籤庫配置 (預設改為「食衣住行」) ────────── */}
           {step === 2 && (
-            <div className="space-y-5 animate-in fade-in duration-200 text-left">
+            <div className="space-y-4 sm:space-y-5 animate-in fade-in duration-200 text-left">
               <div>
-                <h2 className="text-xl font-black text-white flex items-center gap-2">
-                  <Tag className="w-5 h-5 text-emerald-400" />
+                <h2 className="text-lg sm:text-xl font-black text-white flex items-center gap-2">
+                  <Tag className="w-4 h-4 sm:w-5 sm:h-5 text-emerald-400" />
                   自訂生活記帳標籤庫
                 </h2>
                 <p className="text-xs text-slate-400 mt-1 leading-relaxed">
@@ -420,13 +420,13 @@ export const OnboardingWizardView: React.FC<OnboardingWizardViewProps> = ({
                 </p>
               </div>
 
-              <div className="p-4 sm:p-5 rounded-2xl bg-slate-950 border border-slate-800 space-y-4">
+              <div className="p-3.5 sm:p-5 rounded-xl sm:rounded-2xl bg-slate-950 border border-slate-800 space-y-3 sm:space-y-4">
                 <div className="text-xs font-bold text-slate-400">目前啟用的標籤 ({tags.length} 個)：</div>
-                <div className="flex flex-wrap gap-2">
+                <div className="flex flex-wrap gap-1.5 sm:gap-2 max-h-48 overflow-y-auto">
                   {tags.map((t) => (
                     <div
                       key={t.id}
-                      className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-2xl bg-slate-800/90 border border-slate-700 text-xs font-bold text-slate-200 shadow-sm group hover:border-slate-600 transition"
+                      className="inline-flex items-center gap-1.5 px-3 py-1.5 sm:px-3.5 sm:py-2 rounded-xl sm:rounded-2xl bg-slate-800/90 border border-slate-700 text-xs font-bold text-slate-200 shadow-sm group hover:border-slate-600 transition"
                     >
                       <Tag className="w-3.5 h-3.5 text-emerald-400" />
                       <span>#{t.name}</span>
@@ -444,13 +444,13 @@ export const OnboardingWizardView: React.FC<OnboardingWizardViewProps> = ({
                   ))}
                 </div>
 
-                <div className="flex items-center gap-2 pt-3 border-t border-slate-800">
+                <div className="flex items-center gap-2 pt-2.5 sm:pt-3 border-t border-slate-800">
                   <input
                     type="text"
                     value={newTagInput}
                     onChange={(e) => setNewTagInput(e.target.value)}
-                    placeholder="輸入新標籤名稱 (例：育、樂、咖啡、保險)..."
-                    className="flex-1 px-4 py-2.5 text-xs rounded-xl bg-slate-900 border border-slate-700 text-white placeholder-slate-500 outline-none focus:ring-2 focus:ring-emerald-500"
+                    placeholder="輸入新標籤名稱 (例：育、樂、咖啡)..."
+                    className="flex-1 px-3 py-2 sm:px-4 sm:py-2.5 text-xs rounded-xl bg-slate-900 border border-slate-700 text-white placeholder-slate-500 outline-none focus:ring-2 focus:ring-emerald-500"
                     onKeyDown={(e) => {
                       if (e.key === 'Enter') {
                         e.preventDefault();
@@ -461,7 +461,7 @@ export const OnboardingWizardView: React.FC<OnboardingWizardViewProps> = ({
                   <button
                     type="button"
                     onClick={handleAddTag}
-                    className="px-4 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold transition flex items-center gap-1.5 shrink-0 shadow-sm shadow-emerald-600/30"
+                    className="px-3.5 py-2 sm:px-4 sm:py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold transition flex items-center gap-1.5 shrink-0 shadow-sm shadow-emerald-600/30"
                   >
                     <Plus className="w-4 h-4" />
                     新增
@@ -473,10 +473,10 @@ export const OnboardingWizardView: React.FC<OnboardingWizardViewProps> = ({
 
           {/* ────────── STEP 3: 預算設定 (總預算與個別標籤預算) ────────── */}
           {step === 3 && (
-            <div className="space-y-5 animate-in fade-in duration-200 text-left">
+            <div className="space-y-4 sm:space-y-5 animate-in fade-in duration-200 text-left">
               <div>
-                <h2 className="text-xl font-black text-white flex items-center gap-2">
-                  <DollarSign className="w-5 h-5 text-emerald-400" />
+                <h2 className="text-lg sm:text-xl font-black text-white flex items-center gap-2">
+                  <DollarSign className="w-4 h-4 sm:w-5 sm:h-5 text-emerald-400" />
                   規劃每月總支出與個別類別預算
                 </h2>
                 <p className="text-xs text-slate-400 mt-1 leading-relaxed">
@@ -485,26 +485,26 @@ export const OnboardingWizardView: React.FC<OnboardingWizardViewProps> = ({
               </div>
 
               {/* 每月總預算 */}
-              <div className="p-4 sm:p-5 rounded-2xl bg-slate-950 border border-slate-800 space-y-3">
+              <div className="p-3.5 sm:p-5 rounded-xl sm:rounded-2xl bg-slate-950 border border-slate-800 space-y-2.5 sm:space-y-3">
                 <label className="block text-xs font-bold text-slate-300">每月總支出預算目標</label>
                 <div className="relative">
-                  <span className="absolute left-4 top-1/2 -translate-y-1/2 text-base font-bold text-slate-400">NT$</span>
+                  <span className="absolute left-3.5 sm:left-4 top-1/2 -translate-y-1/2 text-sm sm:text-base font-bold text-slate-400">NT$</span>
                   <input
                     type="number"
                     value={monthlyBudget === 0 ? '' : monthlyBudget}
                     onChange={(e) => setMonthlyBudget(Number(e.target.value) || 0)}
                     placeholder="30000"
-                    className="w-full pl-14 pr-4 py-2.5 rounded-2xl bg-slate-900 border border-slate-700 text-emerald-400 font-mono font-black text-xl outline-none focus:ring-2 focus:ring-emerald-500"
+                    className="w-full pl-12 sm:pl-14 pr-4 py-2 sm:py-2.5 rounded-xl sm:rounded-2xl bg-slate-900 border border-slate-700 text-emerald-400 font-mono font-black text-lg sm:text-xl outline-none focus:ring-2 focus:ring-emerald-500"
                   />
                 </div>
 
-                <div className="flex flex-wrap gap-2 pt-1">
+                <div className="grid grid-cols-4 gap-1.5 sm:flex sm:flex-wrap sm:gap-2 pt-0.5">
                   {[20000, 30000, 40000, 50000].map((amt) => (
                     <button
                       key={amt}
                       type="button"
                       onClick={() => setMonthlyBudget(amt)}
-                      className={`text-xs px-3 py-1.5 rounded-xl border font-bold transition ${
+                      className={`text-[11px] sm:text-xs py-1.5 px-1 sm:px-3 sm:py-1.5 rounded-xl border font-bold transition text-center truncate ${
                         monthlyBudget === amt
                           ? 'bg-emerald-950 border-emerald-500 text-emerald-400'
                           : 'bg-slate-900 border-slate-800 text-slate-400 hover:text-slate-200'
@@ -517,12 +517,16 @@ export const OnboardingWizardView: React.FC<OnboardingWizardViewProps> = ({
               </div>
 
               {/* 標籤預算分配 */}
-              <div className="p-4 sm:p-5 rounded-2xl bg-slate-950 border border-slate-800 space-y-3.5">
-                <div className="flex items-center justify-between text-xs font-bold">
-                  <span className="text-slate-300">各標籤分配額度</span>
-                  <span className={unallocatedBudget < 0 ? 'text-rose-400' : 'text-slate-400'}>
-                    已分配 NT$ {allocatedBudgetSum.toLocaleString()} / {unallocatedBudget < 0 ? `超額 NT$ ${Math.abs(unallocatedBudget).toLocaleString()}` : `剩餘 NT$ ${unallocatedBudget.toLocaleString()}`}
-                  </span>
+              <div className="p-3.5 sm:p-5 rounded-xl sm:rounded-2xl bg-slate-950 border border-slate-800 space-y-2.5 sm:space-y-3.5">
+                <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-1 text-xs">
+                  <span className="font-bold text-slate-300">各標籤分配額度</span>
+                  <div className="flex items-center gap-1.5 text-[11px] font-semibold flex-wrap">
+                    <span className="text-slate-400">已分配 NT$ {allocatedBudgetSum.toLocaleString()}</span>
+                    <span className="text-slate-600">/</span>
+                    <span className={unallocatedBudget < 0 ? 'text-rose-400 font-bold' : 'text-emerald-400 font-bold'}>
+                      {unallocatedBudget < 0 ? `超額 NT$ ${Math.abs(unallocatedBudget).toLocaleString()}` : `剩餘 NT$ ${unallocatedBudget.toLocaleString()}`}
+                    </span>
+                  </div>
                 </div>
 
                 <ProgressBar
@@ -531,11 +535,11 @@ export const OnboardingWizardView: React.FC<OnboardingWizardViewProps> = ({
                   height="sm"
                 />
 
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5 pt-1 max-h-48 overflow-y-auto">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 sm:gap-2.5 pt-0.5 max-h-48 sm:max-h-52 overflow-y-auto">
                   {activeValidTags.map((t) => (
                     <div
                       key={t.id}
-                      className="p-3 rounded-2xl bg-slate-900/90 border border-slate-800 flex items-center justify-between gap-2"
+                      className="p-2.5 sm:p-3 rounded-xl sm:rounded-2xl bg-slate-900/90 border border-slate-800 flex items-center justify-between gap-2"
                     >
                       <span className="text-xs font-bold text-slate-200 truncate">#{t.name}</span>
                       <div className="relative w-28">
@@ -549,7 +553,7 @@ export const OnboardingWizardView: React.FC<OnboardingWizardViewProps> = ({
                               [t.name]: Number(e.target.value) || 0,
                             })
                           }
-                          className="w-full pl-8 pr-2.5 py-1 text-xs text-right font-mono font-bold bg-slate-950 border border-slate-700 rounded-xl text-white outline-none focus:ring-1 focus:ring-emerald-400"
+                          className="w-full pl-8 pr-2.5 py-1 text-xs text-right font-mono font-bold bg-slate-950 border border-slate-700 rounded-lg sm:rounded-xl text-white outline-none focus:ring-1 focus:ring-emerald-400"
                         />
                       </div>
                     </div>
@@ -561,10 +565,10 @@ export const OnboardingWizardView: React.FC<OnboardingWizardViewProps> = ({
 
           {/* ────────── STEP 4: AI 智慧助理 (選填 Gemini API Key) ────────── */}
           {step === 4 && (
-            <div className="space-y-5 animate-in fade-in duration-200 text-left">
+            <div className="space-y-4 sm:space-y-5 animate-in fade-in duration-200 text-left">
               <div>
-                <h2 className="text-xl font-black text-white flex items-center gap-2">
-                  <Bot className="w-5 h-5 text-emerald-400" />
+                <h2 className="text-lg sm:text-xl font-black text-white flex items-center gap-2">
+                  <Bot className="w-4 h-4 sm:w-5 sm:h-5 text-emerald-400" />
                   啟用 Google Gemini AI 智慧助理 (選填)
                 </h2>
                 <p className="text-xs text-slate-400 mt-1 leading-relaxed">
@@ -572,7 +576,7 @@ export const OnboardingWizardView: React.FC<OnboardingWizardViewProps> = ({
                 </p>
               </div>
 
-              <div className="p-4 sm:p-5 rounded-2xl bg-slate-950 border border-slate-800 space-y-4">
+              <div className="p-3.5 sm:p-5 rounded-xl sm:rounded-2xl bg-slate-950 border border-slate-800 space-y-3 sm:space-y-4">
                 <div className="flex items-center justify-between">
                   <div>
                     <span className="text-xs font-bold text-slate-200 block">啟用 Gemini AI 雲端模型</span>
@@ -594,7 +598,7 @@ export const OnboardingWizardView: React.FC<OnboardingWizardViewProps> = ({
                 </div>
 
                 {enableAi && (
-                  <div className="space-y-2.5 pt-3 border-t border-slate-800/80 animate-in fade-in">
+                  <div className="space-y-2.5 pt-2.5 sm:pt-3 border-t border-slate-800/80 animate-in fade-in">
                     <label className="block text-xs font-bold text-slate-300">Google Gemini API Key</label>
                     <div className="relative">
                       <input
@@ -602,7 +606,7 @@ export const OnboardingWizardView: React.FC<OnboardingWizardViewProps> = ({
                         value={geminiApiKey}
                         onChange={(e) => setGeminiApiKey(e.target.value)}
                         placeholder="AQ. 或 AIzaSy..."
-                        className="w-full pl-4 pr-10 py-2.5 rounded-2xl border border-slate-700 bg-slate-900 text-white font-mono text-xs outline-none focus:ring-2 focus:ring-emerald-500"
+                        className="w-full pl-4 pr-10 py-2 sm:py-2.5 rounded-xl sm:rounded-2xl border border-slate-700 bg-slate-900 text-white font-mono text-xs outline-none focus:ring-2 focus:ring-emerald-500"
                       />
                       <Key className="w-4 h-4 absolute right-3.5 top-1/2 -translate-y-1/2 text-slate-400" />
                     </div>
@@ -611,7 +615,7 @@ export const OnboardingWizardView: React.FC<OnboardingWizardViewProps> = ({
                       href="https://aistudio.google.com/app/apikey"
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="inline-flex items-center gap-1 text-xs text-emerald-400 hover:text-emerald-300 transition underline underline-offset-2 pt-1 font-medium"
+                      className="inline-flex items-center gap-1 text-[11px] sm:text-xs text-emerald-400 hover:text-emerald-300 transition underline underline-offset-2 pt-1 font-medium"
                     >
                       👉 點此免費獲取 Google AI Studio API Key (約 30 秒完成)
                       <ExternalLink className="w-3.5 h-3.5" />
@@ -620,32 +624,32 @@ export const OnboardingWizardView: React.FC<OnboardingWizardViewProps> = ({
                 )}
               </div>
 
-              <div className="p-3.5 rounded-2xl bg-emerald-950/40 border border-emerald-800/50 text-xs text-emerald-300 flex items-start gap-2.5">
+              <div className="p-3 sm:p-3.5 rounded-xl sm:rounded-2xl bg-emerald-950/40 border border-emerald-800/50 text-[11px] sm:text-xs text-emerald-300 flex items-start gap-2.5">
                 <Zap className="w-4 h-4 text-emerald-400 shrink-0 mt-0.5" />
                 <span>所有金鑰均儲存於您的瀏覽器本地，完全保障隱私安全。您也可以日後隨時在「基本設定與載具」中填寫或修改。</span>
               </div>
             </div>
           )}
 
-          {/* 底部導航操作列 */}
-          <div className="mt-8 pt-5 border-t border-slate-800 flex items-center justify-between gap-3">
+          {/* 底部導航操作列 (手機版置底吸附，大螢幕維持卡片內流動) */}
+          <div className="sticky bottom-0 -mx-4 -mb-4 sm:mx-0 sm:mb-0 p-3 sm:p-0 bg-slate-900/95 sm:bg-transparent backdrop-blur-md sm:backdrop-blur-none border-t border-slate-800/90 sm:border-t-0 mt-4 sm:mt-8 pt-3 sm:pt-5 flex items-center justify-between gap-2.5 sm:gap-3 z-20 rounded-b-2xl sm:rounded-none shadow-lg sm:shadow-none pb-[calc(0.75rem+env(safe-area-inset-bottom,0px))] sm:pb-0">
             {step > 1 ? (
               <button
                 type="button"
                 onClick={() => setStep((s) => (s - 1) as any)}
-                className="px-5 py-2.5 rounded-2xl bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-white text-xs font-bold transition flex items-center gap-1.5"
+                className="px-4 sm:px-5 py-2 sm:py-2.5 rounded-xl sm:rounded-2xl bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-white text-xs font-bold transition flex items-center gap-1.5 shrink-0"
               >
                 <ChevronLeft className="w-4 h-4" />
-                上一步
+                <span>上一步</span>
               </button>
             ) : onBackToLogin ? (
               <button
                 type="button"
                 onClick={onBackToLogin}
-                className="px-4 py-2.5 rounded-2xl bg-slate-800/60 hover:bg-slate-800 text-slate-400 hover:text-slate-200 text-xs font-bold transition flex items-center gap-1"
+                className="px-3 sm:px-4 py-2 sm:py-2.5 rounded-xl sm:rounded-2xl bg-slate-800/60 hover:bg-slate-800 text-slate-400 hover:text-slate-200 text-xs font-bold transition flex items-center gap-1 shrink-0"
               >
                 <ArrowLeft className="w-4 h-4" />
-                返回登入
+                <span>返回登入</span>
               </button>
             ) : (
               <div />
@@ -655,7 +659,7 @@ export const OnboardingWizardView: React.FC<OnboardingWizardViewProps> = ({
               <button
                 type="button"
                 onClick={handleStep1Next}
-                className="px-6 py-2.5 rounded-2xl bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold transition flex items-center gap-1.5 shadow-lg shadow-emerald-600/25 active:scale-[0.98]"
+                className="px-5 sm:px-6 py-2 sm:py-2.5 rounded-xl sm:rounded-2xl bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold transition flex items-center gap-1.5 shadow-lg shadow-emerald-600/25 active:scale-[0.98] shrink-0"
               >
                 <span>下一步：設定標籤庫</span>
                 <ChevronRight className="w-4 h-4" />
@@ -664,7 +668,7 @@ export const OnboardingWizardView: React.FC<OnboardingWizardViewProps> = ({
               <button
                 type="button"
                 onClick={() => setStep((s) => (s + 1) as any)}
-                className="px-6 py-2.5 rounded-2xl bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold transition flex items-center gap-1.5 shadow-lg shadow-emerald-600/25 active:scale-[0.98]"
+                className="px-5 sm:px-6 py-2 sm:py-2.5 rounded-xl sm:rounded-2xl bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold transition flex items-center gap-1.5 shadow-lg shadow-emerald-600/25 active:scale-[0.98] shrink-0"
               >
                 <span>下一步</span>
                 <ChevronRight className="w-4 h-4" />
@@ -674,7 +678,7 @@ export const OnboardingWizardView: React.FC<OnboardingWizardViewProps> = ({
                 type="button"
                 onClick={handleFinishOnboarding}
                 disabled={isLoading}
-                className="px-6 py-3 rounded-2xl bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold transition flex items-center gap-2 shadow-lg shadow-emerald-600/30 active:scale-[0.98] disabled:opacity-50"
+                className="px-5 sm:px-6 py-2.5 sm:py-3 rounded-xl sm:rounded-2xl bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold transition flex items-center gap-2 shadow-lg shadow-emerald-600/30 active:scale-[0.98] disabled:opacity-50 shrink-0"
               >
                 {isLoading ? (
                   <Loader2 className="w-4 h-4 animate-spin" />
@@ -691,7 +695,7 @@ export const OnboardingWizardView: React.FC<OnboardingWizardViewProps> = ({
       </main>
 
       {/* 底部 Footer */}
-      <footer className="w-full max-w-3xl mx-auto px-4 py-4 text-center text-[11px] text-slate-500 z-10">
+      <footer className="w-full max-w-3xl mx-auto px-4 py-3 sm:py-4 text-center text-[10px] sm:text-[11px] text-slate-500 z-10 shrink-0 pb-safe">
         智帳君 Ledgy • 台灣在地化發票載具與家庭記帳
       </footer>
     </div>

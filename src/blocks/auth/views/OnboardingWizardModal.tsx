@@ -154,8 +154,8 @@ export const OnboardingWizardModal: React.FC<OnboardingWizardModalProps> = ({
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-black/85 backdrop-blur-md animate-in fade-in duration-200">
-      <div className="relative w-full max-w-lg max-h-[var(--app-height,92vh)] rounded-3xl bg-slate-900 text-slate-100 shadow-2xl border border-slate-800 p-5 sm:p-7 flex flex-col overflow-y-auto overscroll-contain">
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-2.5 sm:p-4 bg-black/85 backdrop-blur-md animate-in fade-in duration-200">
+      <div className="relative w-full max-w-lg max-h-[var(--app-height,90dvh)] rounded-2xl sm:rounded-3xl bg-slate-900 text-slate-100 shadow-2xl border border-slate-800 p-4 sm:p-7 flex flex-col overflow-y-auto overscroll-contain">
         {/* 背景氛圍光暈 */}
         <div className="absolute top-0 left-1/2 -translate-x-1/2 w-72 h-32 bg-emerald-500/15 rounded-full blur-3xl pointer-events-none" />
 
@@ -163,7 +163,7 @@ export const OnboardingWizardModal: React.FC<OnboardingWizardModalProps> = ({
         <button
           type="button"
           onClick={handleSkip}
-          className="absolute top-4 right-4 p-2 rounded-full hover:bg-slate-800 text-slate-400 hover:text-white transition z-10"
+          className="absolute top-3.5 right-3.5 sm:top-4 sm:right-4 p-2 rounded-full hover:bg-slate-800 text-slate-400 hover:text-white transition z-10"
           title="略過設定精靈 (已設定過)"
         >
           <span className="text-xs font-bold mr-1 hidden sm:inline text-slate-400 hover:text-white">略過</span>
@@ -171,13 +171,13 @@ export const OnboardingWizardModal: React.FC<OnboardingWizardModalProps> = ({
         </button>
 
         {/* 頂部步驟進度列 */}
-        <div className="mb-6 space-y-3 pr-8 sm:pr-12">
+        <div className="mb-4 sm:mb-6 space-y-2.5 sm:space-y-3 pr-8 sm:pr-12">
           <div className="flex items-center justify-between">
-            <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-emerald-950/80 border border-emerald-800/80 text-emerald-400 text-[11px] font-extrabold tracking-wide">
+            <div className="inline-flex items-center gap-1.5 px-2.5 sm:px-3 py-1 rounded-full bg-emerald-950/80 border border-emerald-800/80 text-emerald-400 text-[10px] sm:text-[11px] font-extrabold tracking-wide">
               <Sparkles className="w-3.5 h-3.5" />
-              新手歡迎引導 • 步驟 {step} / 4
+              新手引導 • 步驟 {step} / 4
             </div>
-            <span className="text-xs font-bold text-slate-400">
+            <span className="text-[11px] sm:text-xs font-bold text-slate-400">
               {step === 1 && '基本資料與載具'}
               {step === 2 && '標籤庫配置'}
               {step === 3 && '預算目標規劃'}
@@ -186,7 +186,7 @@ export const OnboardingWizardModal: React.FC<OnboardingWizardModalProps> = ({
           </div>
 
           {/* 4 階段進度條 */}
-          <div className="grid grid-cols-4 gap-2">
+          <div className="grid grid-cols-4 gap-1.5 sm:gap-2">
             {[1, 2, 3, 4].map((s) => (
               <div
                 key={s}
@@ -359,13 +359,13 @@ export const OnboardingWizardModal: React.FC<OnboardingWizardModalProps> = ({
               </div>
 
               {/* 快捷預算按鈕 */}
-              <div className="flex flex-wrap gap-1.5 pt-1">
+              <div className="grid grid-cols-4 gap-1.5 sm:flex sm:flex-wrap sm:gap-1.5 pt-0.5">
                 {[20000, 30000, 40000, 50000].map((amt) => (
                   <button
                     key={amt}
                     type="button"
                     onClick={() => setMonthlyBudget(amt)}
-                    className={`text-[11px] px-2.5 py-1 rounded-lg border font-medium transition ${
+                    className={`text-[11px] sm:text-xs py-1.5 px-1 sm:px-2.5 rounded-lg border font-medium transition text-center truncate ${
                       monthlyBudget === amt
                         ? 'bg-emerald-950 border-emerald-500 text-emerald-400 font-bold'
                         : 'bg-slate-900 border-slate-800 text-slate-400 hover:text-slate-200'
@@ -378,12 +378,16 @@ export const OnboardingWizardModal: React.FC<OnboardingWizardModalProps> = ({
             </div>
 
             {/* 各標籤個別預算分配 */}
-            <div className="p-4 rounded-2xl bg-slate-950 border border-slate-800 text-left space-y-3">
-              <div className="flex items-center justify-between">
-                <span className="text-xs font-bold text-slate-300">各標籤分配額度</span>
-                <span className={`text-[11px] font-bold ${unallocatedBudget < 0 ? 'text-rose-400' : 'text-slate-400'}`}>
-                  已分配 NT$ {allocatedBudgetSum.toLocaleString()} / {unallocatedBudget < 0 ? `超額 NT$ ${Math.abs(unallocatedBudget).toLocaleString()}` : `剩餘 NT$ ${unallocatedBudget.toLocaleString()}`}
-                </span>
+            <div className="p-3.5 sm:p-4 rounded-2xl bg-slate-950 border border-slate-800 text-left space-y-2.5 sm:space-y-3">
+              <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-1 text-xs">
+                <span className="font-bold text-slate-300">各標籤分配額度</span>
+                <div className="flex items-center gap-1.5 text-[11px] font-semibold flex-wrap">
+                  <span className="text-slate-400">已分配 NT$ {allocatedBudgetSum.toLocaleString()}</span>
+                  <span className="text-slate-600">/</span>
+                  <span className={unallocatedBudget < 0 ? 'text-rose-400 font-bold' : 'text-emerald-400 font-bold'}>
+                    {unallocatedBudget < 0 ? `超額 NT$ ${Math.abs(unallocatedBudget).toLocaleString()}` : `剩餘 NT$ ${unallocatedBudget.toLocaleString()}`}
+                  </span>
+                </div>
               </div>
 
               {/* 進度條 */}
@@ -393,13 +397,13 @@ export const OnboardingWizardModal: React.FC<OnboardingWizardModalProps> = ({
                 height="sm"
               />
 
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5 pt-1">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 sm:gap-2.5 pt-0.5 max-h-48 sm:max-h-52 overflow-y-auto">
                 {activeValidTags.map((t) => (
                   <div
                     key={t.id}
-                    className="p-2.5 rounded-xl bg-slate-900/80 border border-slate-800 flex items-center justify-between gap-2"
+                    className="p-2 sm:p-2.5 rounded-xl bg-slate-900/80 border border-slate-800 flex items-center justify-between gap-2"
                   >
-                    <span className="text-xs font-bold text-slate-200 shrink-0">#{t.name}</span>
+                    <span className="text-xs font-bold text-slate-200 shrink-0 truncate">#{t.name}</span>
                     <div className="relative w-28">
                       <span className="absolute left-2 top-1/2 -translate-y-1/2 text-[10px] text-slate-500 font-bold">NT$</span>
                       <input
@@ -434,7 +438,7 @@ export const OnboardingWizardModal: React.FC<OnboardingWizardModalProps> = ({
               </p>
             </div>
 
-            <div className="p-4 rounded-2xl bg-slate-950 border border-slate-800 text-left space-y-3.5">
+            <div className="p-3.5 sm:p-4 rounded-2xl bg-slate-950 border border-slate-800 text-left space-y-3.5">
               {/* 是否啟用 Toggle */}
               <div className="flex items-center justify-between">
                 <div>
@@ -465,7 +469,7 @@ export const OnboardingWizardModal: React.FC<OnboardingWizardModalProps> = ({
                       value={geminiApiKey}
                       onChange={(e) => setGeminiApiKey(e.target.value)}
                       placeholder="AQ. 或 AIzaSy..."
-                      className="w-full pl-3.5 pr-10 py-2.5 rounded-xl border border-slate-700 bg-slate-900 text-white font-mono text-xs outline-none focus:ring-2 focus:ring-emerald-500"
+                      className="w-full pl-3.5 pr-10 py-2 sm:py-2.5 rounded-xl border border-slate-700 bg-slate-900 text-white font-mono text-xs outline-none focus:ring-2 focus:ring-emerald-500"
                     />
                     <Key className="w-4 h-4 absolute right-3.5 top-1/2 -translate-y-1/2 text-slate-400" />
                   </div>
@@ -490,13 +494,13 @@ export const OnboardingWizardModal: React.FC<OnboardingWizardModalProps> = ({
           </div>
         )}
 
-        {/* 底部上一步 / 下一步 / 完成按鈕 */}
-        <div className="mt-6 pt-4 border-t border-slate-800 flex items-center justify-between gap-3">
+        {/* 底部上一步 / 下一步 / 完成按鈕 (手機版置底吸附) */}
+        <div className="sticky bottom-0 -mx-4 -mb-4 sm:mx-0 sm:mb-0 p-3 sm:p-0 bg-slate-900/95 sm:bg-transparent backdrop-blur-md sm:backdrop-blur-none border-t border-slate-800/90 sm:border-t-0 mt-4 sm:mt-6 pt-3 sm:pt-4 flex items-center justify-between gap-3 z-10 rounded-b-2xl sm:rounded-none pb-[calc(0.75rem+env(safe-area-inset-bottom,0px))] sm:pb-0">
           {step > 1 ? (
             <button
               type="button"
               onClick={() => setStep((s) => (s - 1) as any)}
-              className="px-4 py-2.5 rounded-2xl bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-white text-xs font-bold transition flex items-center gap-1.5"
+              className="px-4 py-2 sm:py-2.5 rounded-xl sm:rounded-2xl bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-white text-xs font-bold transition flex items-center gap-1.5"
             >
               <ChevronLeft className="w-4 h-4" />
               上一步
