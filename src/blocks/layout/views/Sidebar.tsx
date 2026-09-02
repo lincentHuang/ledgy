@@ -95,16 +95,15 @@ export const Sidebar: React.FC<SidebarProps> = ({
       {/* Mobile Backdrop Blur */}
       {isOpen && (
         <div
-          className="fixed inset-0 bg-black/70 backdrop-blur-sm z-40 lg:hidden animate-in fade-in"
+          className="fixed inset-0 bg-black/70 backdrop-blur-sm z-40 lg:hidden animate-in fade-in "
           onClick={onClose}
         />
       )}
 
       {/* Sidebar Drawer Container */}
       <aside
-        className={`fixed top-0 bottom-0 left-0 z-50 w-72 h-full bg-slate-950/95 lg:bg-slate-950/70 backdrop-blur-2xl border-r border-slate-800/80 flex flex-col justify-between transition-transform duration-300 ease-in-out lg:translate-x-0 lg:static lg:h-full flex-shrink-0 overflow-hidden ${
-          isOpen ? 'translate-x-0' : '-translate-x-full'
-        }`}
+        className={`fixed pt-safe top-0 bottom-0 left-0 z-50 w-72 h-full bg-slate-950/95 lg:bg-slate-950/70 backdrop-blur-2xl border-r border-slate-800/80 flex flex-col justify-between transition-transform duration-300 ease-in-out lg:translate-x-0 lg:static lg:h-full flex-shrink-0 overflow-hidden ${isOpen ? 'translate-x-0' : '-translate-x-full'
+          }`}
       >
         {/* Top Header & Navigation Area (獨立滾動區) */}
         <div className="p-4 space-y-5 overflow-y-auto flex-1 overscroll-contain text-xs">
@@ -157,11 +156,10 @@ export const Sidebar: React.FC<SidebarProps> = ({
                   onChangeTab('overview');
                   onClose();
                 }}
-                className={`w-full flex items-center justify-between px-3 py-2 rounded-xl transition text-left border ${
-                  activeLedger === 'personal'
+                className={`w-full flex items-center justify-between px-3 py-2 rounded-xl transition text-left border ${activeLedger === 'personal'
                     ? 'bg-emerald-950/80 text-emerald-300 font-bold border-emerald-800/60 shadow'
                     : 'border-transparent hover:bg-slate-800/80 text-slate-400 hover:text-slate-200'
-                }`}
+                  }`}
               >
                 <div className="flex items-center gap-2 truncate">
                   <Wallet className="w-3.5 h-3.5 text-emerald-400 flex-shrink-0" />
@@ -182,11 +180,10 @@ export const Sidebar: React.FC<SidebarProps> = ({
                       onChangeTab('overview');
                       onClose();
                     }}
-                    className={`w-full flex items-center justify-between px-3 py-2 rounded-xl transition text-left border ${
-                      isCurrent
+                    className={`w-full flex items-center justify-between px-3 py-2 rounded-xl transition text-left border ${isCurrent
                         ? 'bg-purple-950/80 text-purple-300 font-bold border-purple-800/60 shadow'
                         : 'border-transparent hover:bg-slate-800/80 text-slate-400 hover:text-slate-200'
-                    }`}
+                      }`}
                   >
                     <div className="flex items-center gap-2 truncate">
                       <Users className="w-3.5 h-3.5 text-purple-400 flex-shrink-0" />
@@ -218,13 +215,12 @@ export const Sidebar: React.FC<SidebarProps> = ({
             </p>
             <button
               onClick={() => handleNav('overview')}
-              className={`w-full flex items-center justify-between px-3 py-2.5 rounded-2xl transition font-medium border ${
-                currentTab === 'overview'
+              className={`w-full flex items-center justify-between px-3 py-2.5 rounded-2xl transition font-medium border ${currentTab === 'overview'
                   ? activeLedger === 'household'
                     ? 'bg-purple-600/20 text-purple-300 font-bold border-purple-500/30'
                     : 'bg-emerald-600/20 text-emerald-400 font-bold border-emerald-500/30'
                   : 'border-transparent hover:bg-slate-800 text-slate-300'
-              }`}
+                }`}
             >
               <div className="flex items-center gap-2.5">
                 <LayoutDashboard className="w-4 h-4" />
@@ -235,11 +231,10 @@ export const Sidebar: React.FC<SidebarProps> = ({
 
             <button
               onClick={() => handleNav('family')}
-              className={`w-full flex items-center justify-between px-3 py-2.5 rounded-2xl transition font-medium border ${
-                currentTab === 'family'
+              className={`w-full flex items-center justify-between px-3 py-2.5 rounded-2xl transition font-medium border ${currentTab === 'family'
                   ? 'bg-emerald-600/20 text-emerald-300 font-bold border-emerald-500/30'
                   : 'border-transparent hover:bg-slate-800 text-slate-300'
-              }`}
+                }`}
             >
               <div className="flex items-center gap-2.5">
                 <Layers className="w-4 h-4 text-emerald-400" />
@@ -253,11 +248,10 @@ export const Sidebar: React.FC<SidebarProps> = ({
             {/* 3. 財務報表與 AI 顧問 */}
             <button
               onClick={() => handleNav('reports')}
-              className={`w-full flex items-center justify-between px-3 py-2.5 rounded-2xl transition font-medium border ${
-                currentTab === 'reports'
+              className={`w-full flex items-center justify-between px-3 py-2.5 rounded-2xl transition font-medium border ${currentTab === 'reports'
                   ? 'bg-emerald-600/20 text-emerald-400 font-bold border-emerald-500/30'
                   : 'border-transparent hover:bg-slate-800 text-slate-300'
-              }`}
+                }`}
             >
               <div className="flex items-center gap-2.5">
                 <BarChart3 className="w-4 h-4 text-emerald-400" />
@@ -297,11 +291,10 @@ export const Sidebar: React.FC<SidebarProps> = ({
 
               <button
                 onClick={() => handleOpenPersonal('payments')}
-                className={`w-full flex items-center justify-between px-3 py-2 rounded-2xl transition font-medium border ${
-                  currentTab === 'personal-settings' && personalTab === 'payments'
+                className={`w-full flex items-center justify-between px-3 py-2 rounded-2xl transition font-medium border ${currentTab === 'personal-settings' && personalTab === 'payments'
                     ? 'bg-emerald-600/20 text-emerald-400 font-bold border-emerald-500/30'
                     : 'border-transparent hover:bg-slate-800 text-slate-300'
-                }`}
+                  }`}
               >
                 <div className="flex items-center gap-2.5">
                   <CreditCard className="w-3.5 h-3.5 text-emerald-400" />
@@ -312,11 +305,10 @@ export const Sidebar: React.FC<SidebarProps> = ({
 
               <button
                 onClick={() => handleOpenPersonal('tags')}
-                className={`w-full flex items-center justify-between px-3 py-2 rounded-2xl transition font-medium border ${
-                  currentTab === 'personal-settings' && personalTab === 'tags'
+                className={`w-full flex items-center justify-between px-3 py-2 rounded-2xl transition font-medium border ${currentTab === 'personal-settings' && personalTab === 'tags'
                     ? 'bg-emerald-600/20 text-emerald-400 font-bold border-emerald-500/30'
                     : 'border-transparent hover:bg-slate-800 text-slate-300'
-                }`}
+                  }`}
               >
                 <div className="flex items-center gap-2.5">
                   <Tag className="w-3.5 h-3.5 text-emerald-400" />
@@ -327,11 +319,10 @@ export const Sidebar: React.FC<SidebarProps> = ({
 
               <button
                 onClick={() => handleOpenPersonal('budget')}
-                className={`w-full flex items-center justify-between px-3 py-2 rounded-2xl transition font-medium border ${
-                  currentTab === 'personal-settings' && personalTab === 'budget'
+                className={`w-full flex items-center justify-between px-3 py-2 rounded-2xl transition font-medium border ${currentTab === 'personal-settings' && personalTab === 'budget'
                     ? 'bg-emerald-600/20 text-emerald-400 font-bold border-emerald-500/30'
                     : 'border-transparent hover:bg-slate-800 text-slate-300'
-                }`}
+                  }`}
               >
                 <div className="flex items-center gap-2.5">
                   <DollarSign className="w-3.5 h-3.5 text-emerald-400" />
@@ -342,11 +333,10 @@ export const Sidebar: React.FC<SidebarProps> = ({
 
               <button
                 onClick={() => handleOpenPersonal('general')}
-                className={`w-full flex items-center justify-between px-3 py-2 rounded-2xl transition font-medium border ${
-                  currentTab === 'personal-settings' && personalTab === 'general'
+                className={`w-full flex items-center justify-between px-3 py-2 rounded-2xl transition font-medium border ${currentTab === 'personal-settings' && personalTab === 'general'
                     ? 'bg-emerald-600/20 text-emerald-400 font-bold border-emerald-500/30'
                     : 'border-transparent hover:bg-slate-800 text-slate-300'
-                }`}
+                  }`}
               >
                 <div className="flex items-center gap-2.5">
                   <Key className="w-3.5 h-3.5 text-emerald-400" />
@@ -357,11 +347,10 @@ export const Sidebar: React.FC<SidebarProps> = ({
 
               <button
                 onClick={() => handleOpenPersonal('ai')}
-                className={`w-full flex items-center justify-between px-3 py-2 rounded-2xl transition font-medium border ${
-                  currentTab === 'personal-settings' && personalTab === 'ai'
+                className={`w-full flex items-center justify-between px-3 py-2 rounded-2xl transition font-medium border ${currentTab === 'personal-settings' && personalTab === 'ai'
                     ? 'bg-emerald-600/20 text-emerald-400 font-bold border-emerald-500/30'
                     : 'border-transparent hover:bg-slate-800 text-slate-300'
-                }`}
+                  }`}
               >
                 <div className="flex items-center gap-2.5">
                   <Brain className="w-3.5 h-3.5 text-emerald-400" />
@@ -372,11 +361,10 @@ export const Sidebar: React.FC<SidebarProps> = ({
 
               <button
                 onClick={() => handleOpenPersonal('export')}
-                className={`w-full flex items-center justify-between px-3 py-2 rounded-2xl transition font-medium border ${
-                  currentTab === 'personal-settings' && personalTab === 'export'
+                className={`w-full flex items-center justify-between px-3 py-2 rounded-2xl transition font-medium border ${currentTab === 'personal-settings' && personalTab === 'export'
                     ? 'bg-emerald-600/20 text-emerald-400 font-bold border-emerald-500/30'
                     : 'border-transparent hover:bg-slate-800 text-slate-300'
-                }`}
+                  }`}
               >
                 <div className="flex items-center gap-2.5">
                   <Download className="w-3.5 h-3.5 text-emerald-400" />
@@ -399,11 +387,10 @@ export const Sidebar: React.FC<SidebarProps> = ({
 
               <button
                 onClick={() => handleOpenGroup('members')}
-                className={`w-full flex items-center justify-between px-3 py-2 rounded-2xl transition font-medium border ${
-                  currentTab === 'group-settings' && groupTab === 'members'
+                className={`w-full flex items-center justify-between px-3 py-2 rounded-2xl transition font-medium border ${currentTab === 'group-settings' && groupTab === 'members'
                     ? 'bg-purple-600/20 text-purple-300 font-bold border border-purple-500/30'
                     : 'border-transparent hover:bg-slate-800 text-slate-300'
-                }`}
+                  }`}
               >
                 <div className="flex items-center gap-2.5">
                   <Users className="w-3.5 h-3.5 text-purple-400" />
@@ -418,11 +405,10 @@ export const Sidebar: React.FC<SidebarProps> = ({
 
               <button
                 onClick={() => handleOpenGroup('payments')}
-                className={`w-full flex items-center justify-between px-3 py-2 rounded-2xl transition font-medium border ${
-                  currentTab === 'group-settings' && groupTab === 'payments'
+                className={`w-full flex items-center justify-between px-3 py-2 rounded-2xl transition font-medium border ${currentTab === 'group-settings' && groupTab === 'payments'
                     ? 'bg-purple-600/20 text-purple-300 font-bold border border-purple-500/30'
                     : 'border-transparent hover:bg-slate-800 text-slate-300'
-                }`}
+                  }`}
               >
                 <div className="flex items-center gap-2.5">
                   <CreditCard className="w-3.5 h-3.5 text-purple-400" />
@@ -433,11 +419,10 @@ export const Sidebar: React.FC<SidebarProps> = ({
 
               <button
                 onClick={() => handleOpenGroup('tags')}
-                className={`w-full flex items-center justify-between px-3 py-2 rounded-2xl transition font-medium border ${
-                  currentTab === 'group-settings' && groupTab === 'tags'
+                className={`w-full flex items-center justify-between px-3 py-2 rounded-2xl transition font-medium border ${currentTab === 'group-settings' && groupTab === 'tags'
                     ? 'bg-purple-600/20 text-purple-300 font-bold border border-purple-500/30'
                     : 'border-transparent hover:bg-slate-800 text-slate-300'
-                }`}
+                  }`}
               >
                 <div className="flex items-center gap-2.5">
                   <Tag className="w-3.5 h-3.5 text-purple-400" />
@@ -448,11 +433,10 @@ export const Sidebar: React.FC<SidebarProps> = ({
 
               <button
                 onClick={() => handleOpenGroup('budget')}
-                className={`w-full flex items-center justify-between px-3 py-2 rounded-2xl transition font-medium border ${
-                  currentTab === 'group-settings' && groupTab === 'budget'
+                className={`w-full flex items-center justify-between px-3 py-2 rounded-2xl transition font-medium border ${currentTab === 'group-settings' && groupTab === 'budget'
                     ? 'bg-purple-600/20 text-purple-300 font-bold border border-purple-500/30'
                     : 'border-transparent hover:bg-slate-800 text-slate-300'
-                }`}
+                  }`}
               >
                 <div className="flex items-center gap-2.5">
                   <DollarSign className="w-3.5 h-3.5 text-purple-400" />
@@ -463,11 +447,10 @@ export const Sidebar: React.FC<SidebarProps> = ({
 
               <button
                 onClick={() => handleOpenGroup('export')}
-                className={`w-full flex items-center justify-between px-3 py-2 rounded-2xl transition font-medium border ${
-                  currentTab === 'group-settings' && groupTab === 'export'
+                className={`w-full flex items-center justify-between px-3 py-2 rounded-2xl transition font-medium border ${currentTab === 'group-settings' && groupTab === 'export'
                     ? 'bg-purple-600/20 text-purple-300 font-bold border border-purple-500/30'
                     : 'border-transparent hover:bg-slate-800 text-slate-300'
-                }`}
+                  }`}
               >
                 <div className="flex items-center gap-2.5">
                   <Download className="w-3.5 h-3.5 text-purple-400" />

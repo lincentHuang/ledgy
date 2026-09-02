@@ -5,6 +5,7 @@ import {
   signInWithEmailAndPassword,
   createUserWithEmailAndPassword,
   signInWithPopup,
+  signInWithCredential,
   GoogleAuthProvider,
   browserPopupRedirectResolver,
   signOut as fbSignOut,
@@ -13,6 +14,8 @@ import {
   onAuthStateChanged,
   User as FirebaseUser,
 } from 'firebase/auth';
+import { Capacitor } from '@capacitor/core';
+import { FirebaseAuthentication } from '@capacitor-firebase/authentication';
 import { getFirebaseServices } from './firebase';
 import { FirestoreService } from './firestoreService';
 
@@ -285,14 +288,35 @@ export class AuthService {
 
     if (auth && isConfigured) {
       try {
-        const provider = new GoogleAuthProvider();
-        provider.setCustomParameters({ prompt: 'select_account' });
-        const res = await withTimeout(
-          signInWithPopup(auth, provider),
-          30000,
-          'Google 登入連線逾時，請確認是否已允許彈窗或改用 Email 登入。'
-        );
-        const fbUser = res.user;
+        let fbUser: any;
+
+        if (Capacitor.isNativePlatform()) {
+          const result = await FirebaseAuthentication.signInWithGoogle();
+          if (result.credential?.idToken) {
+            const credential = GoogleAuthProvider.credential(result.credential.idToken);
+            const userCred = await signInWithCredential(auth, credential);
+            fbUser = userCred.user;
+          } else if (auth.currentUser) {
+            fbUser = auth.currentUser;
+          } else {
+            fbUser = {
+              uid: result.user?.uid || '',
+              email: result.user?.email || '',
+              displayName: result.user?.displayName || '',
+              photoURL: result.user?.photoUrl || undefined,
+              getIdToken: async () => result.credential?.idToken || '',
+            };
+          }
+        } else {
+          const provider = new GoogleAuthProvider();
+          provider.setCustomParameters({ prompt: 'select_account' });
+          const res = await withTimeout(
+            signInWithPopup(auth, provider),
+            30000,
+            'Google 登入連線逾時，請確認是否已允許彈窗或改用 Email 登入。'
+          );
+          fbUser = res.user;
+        }
 
         let existingProfile = null;
         try {
@@ -339,8 +363,11 @@ export class AuthService {
         console.error('Firebase Google Sign-In error:', err);
         const errMsg = err?.message || '';
 
-        if (err.code === 'auth/popup-closed-by-user' || err.code === 'auth/cancelled-popup-request') {
-          throw new Error('Google 登入視窗已關閉。');
+        if (err.code === 'auth/popup-closed-by-user' || err.code === 'auth/cancelled-popup-request' || errMsg.includes('canceled') || errMsg.includes('cancelled')) {
+          throw new Error('Google 登入已取消。');
+        }
+        if (errMsg.includes('10:') || errMsg.includes('DEVELOPER_ERROR') || errMsg.includes('12500')) {
+          throw new Error('Google 原生驗證設定不完整：Firebase 後台尚未填入此裝置的 SHA-1 憑證指紋，請改用 Email 登入。');
         }
         if (err.code === 'auth/operation-not-allowed') {
           throw new Error('Firebase 後台尚未啟用「Google」登入提供者，請至 Firebase Console 的 Authentication > Sign-in method 啟用 Google 登入。');
@@ -391,6 +418,11 @@ export class AuthService {
   // 4. 登出 (同時清除 Firebase Auth Session 與 Local Storage)
   public static async logout() {
     const { auth } = getFirebaseServices();
+    if (Capacitor.isNativePlatform()) {
+      try {
+        await FirebaseAuthentication.signOut();
+      } catch {}
+    }
     if (auth) {
       try {
         await fbSignOut(auth);

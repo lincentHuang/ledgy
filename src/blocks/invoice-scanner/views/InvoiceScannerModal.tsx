@@ -74,20 +74,50 @@ export const InvoiceScannerModal: React.FC<InvoiceScannerModalProps> = ({ isOpen
       const scanner = new Html5Qrcode('qr-reader');
       html5QrCodeRef.current = scanner;
 
-      await scanner.start(
-        { facingMode: 'environment' },
-        {
-          fps: 12,
-          qrbox: { width: 230, height: 230 },
-          aspectRatio: 1.0,
-        },
-        (decodedText) => {
-          handleQrDecoded(decodedText);
-        },
-        () => {
-          // 忽略單幀未偵測到條碼的微小錯誤
+      // 🔍 雙端自適應鏡頭選取：優先偵測裝置可用攝影機
+      let cameraConfig: any = { facingMode: 'environment' };
+      try {
+        const cameras = await Html5Qrcode.getCameras();
+        if (cameras && cameras.length > 0) {
+          // 若有後置鏡頭 (手機) 優先使用，否則使用第一顆可用鏡頭 (如電腦/MacBook WebCam)
+          const backCam = cameras.find((c) => /back|rear|environment|後/i.test(c.label));
+          cameraConfig = backCam ? backCam.id : cameras[0].id;
         }
-      );
+      } catch (camErr) {
+        console.warn('getCameras fallback to facingMode:', camErr);
+      }
+
+      try {
+        await scanner.start(
+          cameraConfig,
+          {
+            fps: 12,
+            qrbox: { width: 230, height: 230 },
+            aspectRatio: 1.0,
+          },
+          (decodedText) => {
+            handleQrDecoded(decodedText);
+          },
+          () => {
+            // 忽略單幀未偵測到條碼的微小錯誤
+          }
+        );
+      } catch (primaryStartErr) {
+        console.warn('Primary camera start failed, trying front/user camera fallback:', primaryStartErr);
+        // 若指定鏡頭失敗（如筆電不支援 environment 參數），降級至通用前置鏡頭或預設
+        await scanner.start(
+          { facingMode: 'user' },
+          {
+            fps: 12,
+            qrbox: { width: 230, height: 230 },
+            aspectRatio: 1.0,
+          },
+          (decodedText) => {
+            handleQrDecoded(decodedText);
+          },
+          () => {}
+        );
+      }
     } catch (err: any) {
       console.warn('Camera failed to start:', err);
       setCameraError('未偵測到可用相機或相機權限未開放。您也可以直接點擊下方範例進行體驗。');

@@ -80,7 +80,7 @@ export const VoiceInputModal: React.FC<VoiceInputModalProps> = ({
     resetTranscript,
     getLatestTranscript,
   } = useSpeechRecognition({
-    autoStopDelay: 2200,
+    autoStopDelay: 1600,
     onEnd: (finalTranscript) => {
       if (!isParsing) {
         handleProcessVoiceText(finalTranscript);
@@ -93,13 +93,45 @@ export const VoiceInputModal: React.FC<VoiceInputModalProps> = ({
       const latestText = getLatestTranscript();
       const speechText = (text !== undefined ? text : latestText || transcript).trim();
       if (speechText) {
+        stopListening();
         parseVoice(speechText);
       } else {
         resetTranscript();
       }
     },
-    [getLatestTranscript, transcript, parseVoice, resetTranscript]
+    [getLatestTranscript, transcript, parseVoice, resetTranscript, stopListening]
   );
+
+  // 🛡️ 雙重保險防呆 Watchdog：在語音模式下，若已辨識出文字且錄音已停止，但因任何系統非同步邊界條件未進入解析時，
+  // 延遲 750ms 自動觸發結算進下一步，徹底根除「辨識完停在原地」的卡住問題
+  useEffect(() => {
+    if (
+      isOpen &&
+      mode === 'voice' &&
+      !isListening &&
+      !isParsing &&
+      parsedResults.length === 0
+    ) {
+      const currentText = (getLatestTranscript() || transcript).trim();
+      if (currentText.length > 0) {
+        const timer = setTimeout(() => {
+          if (!isParsing && parsedResults.length === 0) {
+            handleProcessVoiceText(currentText);
+          }
+        }, 750);
+        return () => clearTimeout(timer);
+      }
+    }
+  }, [
+    isOpen,
+    mode,
+    isListening,
+    isParsing,
+    transcript,
+    parsedResults.length,
+    getLatestTranscript,
+    handleProcessVoiceText,
+  ]);
 
   // 當 Modal 開啟時，初始化狀態 (0ms 極速啟動)
   useEffect(() => {
@@ -134,21 +166,29 @@ export const VoiceInputModal: React.FC<VoiceInputModalProps> = ({
   // 手動點擊麥克風開關切換 (即時結算，0ms 卡頓)
   const handleToggleListening = useCallback(() => {
     if (isListening) {
-      const currentText = getLatestTranscript();
+      const currentText = (getLatestTranscript() || transcript).trim();
       stopListening();
-      if (currentText && currentText.trim()) {
-        parseVoice(currentText.trim());
+      if (currentText) {
+        parseVoice(currentText);
       } else {
         handleProcessVoiceText();
       }
     } else {
-      resetTranscript();
-      resetParsedResult();
-      startListening();
+      const currentText = (getLatestTranscript() || transcript).trim();
+      // 若已有辨識文字且尚未進入解析，點擊麥克風即直接進行 AI 解析
+      if (currentText && !isParsing) {
+        handleProcessVoiceText(currentText);
+      } else {
+        resetTranscript();
+        resetParsedResult();
+        startListening();
+      }
     }
   }, [
     isListening,
     getLatestTranscript,
+    transcript,
+    isParsing,
     stopListening,
     parseVoice,
     handleProcessVoiceText,
@@ -240,7 +280,7 @@ export const VoiceInputModal: React.FC<VoiceInputModalProps> = ({
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-0 sm:p-4 bg-black/80 backdrop-blur-md animate-in fade-in duration-200 overflow-hidden">
       {/* 電腦版置中卡片 + 手機版全螢幕自適應容器 */}
-      <div className="relative w-full h-[var(--app-height,100dvh)] sm:h-auto sm:max-h-[88vh] sm:max-w-lg rounded-none sm:rounded-3xl bg-slate-950/95 text-slate-100 shadow-2xl border-0 sm:border sm:border-slate-800/80 flex flex-col justify-between overflow-hidden backdrop-blur-2xl">
+      <div className="relative w-full h-[var(--app-height,100dvh)] sm:h-auto sm:max-h-[88vh] sm:max-w-lg rounded-none sm:rounded-3xl bg-slate-950/95 text-slate-100 shadow-2xl border-0 sm:border sm:border-slate-800/80 flex flex-col justify-between overflow-hidden backdrop-blur-2xl pt-safe">
 
         {/* 背景純淨質感柔和漸層光暈 (無 Canvas 負擔) */}
         <div className="absolute inset-0 overflow-hidden pointer-events-none z-0">
@@ -300,11 +340,10 @@ export const VoiceInputModal: React.FC<VoiceInputModalProps> = ({
 
         {/* 2. 中間滾動內容區 (Scrollable Main Content Area) */}
         <main
-          className={`relative z-10 flex-1 overflow-y-auto min-h-0 w-full px-4 pt-4 flex flex-col items-center justify-between pl-[max(1rem,calc(0.5rem+env(safe-area-inset-left,0px)))] pr-[max(1rem,calc(0.5rem+env(safe-area-inset-right,0px)))] sm:px-4 ${
-            parsedResults.length === 0
-              ? 'pb-[calc(1.5rem+env(safe-area-inset-bottom,0px))] sm:pb-4'
-              : 'pb-4'
-          }`}
+          className={`relative z-10 flex-1 overflow-y-auto min-h-0 w-full px-4 pt-4 flex flex-col items-center justify-between pl-[max(1rem,calc(0.5rem+env(safe-area-inset-left,0px)))] pr-[max(1rem,calc(0.5rem+env(safe-area-inset-right,0px)))] sm:px-4 ${parsedResults.length === 0
+            ? 'pb-[calc(1.5rem+env(safe-area-inset-bottom,0px))] sm:pb-4'
+            : 'pb-4'
+            }`}
         >
           {/* 未解析完成時的動態輸入舞台 (依模式顯示語音收音或手動打字) */}
           {parsedResults.length === 0 ? (
@@ -355,14 +394,42 @@ export const VoiceInputModal: React.FC<VoiceInputModalProps> = ({
                   </div>
 
                   {/* 即時辨識文字氣泡 */}
-                  <div className="mt-4 w-full max-w-md min-h-[64px] flex items-center justify-center">
+                  <div className="mt-4 w-full max-w-md min-h-[64px] flex flex-col items-center justify-center gap-2.5">
                     {transcript ? (
-                      <div className="w-full px-4 py-2.5 rounded-2xl bg-slate-900/90 border border-emerald-500/40 text-emerald-300 font-bold text-sm shadow-xl backdrop-blur-xl animate-in zoom-in-95 text-center break-words">
-                        <span>「{transcript}」</span>
-                        {isListening && (
-                          <span className="inline-block w-1.5 h-3.5 ml-1 bg-emerald-400 animate-pulse align-middle rounded-sm" />
+                      <>
+                        <div className="w-full px-4 py-2.5 rounded-2xl bg-slate-900/90 border border-emerald-500/40 text-emerald-300 font-bold text-sm shadow-xl backdrop-blur-xl animate-in zoom-in-95 text-center break-words">
+                          <span>「{transcript}」</span>
+                          {isListening && (
+                            <span className="inline-block w-1.5 h-3.5 ml-1 bg-emerald-400 animate-pulse align-middle rounded-sm" />
+                          )}
+                        </div>
+
+                        {/* 🌟 當有辨識文字時，顯示快捷「立即解析」與「重錄」按鈕，給予使用者百分之百的主控權 */}
+                        {!isParsing && (
+                          <div className="flex items-center gap-2 animate-in fade-in duration-200">
+                            <button
+                              type="button"
+                              onClick={() => handleProcessVoiceText(transcript)}
+                              className="px-4 py-1.5 rounded-xl bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-white text-xs font-bold shadow-md shadow-emerald-950/40 flex items-center gap-1.5 active:scale-95 transition"
+                            >
+                              <Sparkles className="w-3.5 h-3.5" />
+                              <span>⚡ 立即解析</span>
+                            </button>
+                            <button
+                              type="button"
+                              onClick={() => {
+                                resetTranscript();
+                                resetParsedResult();
+                                startListening();
+                              }}
+                              className="px-3 py-1.5 rounded-xl bg-slate-900 hover:bg-slate-800 text-slate-400 hover:text-slate-200 border border-slate-700/60 text-xs font-medium transition active:scale-95 flex items-center gap-1"
+                            >
+                              <RotateCcw className="w-3 h-3" />
+                              <span>重錄</span>
+                            </button>
+                          </div>
                         )}
-                      </div>
+                      </>
                     ) : (
                       <p className="text-xs text-slate-400/80 font-medium">
                         {isListening ? '請開口說話，文字將即時逐字出現' : ''}

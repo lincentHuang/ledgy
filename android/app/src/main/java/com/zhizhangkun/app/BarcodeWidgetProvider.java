@@ -8,6 +8,7 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.graphics.Bitmap;
+import android.net.Uri;
 import android.widget.RemoteViews;
 
 public class BarcodeWidgetProvider extends AppWidgetProvider {
@@ -37,8 +38,9 @@ public class BarcodeWidgetProvider extends AppWidgetProvider {
             e.printStackTrace();
         }
 
-        // 點擊開啟 App
-        Intent intent = new Intent(context, MainActivity.class);
+        // 點擊開啟 App 條碼彈窗
+        Intent intent = new Intent(Intent.ACTION_VIEW, Uri.parse("zhizhangkun://barcode"));
+        intent.setClass(context, MainActivity.class);
         intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TOP);
         PendingIntent pendingIntent = PendingIntent.getActivity(
             context,

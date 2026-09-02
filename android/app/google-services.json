@@ -1,0 +1,39 @@
+{
+  "project_info": {
+    "project_number": "797221005704",
+    "project_id": "ledgy-be1e6",
+    "storage_bucket": "ledgy-be1e6.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:797221005704:android:3121149ea57cbcbca0723d",
+        "android_client_info": {
+          "package_name": "com.ledgy.app"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "797221005704-1mk99ouprj6fi5ehp97ul369is3hl2ad.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyC_c5mkfdi_Inz61prio5UZQ3ogr8QB7nc"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "797221005704-1mk99ouprj6fi5ehp97ul369is3hl2ad.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

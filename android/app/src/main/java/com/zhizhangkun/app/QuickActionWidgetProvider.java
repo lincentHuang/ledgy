@@ -31,7 +31,7 @@ public class QuickActionWidgetProvider extends AppWidgetProvider {
         views.setOnClickPendingIntent(R.id.widget_btn_voice, voicePending);
 
         // 掃描發票
-        Intent scanIntent = new Intent(Intent.ACTION_VIEW, Uri.parse("zhizhangkun://scan"));
+        Intent scanIntent = new Intent(Intent.ACTION_VIEW, Uri.parse("zhizhangkun://scanner"));
         scanIntent.setClass(context, MainActivity.class);
         scanIntent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TOP);
         PendingIntent scanPending = PendingIntent.getActivity(
@@ -40,7 +40,7 @@ public class QuickActionWidgetProvider extends AppWidgetProvider {
         views.setOnClickPendingIntent(R.id.widget_btn_scan, scanPending);
 
         // 記一筆
-        Intent addIntent = new Intent(Intent.ACTION_VIEW, Uri.parse("zhizhangkun://add"));
+        Intent addIntent = new Intent(Intent.ACTION_VIEW, Uri.parse("zhizhangkun://quick-input"));
         addIntent.setClass(context, MainActivity.class);
         addIntent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TOP);
         PendingIntent addPending = PendingIntent.getActivity(

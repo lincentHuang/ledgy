@@ -207,13 +207,13 @@ export const OnboardingWizardView: React.FC<OnboardingWizardViewProps> = ({
   ];
 
   return (
-    <div className="h-[100dvh] max-h-[100dvh] bg-slate-950 text-slate-100 flex flex-col justify-between relative overflow-y-auto overflow-x-hidden selection:bg-emerald-500 selection:text-white overscroll-contain">
+    <div className="h-[100dvh] max-h-[100dvh] bg-slate-950 text-slate-100 flex flex-col justify-between relative overflow-y-auto overflow-x-hidden selection:bg-emerald-500 selection:text-white overscroll-contain pt-safe">
       {/* 背景柔和氛圍光暈 */}
       <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[600px] h-[300px] bg-emerald-600/15 rounded-full blur-3xl pointer-events-none" />
       <div className="absolute bottom-0 right-0 w-[400px] h-[300px] bg-teal-600/10 rounded-full blur-3xl pointer-events-none" />
 
       {/* 頂部 Header */}
-      <header className="w-full max-w-3xl mx-auto px-4 sm:px-6 pt-3.5 sm:pt-6 pb-2 z-10 flex items-center justify-between shrink-0 pt-safe">
+      <header className="w-full max-w-3xl mx-auto px-4 sm:px-6 pt-3.5 sm:pt-6 pb-2 z-10 flex items-center justify-between shrink-0 ">
         <div className="flex items-center gap-2 sm:gap-3">
           {onBackToLogin && (
             <button
@@ -261,13 +261,12 @@ export const OnboardingWizardView: React.FC<OnboardingWizardViewProps> = ({
                 return (
                   <div key={s.num} className="space-y-1.5 text-center">
                     <div
-                      className={`h-1.5 rounded-full transition-all duration-300 ${
-                        isActive
+                      className={`h-1.5 rounded-full transition-all duration-300 ${isActive
                           ? 'bg-emerald-400 shadow-md shadow-emerald-500/50'
                           : isPassed
-                          ? 'bg-emerald-600'
-                          : 'bg-slate-800'
-                      }`}
+                            ? 'bg-emerald-600'
+                            : 'bg-slate-800'
+                        }`}
                     />
                     <div className="hidden sm:block text-[11px] font-bold text-slate-400 truncate">
                       {s.num}. {s.title}
@@ -504,11 +503,10 @@ export const OnboardingWizardView: React.FC<OnboardingWizardViewProps> = ({
                       key={amt}
                       type="button"
                       onClick={() => setMonthlyBudget(amt)}
-                      className={`text-[11px] sm:text-xs py-1.5 px-1 sm:px-3 sm:py-1.5 rounded-xl border font-bold transition text-center truncate ${
-                        monthlyBudget === amt
+                      className={`text-[11px] sm:text-xs py-1.5 px-1 sm:px-3 sm:py-1.5 rounded-xl border font-bold transition text-center truncate ${monthlyBudget === amt
                           ? 'bg-emerald-950 border-emerald-500 text-emerald-400'
                           : 'bg-slate-900 border-slate-800 text-slate-400 hover:text-slate-200'
-                      }`}
+                        }`}
                     >
                       NT$ {amt.toLocaleString()}
                     </button>
@@ -585,14 +583,12 @@ export const OnboardingWizardView: React.FC<OnboardingWizardViewProps> = ({
                   <button
                     type="button"
                     onClick={() => setEnableAi(!enableAi)}
-                    className={`w-12 h-6 rounded-full transition-colors relative p-0.5 ${
-                      enableAi ? 'bg-emerald-600' : 'bg-slate-800'
-                    }`}
+                    className={`w-12 h-6 rounded-full transition-colors relative p-0.5 ${enableAi ? 'bg-emerald-600' : 'bg-slate-800'
+                      }`}
                   >
                     <div
-                      className={`w-5 h-5 rounded-full bg-white transition-transform ${
-                        enableAi ? 'translate-x-6' : 'translate-x-0'
-                      }`}
+                      className={`w-5 h-5 rounded-full bg-white transition-transform ${enableAi ? 'translate-x-6' : 'translate-x-0'
+                        }`}
                     />
                   </button>
                 </div>

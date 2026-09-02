@@ -1,16 +1,23 @@
 'use client';
 
 import React, { useState } from 'react';
+import dynamic from 'next/dynamic';
 import { useAppStore } from '@/lib/store';
 import { Header, Sidebar, BottomNav, MainTabType, PullToRefresh, PwaInstallPrompt } from '@/blocks/layout';
 import { TransactionList } from '@/blocks/dashboard';
 import { FamilyView } from '@/blocks/family-ledger';
 import { PersonalSettingsView, PersonalTabType, GroupSettingsView, GroupTabType } from '@/blocks/settings';
-import { BarcodeModal, InvoiceScannerModal } from '@/blocks/invoice-scanner';
+import { BarcodeModal } from '@/blocks/invoice-scanner';
 import { QuickInputModal } from '@/blocks/transactions';
 import { FinancialChatModal, FinancialReportView } from '@/blocks/ai-consultant';
 import { UserProfileModal, WelcomeView, OnboardingWizardModal } from '@/blocks/auth';
 import { VoiceInputModal } from '@/blocks/voice-input';
+
+// 🚀 延遲載入含重型相機/二維碼解碼庫 (html5-qrcode) 的彈窗，極速瘦身首屏與 APK 啟動耗時
+const InvoiceScannerModal = dynamic(
+  () => import('@/blocks/invoice-scanner').then((mod) => mod.InvoiceScannerModal),
+  { ssr: false }
+);
 
 export default function Home() {
   const {
@@ -82,9 +89,9 @@ export default function Home() {
       const action = customEvent.detail?.action;
       if (action === 'voice') {
         setIsVoiceOpen(true);
-      } else if (action === 'scanner') {
+      } else if (action === 'scanner' || action === 'scan') {
         setIsScannerOpen(true);
-      } else if (action === 'quick-input') {
+      } else if (action === 'quick-input' || action === 'add' || action === 'manual') {
         setIsQuickInputOpen(true);
       } else if (action === 'barcode') {
         setIsBarcodeOpen(true);

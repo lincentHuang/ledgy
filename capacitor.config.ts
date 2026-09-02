@@ -1,7 +1,7 @@
 import type { CapacitorConfig } from '@capacitor/cli';
 
 const config: CapacitorConfig = {
-  appId: 'com.zhizhangkun.app',
+  appId: 'com.ledgy.app',
   appName: '智帳君 Ledgy',
   webDir: 'out',
   server: {
@@ -11,11 +11,18 @@ const config: CapacitorConfig = {
     // cleartext: true,
   },
   plugins: {
+    FirebaseAuthentication: {
+      skipNativeAuth: false,
+      providers: ['google.com'],
+    },
     SplashScreen: {
-      launchShowDuration: 1200,
-      launchAutoHide: true,
+      launchShowDuration: 0,
+      launchAutoHide: false,
       backgroundColor: '#020617',
       showSpinner: false,
+      androidScaleType: 'CENTER_CROP',
+      splashFullScreen: true,
+      splashImmersive: true,
     },
     StatusBar: {
       style: 'DARK',

@@ -1,0 +1,18 @@
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="24dp"
+    android:height="24dp"
+    android:viewportWidth="24"
+    android:viewportHeight="24">
+    <!-- 麥克風主體膠囊 -->
+    <path
+        android:fillColor="#10B981"
+        android:pathData="M12,14c1.66,0 3,-1.34 3,-3V5c0,-1.66 -1.34,-3 -3,-3s-3,1.34 -3,3v6C9,12.66 10.34,14 12,14z"/>
+    <!-- 麥克風外弧與支架 -->
+    <path
+        android:fillColor="#00000000"
+        android:strokeColor="#10B981"
+        android:strokeWidth="2"
+        android:strokeLineCap="round"
+        android:strokeLineJoin="round"
+        android:pathData="M19,10v1a7,7 0 0,1 -14,0v-1 M12,18v4 M8,22h8"/>
+</vector>

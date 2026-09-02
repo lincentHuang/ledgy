@@ -36,7 +36,40 @@ export function NativeInitializer() {
       });
     }
 
-    // 🔗 檢查 Web PWA App Shortcuts 網址參數 (/?action=voice 等)
+    // 🚀 原生啟動畫面即時隱藏 (0ms 延遲直開，告別白屏與假卡頓)
+    Platform.hideSplashScreen(100);
+
+    // 🔗 輔助函式：分發 Deep Link 事件至全局
+    const dispatchDeepLink = (rawUrlOrAction: string) => {
+      let action = (rawUrlOrAction || '').toLowerCase();
+      try {
+        if (rawUrlOrAction.includes('://')) {
+          const parsed = new URL(rawUrlOrAction);
+          action = (parsed.hostname || parsed.pathname || '').replace(/^\//, '').toLowerCase();
+        }
+      } catch {}
+
+      if (action.includes('voice')) {
+        window.dispatchEvent(new CustomEvent('app-deep-link', { detail: { action: 'voice' } }));
+      } else if (action.includes('scan')) {
+        window.dispatchEvent(new CustomEvent('app-deep-link', { detail: { action: 'scanner' } }));
+      } else if (
+        action.includes('add') ||
+        action.includes('quick') ||
+        action.includes('input') ||
+        action.includes('manual')
+      ) {
+        window.dispatchEvent(new CustomEvent('app-deep-link', { detail: { action: 'quick-input' } }));
+      } else if (action.includes('barcode')) {
+        window.dispatchEvent(new CustomEvent('app-deep-link', { detail: { action: 'barcode' } }));
+      } else if (action.includes('overview')) {
+        window.dispatchEvent(new CustomEvent('app-deep-link', { detail: { action: 'overview' } }));
+      } else if (action) {
+        window.dispatchEvent(new CustomEvent('app-deep-link', { detail: { action } }));
+      }
+    };
+
+    // 🔗 1. 檢查 Web PWA App Shortcuts 網址參數 (/?action=voice 等，0ms 極速分發)
     if (typeof window !== 'undefined') {
       try {
         const params = new URLSearchParams(window.location.search);
@@ -44,39 +77,29 @@ export function NativeInitializer() {
         if (action) {
           const cleanUrl = window.location.pathname;
           window.history.replaceState({}, document.title, cleanUrl);
-          setTimeout(() => {
-            window.dispatchEvent(new CustomEvent('app-deep-link', { detail: { action } }));
-          }, 350);
+          // 0ms 立即分發，避免無謂等待
+          dispatchDeepLink(action);
         }
       } catch (err) {
         console.warn('Failed to parse URL action param:', err);
       }
     }
 
+    // 🔗 2. 檢查 Android / iOS 原生冷啟動 (Cold Start) 傳入之 Launch URL (如 zhizhangkun://voice)
+    Platform.getLaunchUrl().then((launchUrl) => {
+      if (launchUrl) {
+        dispatchDeepLink(launchUrl);
+      }
+    });
+
     // 支援 Android 原生返回鍵
     const backSub = Platform.onBackButton(() => {
       // 可處理返回
     });
 
-    // 支援 iOS / Android 桌面 Widget Deep Link 快捷跳轉
+    // 🔗 3. 支援 iOS / Android 背景喚醒 (Warm Start) 桌面 Widget Deep Link 快捷跳轉
     const urlSub = Platform.onAppUrlOpen((url) => {
-      try {
-        const parsed = new URL(url);
-        const action = (parsed.hostname || parsed.pathname || '').replace(/^\//, '');
-        if (action) {
-          window.dispatchEvent(new CustomEvent('app-deep-link', { detail: { action } }));
-        }
-      } catch {
-        if (url.includes('voice')) {
-          window.dispatchEvent(new CustomEvent('app-deep-link', { detail: { action: 'voice' } }));
-        } else if (url.includes('scanner')) {
-          window.dispatchEvent(new CustomEvent('app-deep-link', { detail: { action: 'scanner' } }));
-        } else if (url.includes('quick-input')) {
-          window.dispatchEvent(new CustomEvent('app-deep-link', { detail: { action: 'quick-input' } }));
-        } else if (url.includes('barcode')) {
-          window.dispatchEvent(new CustomEvent('app-deep-link', { detail: { action: 'barcode' } }));
-        }
-      }
+      dispatchDeepLink(url);
     });
 
     // 📱 視窗與虛擬鍵盤自適應壓縮引擎 (模擬原生 App 鍵盤彈出時自動壓縮視窗)

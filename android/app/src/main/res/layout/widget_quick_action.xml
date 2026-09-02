@@ -18,14 +18,15 @@
         android:orientation="vertical"
         android:gravity="center"
         android:layout_marginEnd="4dp"
+        android:padding="4dp"
         android:clickable="true"
         android:focusable="true">
 
-        <TextView
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="🎙️"
-            android:textSize="18sp" />
+        <ImageView
+            android:layout_width="20dp"
+            android:layout_height="20dp"
+            android:src="@drawable/ic_widget_voice"
+            android:contentDescription="語音記帳" />
 
         <TextView
             android:layout_width="wrap_content"
@@ -34,7 +35,7 @@
             android:textColor="#E2E8F0"
             android:textSize="10sp"
             android:textStyle="bold"
-            android:layout_marginTop="2dp" />
+            android:layout_marginTop="3dp" />
     </LinearLayout>
 
     <!-- 📷 掃描發票按鈕 -->
@@ -47,14 +48,15 @@
         android:orientation="vertical"
         android:gravity="center"
         android:layout_marginEnd="4dp"
+        android:padding="4dp"
         android:clickable="true"
         android:focusable="true">
 
-        <TextView
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="📷"
-            android:textSize="18sp" />
+        <ImageView
+            android:layout_width="20dp"
+            android:layout_height="20dp"
+            android:src="@drawable/ic_widget_scan"
+            android:contentDescription="掃發票" />
 
         <TextView
             android:layout_width="wrap_content"
@@ -63,10 +65,10 @@
             android:textColor="#E2E8F0"
             android:textSize="10sp"
             android:textStyle="bold"
-            android:layout_marginTop="2dp" />
+            android:layout_marginTop="3dp" />
     </LinearLayout>
 
-    <!-- ➕ 快速新增按鈕 -->
+    <!-- ✍️ 記一筆按鈕 -->
     <LinearLayout
         android:id="@+id/widget_btn_add"
         android:layout_width="0dp"
@@ -75,22 +77,23 @@
         android:background="@drawable/widget_button_bg"
         android:orientation="vertical"
         android:gravity="center"
+        android:padding="4dp"
         android:clickable="true"
         android:focusable="true">
 
-        <TextView
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="➕"
-            android:textSize="18sp" />
+        <ImageView
+            android:layout_width="20dp"
+            android:layout_height="20dp"
+            android:src="@drawable/ic_widget_pen"
+            android:contentDescription="記一筆" />
 
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="記一筆"
-            android:textColor="#10B981"
+            android:textColor="#F59E0B"
             android:textSize="10sp"
             android:textStyle="bold"
-            android:layout_marginTop="2dp" />
+            android:layout_marginTop="3dp" />
     </LinearLayout>
 </LinearLayout>

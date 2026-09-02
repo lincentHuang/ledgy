@@ -2,6 +2,7 @@ import { Capacitor, registerPlugin } from '@capacitor/core';
 import { Haptics, ImpactStyle, NotificationType } from '@capacitor/haptics';
 import { StatusBar, Style } from '@capacitor/status-bar';
 import { App, URLOpenListenerEvent } from '@capacitor/app';
+import { SplashScreen } from '@capacitor/splash-screen';
 
 export interface WidgetData {
   carrierCode?: string;
@@ -85,6 +86,31 @@ export const Platform = {
       return App.addListener('backButton', () => {
         callback();
       });
+    }
+    return null;
+  },
+
+  /** 立即關閉原生啟動畫面 (避免 1.2s 延遲) */
+  hideSplashScreen: async (fadeOutDuration: number = 100) => {
+    if (Capacitor.isNativePlatform()) {
+      try {
+        await SplashScreen.hide({ fadeOutDuration });
+      } catch (e) {
+        console.warn('SplashScreen.hide skipped:', e);
+      }
+    }
+  },
+
+  /** 取得應用程式冷啟動時傳入之 Deep Link URL */
+  getLaunchUrl: async (): Promise<string | null> => {
+    if (Capacitor.isNativePlatform()) {
+      try {
+        const res = await App.getLaunchUrl();
+        return res?.url || null;
+      } catch (e) {
+        console.warn('App.getLaunchUrl failed:', e);
+        return null;
+      }
     }
     return null;
   },
