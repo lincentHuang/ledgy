@@ -10,6 +10,7 @@
     "start": "next start -p 3000",
     "lint": "next lint",
     "deploy": "yarn build:export && npx -y firebase-tools@latest deploy --only hosting",
+    "build:apk": "yarn cap:sync && export JAVA_HOME=\"/Applications/Android Studio.app/Contents/jbr/Contents/Home\" && cd android && ./gradlew assembleDebug && cp app/build/outputs/apk/debug/app-debug.apk ../智帳君_Ledgy_debug.apk",
     "cap:sync": "yarn build:export && export LANG=en_US.UTF-8 LC_ALL=en_US.UTF-8 PATH=\"/opt/homebrew/bin:$PATH\" && cap sync",
     "cap:ios": "cap open ios",
     "cap:android": "cap open android"
