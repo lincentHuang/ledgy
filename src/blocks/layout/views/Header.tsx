@@ -172,8 +172,6 @@ export const Header: React.FC<HeaderProps> = ({
   const {
     user,
     isAuthenticated,
-    household,
-    activeLedger,
     incomingInvitations,
     pullFromCloud,
   } = useAppStore();
@@ -200,7 +198,7 @@ export const Header: React.FC<HeaderProps> = ({
   return (
     <header className="flex-shrink-0 z-30 w-full glass-panel shadow-sm pt-safe transition-all duration-200">
       <div className="max-w-4xl mx-auto px-3 sm:px-4 py-2 sm:py-2.5 flex items-center justify-between gap-2">
-        {/* Left Section (靠左：手機/平板顯示 Logo；電腦版顯示當前帳本狀態提示) */}
+        {/* Left Section (靠左：手機/平板顯示 Logo；電腦版由側邊欄顯示品牌並保留彈性排版) */}
         <div className="flex-1 lg:flex-1 flex items-center justify-start gap-2 min-w-0">
           {/* Mobile Logo */}
           <div className="flex lg:hidden items-center gap-1.5 truncate">
@@ -212,14 +210,6 @@ export const Header: React.FC<HeaderProps> = ({
             <span className="font-extrabold text-sm sm:text-base tracking-tight text-white flex items-center gap-1 truncate">
               智帳君 <span className="text-emerald-400 font-black">Ledgy</span>
             </span>
-          </div>
-
-          {/* Desktop Left: Current Ledger Badge / Status */}
-          <div className="hidden lg:flex items-center gap-2">
-            <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-slate-900/80 border border-slate-800 text-xs font-semibold text-slate-300 shadow-sm">
-              <span className={`w-2 h-2 rounded-full ${activeLedger === 'household' ? 'bg-purple-400 animate-pulse' : 'bg-emerald-400'}`} />
-              <span>{activeLedger === 'household' ? (household?.name ? `帳本 • ${household.name}` : '共用帳本') : '個人私帳'}</span>
-            </div>
           </div>
         </div>
 
