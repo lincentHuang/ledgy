@@ -25,50 +25,34 @@ interface HeaderProps {
   onOpenProfile: () => void;
 }
 
-export const Header: React.FC<HeaderProps> = ({
-  onOpenPersonalSettings,
+// 帳簿切換下拉選單元件 (支援電腦版置中與手機版靠右)
+interface LedgerSwitcherProps {
+  align?: 'center' | 'right';
+  className?: string;
+  onOpenGroupSettings: (tab?: any) => void;
+}
+
+const LedgerSwitcher: React.FC<LedgerSwitcherProps> = ({
+  align = 'center',
+  className = '',
   onOpenGroupSettings,
-  onOpenProfile,
 }) => {
   const {
-    user,
-    isAuthenticated,
     households,
     activeHouseholdId,
     household,
     switchActiveHousehold,
     activeLedger,
     setActiveLedger,
-    incomingInvitations,
-    pullFromCloud,
   } = useAppStore();
 
-  const [isDropdownOpen, setIsDropdownOpen] = useState(false);
-  const [isRefreshing, setIsRefreshing] = useState(false);
-  const [showRefreshTooltip, setShowRefreshTooltip] = useState(false);
+  const [isOpen, setIsOpen] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
 
-  const handleManualRefresh = async () => {
-    if (isRefreshing) return;
-    setIsRefreshing(true);
-    Platform.haptic('light');
-    try {
-      await pullFromCloud();
-      setShowRefreshTooltip(true);
-      Platform.haptic('success');
-      setTimeout(() => setShowRefreshTooltip(false), 2000);
-    } catch (e) {
-      console.error('Manual refresh error:', e);
-    } finally {
-      setIsRefreshing(false);
-    }
-  };
-
-  // 點擊外部自動關閉下拉選單
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
       if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
-        setIsDropdownOpen(false);
+        setIsOpen(false);
       }
     };
     document.addEventListener('mousedown', handleClickOutside);
@@ -86,10 +70,138 @@ export const Header: React.FC<HeaderProps> = ({
   };
 
   return (
+    <div className={`relative ${className}`} ref={dropdownRef}>
+      <button
+        onClick={() => setIsOpen(!isOpen)}
+        className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-slate-800/90 hover:bg-slate-800 border border-slate-700/80 text-xs font-bold text-slate-200 transition shadow-sm active:scale-95 shrink-0"
+        title="切換帳本"
+      >
+        {getLedgerIcon()}
+        <span className="text-[11px] sm:text-xs truncate max-w-[90px] sm:max-w-[140px]">
+          {getLedgerName()}
+        </span>
+        <ChevronDown className={`w-3 h-3 text-slate-400 opacity-70 transition-transform ${isOpen ? 'rotate-180' : ''}`} />
+      </button>
+
+      {/* 下拉選單：個人私帳與獨立自建帳本 */}
+      {isOpen && (
+        <div
+          className={`absolute top-full mt-2 w-56 rounded-2xl bg-slate-900 border border-slate-700 shadow-2xl p-1.5 z-50 text-xs space-y-1 animate-in fade-in zoom-in-95 ${
+            align === 'right' ? 'right-0' : 'left-1/2 -translate-x-1/2'
+          }`}
+        >
+          {/* 1. 個人私帳選項 */}
+          <button
+            onClick={() => {
+              setActiveLedger('personal');
+              setIsOpen(false);
+            }}
+            className={`w-full flex items-center justify-between px-3 py-2 rounded-xl transition border ${
+              activeLedger === 'personal'
+                ? 'bg-emerald-950/80 text-emerald-300 font-bold border-emerald-800/60'
+                : 'border-transparent hover:bg-slate-800 text-slate-300'
+            }`}
+          >
+            <div className="flex items-center gap-2">
+              <Wallet className="w-3.5 h-3.5 text-emerald-400" />
+              <span>個人私帳</span>
+            </div>
+            {activeLedger === 'personal' && <Check className="w-3.5 h-3.5 text-emerald-400" />}
+          </button>
+
+          {households.length > 0 && (
+            <>
+              <div className="border-t border-slate-800 my-1 pt-1">
+                <p className="px-2 py-1 text-[10px] font-bold text-slate-500 uppercase tracking-wider">
+                  共用/獨立帳本 ({households.length})
+                </p>
+              </div>
+
+              {/* 2. 各個共享帳本選項 */}
+              {households.map((h) => {
+                const isCurrent = activeLedger === 'household' && activeHouseholdId === h.id;
+                return (
+                  <button
+                    key={h.id}
+                    onClick={() => {
+                      switchActiveHousehold(h.id);
+                      setActiveLedger('household');
+                      setIsOpen(false);
+                    }}
+                    className={`w-full flex items-center justify-between px-3 py-2 rounded-xl transition border ${
+                      isCurrent
+                        ? 'bg-purple-950/80 text-purple-300 font-bold border-purple-800/60'
+                        : 'border-transparent hover:bg-slate-800 text-slate-300'
+                    }`}
+                  >
+                    <div className="flex items-center gap-2 truncate">
+                      <Users className="w-3.5 h-3.5 text-purple-400 flex-shrink-0" />
+                      <span className="truncate">{h.name}</span>
+                    </div>
+                    {isCurrent && <Check className="w-3.5 h-3.5 text-purple-400 flex-shrink-0" />}
+                  </button>
+                );
+              })}
+            </>
+          )}
+
+          {/* 3. 管理 / 建立新帳本捷徑 */}
+          <div className="border-t border-slate-800 pt-1">
+            <button
+              onClick={() => {
+                onOpenGroupSettings('members');
+                setIsOpen(false);
+              }}
+              className="w-full flex items-center gap-2 px-3 py-1.5 rounded-xl hover:bg-slate-800 text-emerald-400 hover:text-emerald-300 transition text-[11px] font-bold"
+            >
+              <Plus className="w-3.5 h-3.5 text-emerald-400" />
+              <span>建立或加入新帳本...</span>
+            </button>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+};
+
+export const Header: React.FC<HeaderProps> = ({
+  onOpenPersonalSettings,
+  onOpenGroupSettings,
+  onOpenProfile,
+}) => {
+  const {
+    user,
+    isAuthenticated,
+    household,
+    activeLedger,
+    incomingInvitations,
+    pullFromCloud,
+  } = useAppStore();
+
+  const [isRefreshing, setIsRefreshing] = useState(false);
+  const [showRefreshTooltip, setShowRefreshTooltip] = useState(false);
+
+  const handleManualRefresh = async () => {
+    if (isRefreshing) return;
+    setIsRefreshing(true);
+    Platform.haptic('light');
+    try {
+      await pullFromCloud();
+      setShowRefreshTooltip(true);
+      Platform.haptic('success');
+      setTimeout(() => setShowRefreshTooltip(false), 2000);
+    } catch (e) {
+      console.error('Manual refresh error:', e);
+    } finally {
+      setIsRefreshing(false);
+    }
+  };
+
+  return (
     <header className="flex-shrink-0 z-30 w-full glass-panel shadow-sm pt-safe transition-all duration-200">
       <div className="max-w-4xl mx-auto px-3 sm:px-4 py-2 sm:py-2.5 flex items-center justify-between gap-2">
         {/* Left Section (靠左：手機/平板顯示 Logo；電腦版顯示當前帳本狀態提示) */}
-        <div className="flex-1 flex items-center justify-start gap-2 min-w-0">
+        <div className="flex-1 lg:flex-1 flex items-center justify-start gap-2 min-w-0">
           {/* Mobile Logo */}
           <div className="flex lg:hidden items-center gap-1.5 truncate">
             <img
@@ -111,99 +223,13 @@ export const Header: React.FC<HeaderProps> = ({
           </div>
         </div>
 
-        {/* Center: Multi-Ledger Switcher (絕對置中) */}
-        <div className="flex-shrink-0 flex items-center justify-center">
-          <div className="relative" ref={dropdownRef}>
-            <button
-              onClick={() => setIsDropdownOpen(!isDropdownOpen)}
-              className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-slate-800/90 hover:bg-slate-800 border border-slate-700/80 text-xs font-bold text-slate-200 transition shadow-sm active:scale-95"
-              title="切換帳本"
-            >
-              {getLedgerIcon()}
-              <span className="text-[11px] sm:text-xs truncate max-w-[110px] sm:max-w-[140px]">
-                {getLedgerName()}
-              </span>
-              <ChevronDown className="w-3 h-3 text-slate-400 opacity-70" />
-            </button>
-
-            {/* 下拉選單：個人私帳與獨立自建帳本 */}
-            {isDropdownOpen && (
-              <div className="absolute top-full mt-2 left-1/2 -translate-x-1/2 w-56 rounded-2xl bg-slate-900 border border-slate-700 shadow-2xl p-1.5 z-50 text-xs space-y-1 animate-in fade-in zoom-in-95">
-                {/* 1. 個人私帳選項 */}
-                <button
-                  onClick={() => {
-                    setActiveLedger('personal');
-                    setIsDropdownOpen(false);
-                  }}
-                  className={`w-full flex items-center justify-between px-3 py-2 rounded-xl transition border ${
-                    activeLedger === 'personal'
-                      ? 'bg-emerald-950/80 text-emerald-300 font-bold border-emerald-800/60'
-                      : 'border-transparent hover:bg-slate-800 text-slate-300'
-                  }`}
-                >
-                  <div className="flex items-center gap-2">
-                    <Wallet className="w-3.5 h-3.5 text-emerald-400" />
-                    <span>個人私帳</span>
-                  </div>
-                  {activeLedger === 'personal' && <Check className="w-3.5 h-3.5 text-emerald-400" />}
-                </button>
-
-                {households.length > 0 && (
-                  <>
-                    <div className="border-t border-slate-800 my-1 pt-1">
-                      <p className="px-2 py-1 text-[10px] font-bold text-slate-500 uppercase tracking-wider">
-                        共用/獨立帳本 ({households.length})
-                      </p>
-                    </div>
-
-                    {/* 2. 各個共享帳本選項 */}
-                    {households.map((h) => {
-                      const isCurrent = activeLedger === 'household' && activeHouseholdId === h.id;
-                      return (
-                        <button
-                          key={h.id}
-                          onClick={() => {
-                            switchActiveHousehold(h.id);
-                            setActiveLedger('household');
-                            setIsDropdownOpen(false);
-                          }}
-                          className={`w-full flex items-center justify-between px-3 py-2 rounded-xl transition border ${
-                            isCurrent
-                              ? 'bg-purple-950/80 text-purple-300 font-bold border-purple-800/60'
-                              : 'border-transparent hover:bg-slate-800 text-slate-300'
-                          }`}
-                        >
-                          <div className="flex items-center gap-2 truncate">
-                            <Users className="w-3.5 h-3.5 text-purple-400 flex-shrink-0" />
-                            <span className="truncate">{h.name}</span>
-                          </div>
-                          {isCurrent && <Check className="w-3.5 h-3.5 text-purple-400 flex-shrink-0" />}
-                        </button>
-                      );
-                    })}
-                  </>
-                )}
-
-                {/* 3. 管理 / 建立新帳本捷徑 */}
-                <div className="border-t border-slate-800 pt-1">
-                  <button
-                    onClick={() => {
-                      onOpenGroupSettings('members');
-                      setIsDropdownOpen(false);
-                    }}
-                    className="w-full flex items-center gap-2 px-3 py-1.5 rounded-xl hover:bg-slate-800 text-emerald-400 hover:text-emerald-300 transition text-[11px] font-bold"
-                  >
-                    <Plus className="w-3.5 h-3.5 text-emerald-400" />
-                    <span>建立或加入新帳本...</span>
-                  </button>
-                </div>
-              </div>
-            )}
-          </div>
+        {/* Center: Multi-Ledger Switcher (僅在電腦版絕對置中，手機版隱藏並移至右側與頭像同列) */}
+        <div className="hidden lg:flex flex-shrink-0 items-center justify-center">
+          <LedgerSwitcher align="center" onOpenGroupSettings={onOpenGroupSettings} />
         </div>
 
-        {/* Right: Invitations alert, Refresh (Desktop) & User Profile (靠右) */}
-        <div className="flex-1 flex items-center justify-end gap-1.5 min-w-0">
+        {/* Right: Invitations alert, Mobile Ledger Switcher, Refresh (Desktop) & User Profile (靠右) */}
+        <div className="flex-1 lg:flex-1 flex items-center justify-end gap-1.5 sm:gap-2 min-w-0">
           {/* ✉️ 收到群組邀請通知按鈕 */}
           {incomingInvitations.length > 0 && (
             <button
@@ -215,6 +241,9 @@ export const Header: React.FC<HeaderProps> = ({
               <span className="hidden sm:inline">{incomingInvitations.length} 則群組邀請</span>
             </button>
           )}
+
+          {/* 📱 手機版：切換帳簿按鈕 (靠右與頭像排在一起) */}
+          <LedgerSwitcher align="right" className="flex lg:hidden" onOpenGroupSettings={onOpenGroupSettings} />
 
           {/* 🔄 重新整理 / 同步雲端按鈕 (僅在電腦版顯示，手機版直接向下滑動即可重新整理) */}
           <button
