@@ -654,7 +654,7 @@ export const VoiceInputModal: React.FC<VoiceInputModalProps> = ({
 
         {/* 3. 底部固定操作按鈕列 (Fixed Bottom Action Bar - 永遠保持在視窗內，含手機安全邊距) */}
         {parsedResults.length > 0 && (
-          <footer className="shrink-0 z-20 w-full px-4 py-2.5 pb-safe sm:pb-3 bg-slate-950/95 backdrop-blur-md border-t border-slate-800/70 flex items-center justify-center">
+          <footer className="shrink-0 z-20 w-full px-4 py-2.5 bg-slate-950/95 backdrop-blur-md border-t border-slate-800/70 flex items-center justify-center">
             <div className="w-full flex items-center gap-2.5">
               <button
                 type="button"
