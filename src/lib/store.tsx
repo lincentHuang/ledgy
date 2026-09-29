@@ -1,6 +1,6 @@
 'use client';
 
-import React, { createContext, useContext, useState, useEffect } from 'react';
+import React, { createContext, useContext, useState, useEffect, useMemo } from 'react';
 import {
   Transaction,
   Category,
@@ -235,6 +235,11 @@ interface AppContextType {
   settleTransfer: (transfer: SettlementTransfer) => void;
   updateUserProfile: (profile: Partial<UserProfile>) => void;
 
+  // 📝 日期活動備忘 (那天是做什麼的)
+  currentDateNotes: Record<string, string>;
+  setDateNote: (dateStr: string, note: string) => void;
+  deleteDateNote: (dateStr: string) => void;
+
   // 檢視與篩選模式 (列表: 歷史總紀錄, 週: 本週收支, 月: 本月收支, 標籤與搜尋)
   viewMode: 'list' | 'week' | 'month';
   setViewMode: (mode: 'list' | 'week' | 'month') => void;
@@ -289,6 +294,7 @@ const STORAGE_KEYS = {
   TAGS: 'ai_expense_tags_v6',
   TAG_ITEMS: 'ai_expense_tag_items_v6',
   VIEW_MODE: 'ai_expense_view_mode_v6',
+  DATE_NOTES: 'ai_expense_date_notes_v6',
 };
 
 export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
@@ -298,6 +304,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     displayName: '訪客',
     defaultCarrierCode: '',
   });
+  const [guestDateNotes, setGuestDateNotes] = useState<Record<string, string>>({});
   const [isAuthenticated, setIsAuthenticated] = useState<boolean>(false);
   const [isAuthReady, setIsAuthReady] = useState<boolean>(false);
 
@@ -541,6 +548,14 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
           const rules = JSON.parse(storedRules);
           setLearningRules(rules);
           learningEngine.setRules(rules);
+        } catch {}
+      }
+
+      // 載入日期活動備忘
+      const storedDateNotes = localStorage.getItem(STORAGE_KEYS.DATE_NOTES);
+      if (storedDateNotes) {
+        try {
+          setGuestDateNotes(JSON.parse(storedDateNotes));
         } catch {}
       }
 
@@ -1358,6 +1373,50 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     }
   };
 
+  // 📝 日期活動備忘機制 (那天是做什麼的)
+  const currentDateNotes: Record<string, string> = useMemo(() => {
+    const isGroup = activeLedger === 'household' && households.length > 0;
+    if (isGroup && activeHouseholdId) {
+      const targetH = households.find((h) => h.id === activeHouseholdId);
+      return targetH?.dateNotes || {};
+    }
+    return user.dateNotes || guestDateNotes || {};
+  }, [activeLedger, households, activeHouseholdId, user.dateNotes, guestDateNotes]);
+
+  const setDateNote = (dateStr: string, note: string) => {
+    const trimmed = note.trim();
+    const isGroup = activeLedger === 'household' && households.length > 0;
+
+    if (isGroup && activeHouseholdId) {
+      const targetH = households.find((h) => h.id === activeHouseholdId);
+      if (targetH) {
+        const nextNotes = { ...(targetH.dateNotes || {}) };
+        if (!trimmed) {
+          delete nextNotes[dateStr];
+        } else {
+          nextNotes[dateStr] = trimmed;
+        }
+        updateHousehold({ dateNotes: nextNotes }, activeHouseholdId);
+      }
+    } else {
+      const nextNotes = { ...(user.dateNotes || guestDateNotes || {}) };
+      if (!trimmed) {
+        delete nextNotes[dateStr];
+      } else {
+        nextNotes[dateStr] = trimmed;
+      }
+      setGuestDateNotes(nextNotes);
+      if (typeof window !== 'undefined') {
+        localStorage.setItem(STORAGE_KEYS.DATE_NOTES, JSON.stringify(nextNotes));
+      }
+      updateUserProfile({ dateNotes: nextNotes });
+    }
+  };
+
+  const deleteDateNote = (dateStr: string) => {
+    setDateNote(dateStr, '');
+  };
+
   const loginWithUser = (authUser: AuthUser) => {
     setUser(authUser);
     setIsAuthenticated(true);
@@ -2057,6 +2116,9 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         settleTransfer,
         updateUserProfile,
         settleMonthlyBudget,
+        currentDateNotes,
+        setDateNote,
+        deleteDateNote,
         viewMode,
         setViewMode,
         weekOffset,

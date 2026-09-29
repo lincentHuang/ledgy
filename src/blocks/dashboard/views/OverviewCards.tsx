@@ -13,6 +13,8 @@ import {
   X,
   Check,
   Trash2,
+  PieChart,
+  ChevronRight,
 } from 'lucide-react';
 import { Card, Button, ProgressBar } from '@/components';
 
@@ -471,6 +473,23 @@ export const OverviewCards: React.FC = () => {
                 : '此標籤尚未設定預算 (可至設定配置)'
               : `由每月總預算 NT$ ${defaultMonthlyBudget.toLocaleString()} 計算`}
           </p>
+
+          <div className="pt-2 border-t border-white/5 flex items-center justify-between">
+            <button
+              type="button"
+              onClick={() => {
+                window.dispatchEvent(
+                  new CustomEvent('app-navigate-tab', { detail: { tab: 'budget-board' } })
+                );
+              }}
+              className="inline-flex items-center gap-1.5 text-xs text-emerald-400 hover:text-emerald-300 font-bold bg-emerald-950/70 hover:bg-emerald-900/80 px-2.5 py-1 rounded-xl border border-emerald-800/60 transition active:scale-95 shadow-sm"
+              title="查看各分類預算健康狀況與看板"
+            >
+              <PieChart className="w-3.5 h-3.5" />
+              <span>預算看板模式</span>
+              <ChevronRight className="w-3 h-3 opacity-70" />
+            </button>
+          </div>
         </Card>
 
         {/* 3. 右側欄卡片：歷史省下的錢 / 本週/月預算剩餘 */}

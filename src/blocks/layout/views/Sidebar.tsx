@@ -26,6 +26,7 @@ import {
   Smartphone,
   Barcode,
   BarChart3,
+  PieChart,
 } from 'lucide-react';
 import { MainTabType } from './BottomNav';
 import { PersonalTabType, GroupTabType } from '@/blocks/settings';
@@ -227,6 +228,24 @@ export const Sidebar: React.FC<SidebarProps> = ({
                 <span>收支明細與總覽</span>
               </div>
               <ChevronRight className="w-3.5 h-3.5 opacity-60" />
+            </button>
+
+            <button
+              onClick={() => handleNav('budget-board')}
+              className={`w-full flex items-center justify-between px-3 py-2.5 rounded-2xl transition font-medium border ${currentTab === 'budget-board'
+                  ? activeLedger === 'household'
+                    ? 'bg-purple-600/20 text-purple-300 font-bold border-purple-500/30'
+                    : 'bg-emerald-600/20 text-emerald-400 font-bold border-emerald-500/30'
+                  : 'border-transparent hover:bg-slate-800 text-slate-300'
+                }`}
+            >
+              <div className="flex items-center gap-2.5">
+                <PieChart className="w-4 h-4 text-emerald-400" />
+                <span>預算看板模式</span>
+              </div>
+              <span className="text-[10px] bg-slate-800 text-emerald-300 px-2 py-0.5 rounded-full border border-slate-700 font-medium">
+                看板
+              </span>
             </button>
 
             <button

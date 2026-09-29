@@ -4,7 +4,7 @@ import React, { useState } from 'react';
 import dynamic from 'next/dynamic';
 import { useAppStore } from '@/lib/store';
 import { Header, Sidebar, BottomNav, MainTabType, PullToRefresh, PwaInstallPrompt } from '@/blocks/layout';
-import { TransactionList } from '@/blocks/dashboard';
+import { TransactionList, BudgetBoardView } from '@/blocks/dashboard';
 import { FamilyView } from '@/blocks/family-ledger';
 import { PersonalSettingsView, PersonalTabType, GroupSettingsView, GroupTabType } from '@/blocks/settings';
 import { BarcodeModal } from '@/blocks/invoice-scanner';
@@ -97,11 +97,24 @@ export default function Home() {
         setIsBarcodeOpen(true);
       } else if (action === 'overview') {
         setCurrentTab('overview');
+      } else if (action === 'budget' || action === 'budget-board') {
+        setCurrentTab('budget-board');
+      }
+    };
+
+    const handleNavigateTab = (e: Event) => {
+      const customEvent = e as CustomEvent<{ tab: MainTabType }>;
+      if (customEvent.detail?.tab) {
+        setCurrentTab(customEvent.detail.tab);
       }
     };
 
     window.addEventListener('app-deep-link', handleDeepLink);
-    return () => window.removeEventListener('app-deep-link', handleDeepLink);
+    window.addEventListener('app-navigate-tab', handleNavigateTab);
+    return () => {
+      window.removeEventListener('app-deep-link', handleDeepLink);
+      window.removeEventListener('app-navigate-tab', handleNavigateTab);
+    };
   }, []);
 
   // 1. 避免 SSR 與 Client 本機 LocalStorage 狀態不一致導致的 Hydration Mismatch
@@ -166,6 +179,15 @@ export default function Home() {
             {/* 收支明細列表與總覽 */}
             {currentTab === 'overview' && (
               <TransactionList onOpenQuickInput={() => setIsQuickInputOpen(true)} />
+            )}
+
+            {/* 📊 預算看板模式 (各標籤預算一目了然) */}
+            {currentTab === 'budget-board' && (
+              <BudgetBoardView
+                onBack={() => setCurrentTab('overview')}
+                onOpenQuickInput={() => setIsQuickInputOpen(true)}
+                onManageBudget={() => handleOpenPersonalSettings('budget')}
+              />
             )}
 
             {/* 2. 發票專區 */}

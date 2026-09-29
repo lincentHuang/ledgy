@@ -18,6 +18,7 @@ import {
 } from 'lucide-react';
 import { useAppStore, DEFAULT_GROUP_TAG_ITEMS, normalizeTagItems, sanitizeTagBudgets } from '@/lib/store';
 import { Card, Button, TagPill, ProgressBar, Badge, Input } from '@/components';
+import { BudgetBoardView } from '@/blocks/dashboard/views/BudgetBoardView';
 
 interface BudgetAllocationViewProps {
   type: 'personal' | 'household';
@@ -78,6 +79,7 @@ export const BudgetAllocationView: React.FC<BudgetAllocationViewProps> = ({
   const [tagBudgets, setTagBudgets] = useState<Record<string, number>>(initialTagBudgets);
   const [searchTag, setSearchTag] = useState('');
   const [savedSuccess, setSavedSuccess] = useState(false);
+  const [activeMode, setActiveMode] = useState<'board' | 'allocation'>('board');
 
   // 2. 本月已消費金額統計 (依標籤名稱與 tagIds)
   const currentMonth = new Date().toISOString().substring(0, 7);
@@ -199,8 +201,48 @@ export const BudgetAllocationView: React.FC<BudgetAllocationViewProps> = ({
 
   return (
     <div className="space-y-4 animate-in fade-in">
-      {/* 1. 總預算配置卡片 */}
-      <Card variant="panel" padding="md" className="space-y-4 shadow-sm border-emerald-500/20">
+      {/* 雙模式切換器：看板模式 vs 額度分配設定 */}
+      <div className="flex items-center justify-between pb-1">
+        <div className="flex items-center gap-1.5 p-1 rounded-2xl bg-slate-900 border border-slate-800">
+          <button
+            type="button"
+            onClick={() => setActiveMode('board')}
+            className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-bold transition ${
+              activeMode === 'board'
+                ? 'bg-emerald-600 text-white shadow-sm'
+                : 'text-slate-400 hover:text-slate-200'
+            }`}
+          >
+            <PieChart className="w-3.5 h-3.5" />
+            <span>📊 預算看板模式</span>
+          </button>
+
+          <button
+            type="button"
+            onClick={() => setActiveMode('allocation')}
+            className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-bold transition ${
+              activeMode === 'allocation'
+                ? 'bg-emerald-600 text-white shadow-sm'
+                : 'text-slate-400 hover:text-slate-200'
+            }`}
+          >
+            <Sliders className="w-3.5 h-3.5" />
+            <span>⚙️ 額度分配設定</span>
+          </button>
+        </div>
+      </div>
+
+      {activeMode === 'board' ? (
+        <BudgetBoardView
+          type={type}
+          householdId={householdId}
+          embedded
+          onManageBudget={() => setActiveMode('allocation')}
+        />
+      ) : (
+        <>
+          {/* 1. 總預算配置卡片 */}
+          <Card variant="panel" padding="md" className="space-y-4 shadow-sm border-emerald-500/20">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
           <div className="flex items-center gap-2.5">
             <div className="p-2.5 rounded-2xl bg-emerald-950/80 border border-emerald-800 text-emerald-400">
@@ -446,6 +488,8 @@ export const BudgetAllocationView: React.FC<BudgetAllocationViewProps> = ({
           <p className="text-center py-6 text-xs text-slate-400">找不到符合「{searchTag}」的標籤。</p>
         )}
       </Card>
+        </>
+      )}
     </div>
   );
 };

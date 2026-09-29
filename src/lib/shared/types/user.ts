@@ -33,6 +33,7 @@ export interface UserProfile {
   hasCompletedOnboarding?: boolean;
   paymentMethods?: string[];
   preferences?: UserPreferences;
+  dateNotes?: Record<string, string>; // Key: "YYYY-MM-DD" (例如 "2026-09-30") -> Value: 當日備忘/活動說明
 }
 
 export interface LearningRule {

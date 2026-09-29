@@ -8,8 +8,10 @@ import {
   ChevronRight,
   BarChart3,
   X,
+  StickyNote,
 } from 'lucide-react';
 import { TransactionGroupedList } from './TransactionGroupedList';
+import { DateNoteModal } from './DateNoteModal';
 
 interface WeekViewProps {
   onEditTransaction: (tx: Transaction) => void;
@@ -37,9 +39,11 @@ export const WeekView: React.FC<WeekViewProps> = ({
     setWeekOffset,
     selectedSubDates,
     setSelectedSubDates,
+    currentDateNotes,
   } = useAppStore();
 
   const [isWeekModalOpen, setIsWeekModalOpen] = useState(false);
+  const [editingNoteDateStr, setEditingNoteDateStr] = useState<string | null>(null);
   const selectedDates = selectedSubDates; // 空陣列代表預設檢視整週全部
   const weekStartDay = user.preferences?.weekStartDay ?? 1; // 0 = 週日, 1 = 週一 (預設), 6 = 週六
 
@@ -373,11 +377,13 @@ export const WeekView: React.FC<WeekViewProps> = ({
                   : selectedDates.length === 0 || selectedDates.includes(d.dateStr);
                 const isExplicitlySingleOrMulti = selectedDates.includes(d.dateStr);
                 const isToday = d.dateStr === new Date().toISOString().split('T')[0];
+                const dayNote = currentDateNotes[d.dateStr];
 
                 return (
                   <div
                     key={d.dateStr}
                     data-week-day-idx={index}
+                    title={dayNote ? `${d.dateStr} · 備註：${dayNote}` : d.dateStr}
                     onMouseDown={() => handleDayMouseDown(index)}
                     onMouseEnter={() => handleDayMouseEnter(index)}
                     onTouchStart={() => handleDayMouseDown(index)}
@@ -391,9 +397,17 @@ export const WeekView: React.FC<WeekViewProps> = ({
                         : 'bg-slate-900/40 border-slate-800/80 hover:bg-slate-800/50 hover:border-slate-700'
                     }`}
                   >
-                    {/* 金額數字 */}
+                    {/* 金額數字或備忘圖示 */}
                     <span className="text-[9px] font-mono font-bold text-slate-300 group-hover:text-emerald-300 transition truncate max-w-full mb-2 pointer-events-none">
-                      {d.sum > 0 ? `$${d.sum >= 1000 ? `${(d.sum / 1000).toFixed(1)}k` : d.sum}` : '-'}
+                      {d.sum > 0 ? (
+                        `$${d.sum >= 1000 ? `${(d.sum / 1000).toFixed(1)}k` : d.sum}`
+                      ) : dayNote ? (
+                        <span className="text-[10px] leading-none text-amber-300 font-bold" title={dayNote}>
+                          📝
+                        </span>
+                      ) : (
+                        '-'
+                      )}
                     </span>
 
                     {/* 極簡細直條 */}
@@ -424,6 +438,14 @@ export const WeekView: React.FC<WeekViewProps> = ({
                     </span>
                     <span className="text-[9px] text-slate-500 font-mono pointer-events-none">{d.shortDate}</span>
 
+                    {/* 當日備忘黃色圓點標記 */}
+                    {dayNote && (
+                      <span
+                        className="w-1.5 h-1.5 rounded-full bg-amber-400 absolute top-1 right-1 shadow shadow-amber-400/50 pointer-events-none"
+                        title={`當日備忘：${dayNote}`}
+                      />
+                    )}
+
                     {/* 選取標記 */}
                     {isExplicitlySingleOrMulti && (
                       <span className="w-3 h-3 rounded-full bg-emerald-500 text-slate-950 flex items-center justify-center font-bold text-[7px] absolute top-1 left-1 shadow pointer-events-none">
@@ -434,6 +456,27 @@ export const WeekView: React.FC<WeekViewProps> = ({
                 );
               })}
             </div>
+
+            {/* 單選日期當日備忘預覽與編輯快捷列 */}
+            {selectedDates.length === 1 && (
+              <div className="flex items-center justify-between px-3 py-2 rounded-2xl bg-slate-950/60 border border-slate-800 text-xs">
+                <div className="flex items-center gap-2 min-w-0">
+                  <StickyNote className="w-3.5 h-3.5 text-amber-400 flex-shrink-0" />
+                  <span className="text-[11px] text-slate-300 truncate">
+                    {currentDateNotes[selectedDates[0]]
+                      ? `那天做什麼：${currentDateNotes[selectedDates[0]]}`
+                      : '尚未記錄當日活動備註'}
+                  </span>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => setEditingNoteDateStr(selectedDates[0])}
+                  className="text-[10px] font-bold text-emerald-400 hover:text-emerald-300 px-2.5 py-1 rounded-xl bg-emerald-950/50 hover:bg-emerald-900/50 border border-emerald-800/60 transition flex-shrink-0 active:scale-95"
+                >
+                  {currentDateNotes[selectedDates[0]] ? '編輯備忘' : '+ 記備忘'}
+                </button>
+              </div>
+            )}
 
             {/* Modal 底部 */}
             <div className="flex items-center justify-between pt-3 border-t border-slate-800 text-xs">
@@ -460,6 +503,15 @@ export const WeekView: React.FC<WeekViewProps> = ({
                 完成
               </button>
             </div>
+
+            {/* 📝 日期活動備忘編輯彈窗 */}
+            {editingNoteDateStr && (
+              <DateNoteModal
+                isOpen={Boolean(editingNoteDateStr)}
+                onClose={() => setEditingNoteDateStr(null)}
+                dateStr={editingNoteDateStr}
+              />
+            )}
           </div>
         </div>
       )}

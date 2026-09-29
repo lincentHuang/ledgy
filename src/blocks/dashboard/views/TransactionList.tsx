@@ -28,6 +28,7 @@ import {
   X,
   Check,
   CheckSquare,
+  PieChart,
 } from 'lucide-react';
 import { Transaction, TagItem } from '@app/shared';
 import { WeekView } from './WeekView';
@@ -364,16 +365,33 @@ export const TransactionList: React.FC<{ onOpenQuickInput: () => void }> = ({
           ]}
         />
 
-        {/* 🔍 搜尋 Modal 觸發按鈕 */}
-        <button
-          type="button"
-          onClick={() => setIsSearchModalOpen(true)}
-          className="flex items-center gap-2 px-3 py-1.5 rounded-xl border border-slate-800 bg-slate-900/90 text-slate-300 hover:text-white hover:border-slate-700 text-xs transition shadow-sm max-w-[220px] sm:max-w-xs flex-1 justify-start"
-          title="開啟搜尋彈窗"
-        >
-          <Search className="w-3.5 h-3.5 text-emerald-400 flex-shrink-0" />
-          <span className="truncate text-slate-400">搜尋品項或 #標籤...</span>
-        </button>
+        <div className="flex items-center gap-1.5 flex-1 justify-end">
+          {/* 🔍 搜尋 Modal 觸發按鈕 */}
+          <button
+            type="button"
+            onClick={() => setIsSearchModalOpen(true)}
+            className="flex items-center gap-2 px-3 py-1.5 rounded-xl border border-slate-800 bg-slate-900/90 text-slate-300 hover:text-white hover:border-slate-700 text-xs transition shadow-sm max-w-[200px] sm:max-w-xs flex-1 justify-start"
+            title="開啟搜尋彈窗"
+          >
+            <Search className="w-3.5 h-3.5 text-emerald-400 flex-shrink-0" />
+            <span className="truncate text-slate-400">搜尋品項或 #標籤...</span>
+          </button>
+
+          {/* 📊 預算看板模式捷徑 */}
+          <button
+            type="button"
+            onClick={() =>
+              window.dispatchEvent(
+                new CustomEvent('app-navigate-tab', { detail: { tab: 'budget-board' } })
+              )
+            }
+            className="flex items-center gap-1 px-2.5 py-1.5 rounded-xl border border-emerald-500/30 bg-emerald-950/40 text-emerald-300 hover:bg-emerald-900/60 hover:text-emerald-200 text-xs font-bold transition shadow-sm flex-shrink-0"
+            title="開啟預算看板模式"
+          >
+            <PieChart className="w-3.5 h-3.5 text-emerald-400 flex-shrink-0" />
+            <span className="hidden sm:inline">預算看板</span>
+          </button>
+        </div>
       </div>
 
       {/* ⚡ 批次操作固定工具列 (當長按項目進入 isBatchMode 時，浮現在 dock 正上方，手機版優先設計) */}

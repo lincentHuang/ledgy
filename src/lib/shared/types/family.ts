@@ -50,6 +50,7 @@ export interface Household {
   monthlyBudget?: number;
   tagBudgets?: Record<string, number>;
   monthlyBudgets?: Record<string, import('./user').MonthlyBudgetRecord>; // Key: "YYYY-MM"
+  dateNotes?: Record<string, string>; // Key: "YYYY-MM-DD" -> Value: 當日備忘/活動說明
   createdAt: number;
   updatedAt: number;
 }

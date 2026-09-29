@@ -8,8 +8,10 @@ import {
   ChevronRight,
   CalendarDays,
   X,
+  StickyNote,
 } from 'lucide-react';
 import { TransactionGroupedList } from './TransactionGroupedList';
+import { DateNoteModal } from './DateNoteModal';
 
 interface MonthCalendarViewProps {
   onEditTransaction: (tx: Transaction) => void;
@@ -39,9 +41,11 @@ export const MonthCalendarView: React.FC<MonthCalendarViewProps> = ({
     setCalendarMonth,
     selectedSubDates,
     setSelectedSubDates,
+    currentDateNotes,
   } = useAppStore();
 
   const [isMonthModalOpen, setIsMonthModalOpen] = useState(false);
+  const [editingNoteDateStr, setEditingNoteDateStr] = useState<string | null>(null);
   const today = new Date();
   const selectedDates = selectedSubDates; // 空陣列代表預設檢視全月全部
 
@@ -443,11 +447,13 @@ export const MonthCalendarView: React.FC<MonthCalendarViewProps> = ({
                 const isExplicitlySingleOrMulti = selectedDates.includes(dateStr);
                 const dayTxs = dailyTransactionsMap[dateStr] || [];
                 const daySum = dayTxs.reduce((acc, cur) => acc + (cur.amount || 0), 0);
+                const dayNote = currentDateNotes[dateStr];
 
                 return (
                   <div
                     key={dateStr}
                     data-month-day-idx={index}
+                    title={dayNote ? `${dateStr} · 備註：${dayNote}` : dateStr}
                     onMouseDown={() => handleDayMouseDown(index)}
                     onMouseEnter={() => handleDayMouseEnter(index)}
                     onTouchStart={() => handleDayMouseDown(index)}
@@ -474,13 +480,25 @@ export const MonthCalendarView: React.FC<MonthCalendarViewProps> = ({
                       {d.dayNum}
                     </span>
 
-                    {/* 金額標籤或小圓點 */}
+                    {/* 金額標籤或備忘小圖示 */}
                     {daySum > 0 ? (
                       <span className="text-[8px] sm:text-[9px] font-mono font-bold text-emerald-400 truncate max-w-full leading-none pointer-events-none">
                         ${daySum >= 1000 ? `${(daySum / 1000).toFixed(1)}k` : daySum}
                       </span>
+                    ) : dayNote ? (
+                      <span className="text-[9px] leading-none pointer-events-none text-amber-300 font-bold" title={dayNote}>
+                        📝
+                      </span>
                     ) : (
                       <span className="h-1.5 pointer-events-none" />
+                    )}
+
+                    {/* 當日活動備忘黃色圓點標記 */}
+                    {dayNote && (
+                      <span
+                        className="w-1.5 h-1.5 rounded-full bg-amber-400 absolute top-1 left-1 shadow shadow-amber-400/50 pointer-events-none"
+                        title={`當日備忘：${dayNote}`}
+                      />
                     )}
 
                     {/* 選取勾選點 */}
@@ -491,6 +509,27 @@ export const MonthCalendarView: React.FC<MonthCalendarViewProps> = ({
                 );
               })}
             </div>
+
+            {/* 單選日期當日備忘預覽與編輯快捷列 */}
+            {selectedDates.length === 1 && (
+              <div className="flex items-center justify-between px-3 py-2 rounded-2xl bg-slate-950/60 border border-slate-800 text-xs">
+                <div className="flex items-center gap-2 min-w-0">
+                  <StickyNote className="w-3.5 h-3.5 text-amber-400 flex-shrink-0" />
+                  <span className="text-[11px] text-slate-300 truncate">
+                    {currentDateNotes[selectedDates[0]]
+                      ? `那天做什麼：${currentDateNotes[selectedDates[0]]}`
+                      : '尚未記錄當日活動備註'}
+                  </span>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => setEditingNoteDateStr(selectedDates[0])}
+                  className="text-[10px] font-bold text-emerald-400 hover:text-emerald-300 px-2.5 py-1 rounded-xl bg-emerald-950/50 hover:bg-emerald-900/50 border border-emerald-800/60 transition flex-shrink-0 active:scale-95"
+                >
+                  {currentDateNotes[selectedDates[0]] ? '編輯備忘' : '+ 記備忘'}
+                </button>
+              </div>
+            )}
 
             {/* Modal 底部 */}
             <div className="flex items-center justify-between pt-3 border-t border-slate-800 text-xs">
@@ -517,6 +556,15 @@ export const MonthCalendarView: React.FC<MonthCalendarViewProps> = ({
                 完成
               </button>
             </div>
+
+            {/* 📝 日期活動備忘編輯彈窗 */}
+            {editingNoteDateStr && (
+              <DateNoteModal
+                isOpen={Boolean(editingNoteDateStr)}
+                onClose={() => setEditingNoteDateStr(null)}
+                dateStr={editingNoteDateStr}
+              />
+            )}
           </div>
         </div>
       )}
