@@ -25,9 +25,17 @@ const warmupNativePermission = () => {
   return nativePermissionWarmup;
 };
 
-// 手機瀏覽器 (Android Chrome / iOS Safari) 的 continuous 模式延遲高且容易重複字詞，改用單句模式可即時出字並在停頓後立即結算
-const isMobileBrowser = () =>
-  typeof navigator !== 'undefined' && /Android|iPhone|iPad|iPod|Mobile/i.test(navigator.userAgent);
+// iOS Safari 使用單句模式較穩定；Android Chrome 的單句模式拿不到逐字結果 (說完才整句出現)，必須維持連續模式
+const isIOSBrowser = () =>
+  typeof navigator !== 'undefined' && /iPhone|iPad|iPod/i.test(navigator.userAgent);
+
+// Android 連續模式常把「目前為止的整句」重複回傳成多個結果，若新片段以已累積文字開頭就取代而非串接，避免字詞重複
+const mergeSegment = (acc: string, next: string) => {
+  if (!acc) return next;
+  if (next.startsWith(acc)) return next;
+  if (acc.endsWith(next)) return acc;
+  return acc + next;
+};
 
 // 收音階段：麥克風開啟 → 偵測到聲音 → 偵測到說話 (用於讓按鈕即時反應，確認真的在聽)
 export type SpeechAudioPhase = 'idle' | 'audio' | 'sound' | 'speech';
@@ -345,11 +353,11 @@ export function useSpeechRecognition({
       recognitionRef.current = null;
     }
 
-    const mobile = isMobileBrowser();
+    const singleShot = isIOSBrowser();
 
     try {
       const recognition = new SpeechRecognition();
-      recognition.continuous = !mobile;
+      recognition.continuous = !singleShot;
       recognition.interimResults = true;
       recognition.lang = 'zh-TW';
       recognition.maxAlternatives = 1;
@@ -374,13 +382,13 @@ export function useSpeechRecognition({
         for (let i = 0; i < event.results.length; ++i) {
           const item = event.results[i];
           if (item.isFinal) {
-            finalResult += item[0].transcript;
+            finalResult = mergeSegment(finalResult, item[0].transcript);
           } else {
-            currentInterim += item[0].transcript;
+            currentInterim = mergeSegment(currentInterim, item[0].transcript);
           }
         }
 
-        const fullCurrent = finalResult + currentInterim;
+        const fullCurrent = mergeSegment(finalResult, currentInterim);
         if (currentInterim.trim()) {
           hadInterimRef.current = true;
         } else if (finalResult.trim() && !hadInterimRef.current) {
@@ -394,9 +402,9 @@ export function useSpeechRecognition({
 
         clearSilenceTimer();
 
-        // 手機單句模式：瀏覽器給出最終結果即代表使用者已停頓，直接結算不再等計時器
+        // 單句模式：瀏覽器給出最終結果即代表使用者已停頓，直接結算不再等計時器
         const lastResult = event.results[event.results.length - 1];
-        if (mobile && lastResult?.isFinal && fullCurrent.trim()) {
+        if (singleShot && lastResult?.isFinal && fullCurrent.trim()) {
           finishRecognition(fullCurrent.trim());
           return;
         }

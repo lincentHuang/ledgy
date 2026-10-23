@@ -24,7 +24,7 @@ import { useSpeechRecognition } from '../hooks/useSpeechRecognition';
 import { useMicLevel } from '../hooks/useMicLevel';
 import { Capacitor } from '@capacitor/core';
 
-const NO_INTERIM_KEY = 'ledgy_speech_no_interim_v1';
+const NO_INTERIM_KEY = 'ledgy_speech_no_interim_v2';
 import { useVoiceExpenseParser } from '../hooks/useVoiceExpenseParser';
 
 export interface VoiceInputModalProps {
@@ -552,7 +552,7 @@ export const VoiceInputModal: React.FC<VoiceInputModalProps> = ({
                         </p>
                         {isListening && showNoInterimTip && (
                           <p className="max-w-xs text-[11px] leading-relaxed text-amber-300/90 bg-amber-950/40 border border-amber-700/40 rounded-xl px-3 py-2">
-                            你的手機語音服務不支援「邊說邊出字」。可到手機「設定 › 一般管理 › 語言與輸入 › 語音辨識／預設語音服務」改為 Google，就能即時顯示。
+                            這支手機的語音服務沒有提供「邊說邊出字」，說完會一次顯示整句，不影響記帳結果。
                           </p>
                         )}
                       </div>
