@@ -24,7 +24,6 @@ import { useSpeechRecognition } from '../hooks/useSpeechRecognition';
 import { useMicLevel } from '../hooks/useMicLevel';
 import { Capacitor } from '@capacitor/core';
 
-const NO_INTERIM_KEY = 'ledgy_speech_no_interim_v2';
 import { useVoiceExpenseParser } from '../hooks/useVoiceExpenseParser';
 
 export interface VoiceInputModalProps {
@@ -78,7 +77,6 @@ export const VoiceInputModal: React.FC<VoiceInputModalProps> = ({
   const {
     isListening,
     audioPhase,
-    noInterimResults,
     emptyEndCount,
     transcript,
     setTranscript,
@@ -161,16 +159,6 @@ export const VoiceInputModal: React.FC<VoiceInputModalProps> = ({
     }
   }, [speechError, disableMeter, resetTranscript, startListening]);
 
-  // 裝置語音服務不支援即時逐字時，記住並提示切換 Google 語音服務
-  const [showNoInterimTip, setShowNoInterimTip] = useState(false);
-  useEffect(() => {
-    try {
-      if (noInterimResults) localStorage.setItem(NO_INTERIM_KEY, '1');
-      setShowNoInterimTip(noInterimResults || localStorage.getItem(NO_INTERIM_KEY) === '1');
-    } catch {
-      setShowNoInterimTip(noInterimResults);
-    }
-  }, [noInterimResults, isOpen]);
 
   // 🛡️ 雙重保險防呆 Watchdog：在語音模式下，若已辨識出文字且錄音已停止，但因任何系統非同步邊界條件未進入解析時，
   // 延遲 750ms 自動觸發結算進下一步，徹底根除「辨識完停在原地」的卡住問題
@@ -542,20 +530,9 @@ export const VoiceInputModal: React.FC<VoiceInputModalProps> = ({
                         )}
                       </>
                     ) : (
-                      <div className="flex flex-col items-center gap-2">
-                        <p className="text-xs text-slate-400/80 font-medium">
-                          {isListening
-                            ? showNoInterimTip
-                              ? '說完後文字會一次出現'
-                              : '請開口說話，文字將即時逐字出現'
-                            : ''}
-                        </p>
-                        {isListening && showNoInterimTip && (
-                          <p className="max-w-xs text-[11px] leading-relaxed text-amber-300/90 bg-amber-950/40 border border-amber-700/40 rounded-xl px-3 py-2">
-                            這支手機的語音服務沒有提供「邊說邊出字」，說完會一次顯示整句，不影響記帳結果。
-                          </p>
-                        )}
-                      </div>
+                      <p className="text-xs text-slate-400/80 font-medium">
+                        {isListening ? '請開口說話，文字將即時逐字出現' : ''}
+                      </p>
                     )}
                   </div>
                 </>
