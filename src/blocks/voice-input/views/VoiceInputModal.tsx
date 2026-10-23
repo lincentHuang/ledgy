@@ -67,6 +67,7 @@ export const VoiceInputModal: React.FC<VoiceInputModalProps> = ({
     defaultPaymentMethod: user.defaultPaymentMethod,
     currentTags,
     activeLedger,
+    hasHousehold: households.length > 0,
     learningEngine,
   });
 
@@ -80,7 +81,7 @@ export const VoiceInputModal: React.FC<VoiceInputModalProps> = ({
     resetTranscript,
     getLatestTranscript,
   } = useSpeechRecognition({
-    autoStopDelay: 1600,
+    autoStopDelay: 1300,
     onEnd: (finalTranscript) => {
       if (!isParsing) {
         handleProcessVoiceText(finalTranscript);
@@ -133,15 +134,20 @@ export const VoiceInputModal: React.FC<VoiceInputModalProps> = ({
     handleProcessVoiceText,
   ]);
 
+  // 開啟當下的帳本快照 (用 ref 讀取，避免群組資料即時同步時重跑 effect 而重置、重啟收音)
+  const openContextRef = React.useRef({ activeHouseholdId, household, households });
+  openContextRef.current = { activeHouseholdId, household, households };
+
   // 當 Modal 開啟時，初始化狀態 (0ms 極速啟動)
   useEffect(() => {
     if (isOpen) {
+      const ctx = openContextRef.current;
       setMode(initialMode);
       setManualInputText('');
       resetTranscript();
       resetParsedResult();
       setSelectedHouseholdId(
-        activeHouseholdId || (household ? household.id : households[0]?.id || '')
+        ctx.activeHouseholdId || (ctx.household ? ctx.household.id : ctx.households[0]?.id || '')
       );
 
       if (initialMode === 'voice') {
@@ -150,18 +156,7 @@ export const VoiceInputModal: React.FC<VoiceInputModalProps> = ({
     } else {
       stopListening();
     }
-  }, [
-    isOpen,
-    initialMode,
-    activeLedger,
-    activeHouseholdId,
-    household,
-    households,
-    resetTranscript,
-    resetParsedResult,
-    startListening,
-    stopListening,
-  ]);
+  }, [isOpen, initialMode, resetTranscript, resetParsedResult, startListening, stopListening]);
 
   // 手動點擊麥克風開關切換 (即時結算，0ms 卡頓)
   const handleToggleListening = useCallback(() => {
@@ -226,8 +221,8 @@ export const VoiceInputModal: React.FC<VoiceInputModalProps> = ({
         id: `item_${Date.now()}_${Math.random().toString(36).slice(2, 6)}`,
         title: '',
         amount: 0,
-        categoryId: 'food_dining',
-        categoryName: '餐飲美食',
+        categoryId: 'food',
+        categoryName: '餐飲飲食',
         paymentMethod: user.defaultPaymentMethod || '現金',
         tags: currentTags.length > 0 ? [currentTags[0]] : ['未歸類'],
         ledgerType: activeLedger || 'personal',
@@ -290,22 +285,32 @@ export const VoiceInputModal: React.FC<VoiceInputModalProps> = ({
 
         {/* 1. 頂部簡潔標題列 (Fixed Header - 支援 Android & iOS 狀態列安全區) */}
         <header className="shrink-0 z-20 w-full px-5 pt-[calc(1rem+env(safe-area-inset-top,0px))] pb-4 sm:pt-4 sm:pb-4 pl-[max(1.25rem,calc(0.75rem+env(safe-area-inset-left,0px)))] pr-[max(1.25rem,calc(0.75rem+env(safe-area-inset-right,0px)))] sm:px-5 flex items-center justify-between border-b border-slate-800/60 bg-slate-950/80 backdrop-blur-md">
-          <div className="flex items-center gap-2.5">
-            <div className="p-1.5 rounded-xl bg-emerald-500/20 border border-emerald-500/30 text-emerald-400 shadow-md shadow-emerald-950/40">
+          <div className="flex items-center gap-2 min-w-0">
+            <div className="p-1.5 rounded-xl bg-emerald-500/20 border border-emerald-500/30 text-emerald-400 shadow-md shadow-emerald-950/40 shrink-0">
               <Sparkles className="w-4 h-4 animate-pulse" />
             </div>
-            <h1 className="text-base sm:text-lg font-bold tracking-tight text-white">
-              {mode === 'voice' ? '語音記帳' : '快速記帳'}
-            </h1>
+            <div className="min-w-0 flex flex-col">
+              <h1 className="text-base sm:text-lg font-bold tracking-tight text-white whitespace-nowrap leading-tight">
+                {mode === 'voice' ? '語音記帳' : '快速記帳'}
+              </h1>
+              {/* 目前入帳帳本 (跟隨頂部切換的帳本) */}
+              <span
+                className={`text-[10px] font-bold truncate max-w-[120px] sm:max-w-[200px] leading-tight ${
+                  activeLedger === 'household' && household ? 'text-purple-300' : 'text-emerald-300'
+                }`}
+              >
+                記入：{activeLedger === 'household' && household ? household.name : '個人私帳'}
+              </span>
+            </div>
           </div>
 
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-2 shrink-0">
             {/* 模式切換小按鈕 */}
             <div className="flex items-center bg-slate-900 border border-slate-700/80 rounded-xl p-0.5 text-xs font-bold">
               <button
                 type="button"
                 onClick={handleSwitchToVoice}
-                className={`flex items-center gap-1 px-2.5 py-1 rounded-lg transition ${mode === 'voice'
+                className={`flex items-center gap-1 px-2.5 py-1 rounded-lg transition whitespace-nowrap ${mode === 'voice'
                   ? 'bg-emerald-600 text-white shadow-sm'
                   : 'text-slate-400 hover:text-slate-200'
                   }`}
@@ -316,7 +321,7 @@ export const VoiceInputModal: React.FC<VoiceInputModalProps> = ({
               <button
                 type="button"
                 onClick={handleSwitchToManual}
-                className={`flex items-center gap-1 px-2.5 py-1 rounded-lg transition ${mode === 'manual'
+                className={`flex items-center gap-1 px-2.5 py-1 rounded-lg transition whitespace-nowrap ${mode === 'manual'
                   ? 'bg-emerald-600 text-white shadow-sm'
                   : 'text-slate-400 hover:text-slate-200'
                   }`}

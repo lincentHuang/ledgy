@@ -168,22 +168,22 @@ export const AnalyticsView: React.FC = () => {
 
         {/* 頂部：股票代號式抬頭與週期切換 */}
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 relative z-10">
-          <div>
+          <div className="min-w-0">
             <div className="flex items-center gap-2">
-              <span className="text-[11px] font-extrabold uppercase px-2 py-0.5 rounded-md bg-emerald-950/80 text-emerald-400 border border-emerald-800/80">
+              <span className="text-[11px] font-extrabold uppercase whitespace-nowrap shrink-0 px-2 py-0.5 rounded-md bg-emerald-950/80 text-emerald-400 border border-emerald-800/80">
                 EXPENSE TREND
               </span>
-              <span className="text-xs text-slate-400 font-bold">總支出走勢曲線</span>
+              <span className="text-xs text-slate-400 font-bold truncate min-w-0">總支出走勢曲線</span>
             </div>
 
-            <div className="flex items-baseline gap-3 mt-1.5">
-              <span className="text-2xl sm:text-3xl font-black font-mono tracking-tight text-white">
+            <div className="flex items-baseline flex-wrap gap-x-3 gap-y-1 mt-1.5">
+              <span className="text-xl sm:text-3xl font-black font-mono tabular-nums whitespace-nowrap tracking-tight text-white">
                 NT$ {totalExpense.toLocaleString()}
               </span>
 
               {/* 漲跌幅 Badge */}
               <div
-                className={`flex items-center gap-0.5 text-xs font-black font-mono px-2 py-0.5 rounded-lg ${
+                className={`flex items-center gap-0.5 whitespace-nowrap shrink-0 text-xs font-black font-mono px-2 py-0.5 rounded-lg ${
                   percentChange <= 0
                     ? 'bg-emerald-950 text-emerald-400 border border-emerald-800'
                     : 'bg-rose-950 text-rose-400 border border-rose-900'
@@ -401,13 +401,13 @@ export const AnalyticsView: React.FC = () => {
       {/* 💼 標籤支出持股佔比 (Portfolio Tag Breakdown) */}
       <div className="glass-panel rounded-3xl p-5 shadow-sm space-y-3.5">
         <div className="flex items-center justify-between">
-          <div className="flex items-center gap-2">
-            <div className="p-2 rounded-2xl bg-emerald-950/80 border border-emerald-800 text-emerald-400">
+          <div className="flex items-center gap-2 min-w-0">
+            <div className="p-2 rounded-2xl bg-emerald-950/80 border border-emerald-800 text-emerald-400 shrink-0">
               <PieChartIcon className="w-4 h-4" />
             </div>
-            <div>
-              <h3 className="text-sm font-extrabold text-white">標籤支出持股佔比</h3>
-              <p className="text-[11px] text-slate-400">依各標籤金額佔總支出百分比排序</p>
+            <div className="min-w-0">
+              <h3 className="text-sm font-extrabold text-white truncate">標籤支出持股佔比</h3>
+              <p className="text-[11px] text-slate-400 truncate">依各標籤金額佔總支出百分比排序</p>
             </div>
           </div>
         </div>
@@ -419,15 +419,15 @@ export const AnalyticsView: React.FC = () => {
           <div className="space-y-2.5 pt-1">
             {tagStats.map((tag) => (
               <div key={tag.id} className="space-y-1">
-                <div className="flex justify-between items-center text-xs">
-                  <div className="flex items-center gap-2">
+                <div className="flex justify-between items-center gap-2 text-xs">
+                  <div className="flex items-center gap-2 min-w-0">
                     <span
-                      className="w-2.5 h-2.5 rounded-full"
+                      className="w-2.5 h-2.5 rounded-full shrink-0"
                       style={{ backgroundColor: tag.color }}
                     />
-                    <span className="font-bold text-slate-200">#{tag.name}</span>
+                    <span className="font-bold text-slate-200 truncate">#{tag.name}</span>
                   </div>
-                  <div className="font-mono text-slate-300">
+                  <div className="font-mono text-slate-300 tabular-nums whitespace-nowrap shrink-0">
                     <span className="font-bold">NT$ {tag.amount.toLocaleString()}</span>
                     <span className="text-slate-400 ml-1.5 text-[11px]">({tag.percent}%)</span>
                   </div>
@@ -450,8 +450,8 @@ export const AnalyticsView: React.FC = () => {
         <div className="p-2 rounded-2xl bg-amber-500/10 border border-amber-500/20 text-amber-400 flex-shrink-0">
           <Sparkles className="w-4 h-4" />
         </div>
-        <div className="space-y-1">
-          <p className="font-bold text-slate-100 flex items-center gap-1.5">
+        <div className="space-y-1 min-w-0">
+          <p className="font-bold text-slate-100 flex flex-wrap items-center gap-x-1.5 whitespace-nowrap">
             <span>AI 走勢診斷報告</span>
             <span className="text-[10px] text-emerald-400 font-mono">● 即時運算</span>
           </p>

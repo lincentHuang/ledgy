@@ -101,15 +101,15 @@ export const DateNoteModal: React.FC<DateNoteModalProps> = ({
       >
         {/* 標題列 */}
         <div className="flex items-center justify-between border-b border-slate-800 pb-3">
-          <div className="flex items-center gap-2">
-            <div className="p-2 rounded-xl bg-emerald-950/80 border border-emerald-800/80 text-emerald-400">
+          <div className="flex items-center gap-2 min-w-0">
+            <div className="p-2 rounded-xl bg-emerald-950/80 shrink-0 border border-emerald-800/80 text-emerald-400">
               <StickyNote className="w-4 h-4" />
             </div>
-            <div>
-              <h3 id={titleId} className="font-bold text-sm text-white flex items-center gap-1.5">
+            <div className="min-w-0">
+              <h3 id={titleId} className="font-bold text-sm text-white flex items-center gap-1.5 whitespace-nowrap">
                 <span>當日活動備註</span>
               </h3>
-              <p className="text-[11px] text-slate-400 font-mono mt-0.5">
+              <p className="text-[11px] text-slate-400 font-mono mt-0.5 truncate">
                 {formatDateTitle(dateStr)}
               </p>
             </div>
@@ -117,7 +117,7 @@ export const DateNoteModal: React.FC<DateNoteModalProps> = ({
           <button
             type="button"
             onClick={onClose}
-            className="p-1 rounded-xl text-slate-400 hover:text-white hover:bg-slate-800 transition"
+            className="p-1 rounded-xl text-slate-400 hover:text-white hover:bg-slate-800 transition shrink-0"
             title="關閉"
           >
             <X className="w-4 h-4" />
@@ -126,12 +126,12 @@ export const DateNoteModal: React.FC<DateNoteModalProps> = ({
 
         {/* 說明與快速情境推薦 */}
         <div className="space-y-2">
-          <div className="flex items-center justify-between">
-            <label className="text-xs font-bold text-slate-300 flex items-center gap-1.5">
+          <div className="flex items-center justify-between gap-2">
+            <label className="text-xs font-bold text-slate-300 flex items-center gap-1.5 whitespace-nowrap">
               <Sparkles className="w-3.5 h-3.5 text-amber-400" />
               <span>那天是做什麼的？</span>
             </label>
-            <span className="text-[10px] text-slate-400">點選快速套用</span>
+            <span className="text-[10px] text-slate-400 whitespace-nowrap">點選快速套用</span>
           </div>
 
           <div className="flex flex-wrap gap-1.5">
@@ -140,7 +140,7 @@ export const DateNoteModal: React.FC<DateNoteModalProps> = ({
                 key={preset.text}
                 type="button"
                 onClick={() => handleAddPreset(preset.text)}
-                className="px-2.5 py-1 rounded-xl text-[11px] font-medium bg-slate-800/80 hover:bg-emerald-950/60 border border-slate-700/60 hover:border-emerald-600/50 text-slate-300 hover:text-emerald-300 transition active:scale-95 shadow-sm"
+                className="px-2.5 py-1 rounded-xl text-[11px] font-medium whitespace-nowrap bg-slate-800/80 hover:bg-emerald-950/60 border border-slate-700/60 hover:border-emerald-600/50 text-slate-300 hover:text-emerald-300 transition active:scale-95 shadow-sm"
               >
                 {preset.label}
               </button>
@@ -159,9 +159,9 @@ export const DateNoteModal: React.FC<DateNoteModalProps> = ({
             placeholder="例如：全家去宜蘭礁溪泡溫泉、跟朋友慶生聚餐、發薪日存錢..."
             className="w-full rounded-2xl bg-slate-950/70 border border-slate-800 p-3 text-xs sm:text-sm text-slate-100 placeholder:text-slate-500 focus:outline-none focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 transition resize-none leading-relaxed"
           />
-          <div className="flex justify-between items-center text-[10px] text-slate-400 px-1">
-            <span>支援 Enter 換行，Cmd + Enter 快速儲存</span>
-            <span>{note.length} 字</span>
+          <div className="flex justify-between items-center gap-2 text-[10px] text-slate-400 px-1">
+            <span className="min-w-0 truncate">支援 Enter 換行，Cmd + Enter 快速儲存</span>
+            <span className="shrink-0 whitespace-nowrap">{note.length} 字</span>
           </div>
         </div>
 
@@ -172,7 +172,7 @@ export const DateNoteModal: React.FC<DateNoteModalProps> = ({
               <button
                 type="button"
                 onClick={handleDelete}
-                className="inline-flex items-center gap-1 px-3 py-1.5 rounded-xl text-xs font-bold text-rose-400 hover:text-white hover:bg-rose-950/80 border border-rose-900/60 transition"
+                className="inline-flex items-center gap-1 px-2.5 sm:px-3 py-1.5 rounded-xl text-xs font-bold whitespace-nowrap shrink-0 text-rose-400 hover:text-white hover:bg-rose-950/80 border border-rose-900/60 transition"
               >
                 <Trash2 className="w-3.5 h-3.5" />
                 <span>清除備註</span>
@@ -180,18 +180,18 @@ export const DateNoteModal: React.FC<DateNoteModalProps> = ({
             )}
           </div>
 
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-1.5 sm:gap-2 shrink-0">
             <button
               type="button"
               onClick={onClose}
-              className="px-3.5 py-1.5 rounded-xl text-xs font-bold text-slate-400 hover:text-slate-200 hover:bg-slate-800 transition"
+              className="px-3 sm:px-3.5 whitespace-nowrap py-1.5 rounded-xl text-xs font-bold text-slate-400 hover:text-slate-200 hover:bg-slate-800 transition"
             >
               取消
             </button>
             <button
               type="button"
               onClick={handleSave}
-              className="inline-flex items-center gap-1.5 px-4 py-1.5 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs shadow-md shadow-emerald-950/50 transition active:scale-95"
+              className="inline-flex items-center gap-1.5 px-3 sm:px-4 py-1.5 whitespace-nowrap rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs shadow-md shadow-emerald-950/50 transition active:scale-95"
             >
               <Check className="w-3.5 h-3.5" />
               <span>儲存備註</span>

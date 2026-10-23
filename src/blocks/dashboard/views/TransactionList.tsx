@@ -365,12 +365,12 @@ export const TransactionList: React.FC<{ onOpenQuickInput: () => void }> = ({
           ]}
         />
 
-        <div className="flex items-center gap-1.5 flex-1 justify-end">
+        <div className="flex items-center gap-1.5 flex-1 min-w-0 justify-end">
           {/* 🔍 搜尋 Modal 觸發按鈕 */}
           <button
             type="button"
             onClick={() => setIsSearchModalOpen(true)}
-            className="flex items-center gap-2 px-3 py-1.5 rounded-xl border border-slate-800 bg-slate-900/90 text-slate-300 hover:text-white hover:border-slate-700 text-xs transition shadow-sm max-w-[200px] sm:max-w-xs flex-1 justify-start"
+            className="flex items-center gap-2 px-3 py-1.5 rounded-xl border border-slate-800 bg-slate-900/90 text-slate-300 hover:text-white hover:border-slate-700 text-xs transition shadow-sm max-w-[200px] sm:max-w-xs flex-1 min-w-0 justify-start whitespace-nowrap"
             title="開啟搜尋彈窗"
           >
             <Search className="w-3.5 h-3.5 text-emerald-400 flex-shrink-0" />
@@ -385,7 +385,7 @@ export const TransactionList: React.FC<{ onOpenQuickInput: () => void }> = ({
                 new CustomEvent('app-navigate-tab', { detail: { tab: 'budget-board' } })
               )
             }
-            className="flex items-center gap-1 px-2.5 py-1.5 rounded-xl border border-emerald-500/30 bg-emerald-950/40 text-emerald-300 hover:bg-emerald-900/60 hover:text-emerald-200 text-xs font-bold transition shadow-sm flex-shrink-0"
+            className="flex items-center gap-1 px-2.5 py-1.5 rounded-xl border border-emerald-500/30 bg-emerald-950/40 text-emerald-300 hover:bg-emerald-900/60 hover:text-emerald-200 text-xs font-bold transition shadow-sm flex-shrink-0 whitespace-nowrap"
             title="開啟預算看板模式"
           >
             <PieChart className="w-3.5 h-3.5 text-emerald-400 flex-shrink-0" />
@@ -405,14 +405,14 @@ export const TransactionList: React.FC<{ onOpenQuickInput: () => void }> = ({
             {selectedTxIds.length === displayList.length && displayList.length > 0 ? '取消全選' : '全選'}
           </button>
 
-          <div className="flex items-center gap-1.5 flex-shrink-0">
+          <div className="flex items-center gap-1 sm:gap-1.5 flex-shrink-0">
             <Button
               variant="secondary"
               size="xs"
               onClick={() => setIsBatchTagModalOpen(true)}
               disabled={selectedTxIds.length === 0}
               leftIcon={<Tag className="w-3.5 h-3.5 text-emerald-400" />}
-              className="px-2 sm:px-2.5"
+              className="px-2 sm:px-2.5 whitespace-nowrap shrink-0"
             >
               標籤
             </Button>
@@ -426,7 +426,7 @@ export const TransactionList: React.FC<{ onOpenQuickInput: () => void }> = ({
               }}
               disabled={selectedTxIds.length === 0}
               leftIcon={<Calendar className="w-3.5 h-3.5 text-sky-400" />}
-              className="px-2 sm:px-2.5"
+              className="px-2 sm:px-2.5 whitespace-nowrap shrink-0"
             >
               日期
             </Button>
@@ -437,7 +437,7 @@ export const TransactionList: React.FC<{ onOpenQuickInput: () => void }> = ({
               onClick={handleBatchDelete}
               disabled={selectedTxIds.length === 0}
               leftIcon={<Trash2 className="w-3.5 h-3.5 text-rose-400" />}
-              className="px-2 sm:px-2.5"
+              className="px-2 sm:px-2.5 whitespace-nowrap shrink-0"
             >
               刪除
             </Button>
@@ -449,7 +449,7 @@ export const TransactionList: React.FC<{ onOpenQuickInput: () => void }> = ({
                 setIsBatchMode(false);
                 setSelectedTxIds([]);
               }}
-              className="px-2.5 sm:px-3"
+              className="px-2.5 sm:px-3 whitespace-nowrap shrink-0"
             >
               完成
             </Button>
@@ -459,10 +459,10 @@ export const TransactionList: React.FC<{ onOpenQuickInput: () => void }> = ({
 
       {/* 🏷️ 標籤篩選列 (單選標籤，於 列表 / 週 / 月 檢視常駐提供篩選，自身保留流暢橫向滾動) */}
       <div className="space-y-1.5">
-        <div className="flex items-center justify-between px-1 text-[11px] text-slate-400">
-          <div className="flex items-center gap-1.5">
-            <span className="font-bold text-slate-300">標籤篩選</span>
-            <span className="text-[10px] text-slate-500">(單選 ‧ 下方區域可左右滑動切換)</span>
+        <div className="flex items-center justify-between gap-2 px-1 text-[11px] text-slate-400">
+          <div className="flex items-center gap-1.5 min-w-0">
+            <span className="font-bold text-slate-300 whitespace-nowrap">標籤篩選</span>
+            <span className="text-[10px] text-slate-500 truncate">(單選 ‧ 下方區域可左右滑動切換)</span>
           </div>
           {(isTagFiltered || isDateFiltered || isSearchFiltered) && (
             <button
@@ -472,7 +472,7 @@ export const TransactionList: React.FC<{ onOpenQuickInput: () => void }> = ({
                 setDateRangeFilter(null);
                 setSearchQuery('');
               }}
-              className="text-slate-400 hover:text-rose-400 underline text-[10px] transition"
+              className="text-slate-400 hover:text-rose-400 underline text-[10px] transition whitespace-nowrap shrink-0"
             >
               清除所有篩選
             </button>
@@ -579,14 +579,14 @@ export const TransactionList: React.FC<{ onOpenQuickInput: () => void }> = ({
             <div className="flex justify-end gap-2 pt-2 border-t border-slate-800">
               <button
                 onClick={() => setIsBatchTagModalOpen(false)}
-                className="px-3 py-1.5 rounded-xl bg-slate-800 text-slate-400 text-xs"
+                className="px-3 py-1.5 rounded-xl bg-slate-800 text-slate-400 text-xs whitespace-nowrap"
               >
                 取消
               </button>
               <button
                 onClick={handleApplyBatchTags}
                 disabled={batchSelectedTags.length === 0}
-                className="px-4 py-1.5 rounded-xl bg-emerald-600 text-white font-bold text-xs hover:bg-emerald-700 disabled:opacity-40 shadow-md"
+                className="px-4 py-1.5 whitespace-nowrap rounded-xl bg-emerald-600 text-white font-bold text-xs hover:bg-emerald-700 disabled:opacity-40 shadow-md"
               >
                 套用標籤
               </button>
@@ -629,14 +629,14 @@ export const TransactionList: React.FC<{ onOpenQuickInput: () => void }> = ({
             <div className="flex justify-end gap-2 pt-2 border-t border-slate-800">
               <button
                 onClick={() => setIsBatchDateModalOpen(false)}
-                className="px-3 py-1.5 rounded-xl bg-slate-800 text-slate-400 text-xs"
+                className="px-3 py-1.5 rounded-xl bg-slate-800 text-slate-400 text-xs whitespace-nowrap"
               >
                 取消
               </button>
               <button
                 onClick={handleApplyBatchDate}
                 disabled={!batchTargetDate}
-                className="px-4 py-1.5 rounded-xl bg-sky-600 text-white font-bold text-xs hover:bg-sky-700 disabled:opacity-40 shadow-md"
+                className="px-4 py-1.5 whitespace-nowrap rounded-xl bg-sky-600 text-white font-bold text-xs hover:bg-sky-700 disabled:opacity-40 shadow-md"
               >
                 套用新日期
               </button>
@@ -763,7 +763,7 @@ export const TransactionList: React.FC<{ onOpenQuickInput: () => void }> = ({
               <div className="flex gap-2">
                 <button
                   onClick={() => setEditingTx(null)}
-                  className="px-3 py-1.5 rounded-xl bg-slate-800 text-slate-400 text-xs"
+                  className="px-3 py-1.5 rounded-xl bg-slate-800 text-slate-400 text-xs whitespace-nowrap"
                 >
                   取消
                 </button>
@@ -772,7 +772,7 @@ export const TransactionList: React.FC<{ onOpenQuickInput: () => void }> = ({
                     updateTransaction(editingTx.id, editingTx);
                     setEditingTx(null);
                   }}
-                  className="px-4 py-1.5 rounded-xl bg-emerald-600 text-white font-bold text-xs hover:bg-emerald-700 shadow-md"
+                  className="px-4 py-1.5 whitespace-nowrap rounded-xl bg-emerald-600 text-white font-bold text-xs hover:bg-emerald-700 shadow-md"
                 >
                   儲存修改
                 </button>

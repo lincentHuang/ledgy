@@ -90,18 +90,18 @@ export const BarcodeModal: React.FC<BarcodeModalProps> = ({ isOpen, onClose, onO
 
         {/* Header */}
         <div className="flex items-center justify-between mb-2">
-          <div className="flex items-center gap-2.5">
+          <div className="flex items-center gap-2.5 min-w-0">
             <div className="w-9 h-9 rounded-xl bg-emerald-950/80 border border-emerald-800 text-emerald-400 flex items-center justify-center font-bold text-sm shrink-0">
               條
             </div>
-            <div>
-              <h2 className="text-base font-extrabold text-white">手機條碼載具</h2>
-              <p className="text-[11px] text-slate-400">結帳出示條碼 · 快速刷取載具</p>
+            <div className="min-w-0">
+              <h2 className="text-base font-extrabold text-white whitespace-nowrap truncate">手機條碼載具</h2>
+              <p className="text-[11px] text-slate-400 truncate">結帳出示條碼 · 快速刷取載具</p>
             </div>
           </div>
           <button
             onClick={onClose}
-            className="p-1.5 rounded-full hover:bg-slate-800 text-slate-400 hover:text-slate-200 transition"
+            className="p-1.5 shrink-0 rounded-full hover:bg-slate-800 text-slate-400 hover:text-slate-200 transition"
             aria-label="關閉"
           >
             <X className="w-5 h-5" />
@@ -114,12 +114,12 @@ export const BarcodeModal: React.FC<BarcodeModalProps> = ({ isOpen, onClose, onO
             <svg ref={svgRef} className="max-w-full h-auto"></svg>
           </div>
           <div className="flex items-center gap-2 mt-2">
-            <span className="font-mono text-xl sm:text-2xl font-black tracking-widest text-slate-900">
+            <span className="font-mono text-lg sm:text-2xl min-w-0 break-all font-black tracking-widest text-slate-900">
               {selectedCarrier}
             </span>
             <button
               onClick={handleCopy}
-              className="p-2 rounded-xl hover:bg-slate-100 text-slate-700 transition active:scale-95 flex items-center gap-1 text-xs font-semibold"
+              className="p-2 rounded-xl hover:bg-slate-100 text-slate-700 transition active:scale-95 flex items-center gap-1 text-xs font-semibold whitespace-nowrap shrink-0"
               title="複製載具條碼"
             >
               {copied ? (
@@ -145,13 +145,13 @@ export const BarcodeModal: React.FC<BarcodeModalProps> = ({ isOpen, onClose, onO
               value={editVal}
               onChange={(e) => setEditVal(e.target.value)}
               placeholder="/ABC1234"
-              className="flex-1 px-3 py-2 text-sm font-mono uppercase rounded-xl border border-slate-700 bg-slate-900 text-white focus:outline-none focus:ring-2 focus:ring-emerald-500"
+              className="flex-1 min-w-0 px-3 py-2 text-sm font-mono uppercase rounded-xl border border-slate-700 bg-slate-900 text-white focus:outline-none focus:ring-2 focus:ring-emerald-500"
               maxLength={8}
               autoFocus
             />
             <button
               onClick={handleSaveEdit}
-              className="px-3.5 py-2 rounded-xl bg-emerald-600 text-white text-xs font-bold hover:bg-emerald-700 active:scale-95 transition"
+              className="px-3.5 py-2 whitespace-nowrap shrink-0 rounded-xl bg-emerald-600 text-white text-xs font-bold hover:bg-emerald-700 active:scale-95 transition"
             >
               儲存
             </button>
@@ -160,17 +160,17 @@ export const BarcodeModal: React.FC<BarcodeModalProps> = ({ isOpen, onClose, onO
                 setEditVal(selectedCarrier);
                 setIsEditing(false);
               }}
-              className="px-3 py-2 rounded-xl bg-slate-700 text-slate-300 text-xs font-medium hover:bg-slate-600 transition"
+              className="px-3 py-2 whitespace-nowrap shrink-0 rounded-xl bg-slate-700 text-slate-300 text-xs font-medium hover:bg-slate-600 transition"
             >
               取消
             </button>
           </div>
         ) : (
-          <div className="flex items-center justify-between text-xs text-slate-400 mt-1 px-1 py-1">
-            <span>載具號碼：<strong className="text-slate-200 font-mono">{selectedCarrier}</strong></span>
+          <div className="flex items-center justify-between gap-2 text-xs text-slate-400 mt-1 px-1 py-1">
+            <span className="min-w-0 truncate">載具號碼：<strong className="text-slate-200 font-mono">{selectedCarrier}</strong></span>
             <button
               onClick={() => setIsEditing(true)}
-              className="flex items-center gap-1 text-emerald-400 font-semibold hover:underline text-xs py-1 px-2 rounded-lg hover:bg-slate-800 transition"
+              className="flex items-center gap-1 shrink-0 whitespace-nowrap text-emerald-400 font-semibold hover:underline text-xs py-1 px-2 rounded-lg hover:bg-slate-800 transition"
             >
               <Edit3 className="w-3.5 h-3.5" />
               修改我的條碼
@@ -187,19 +187,19 @@ export const BarcodeModal: React.FC<BarcodeModalProps> = ({ isOpen, onClose, onO
             }}
             className="w-full mt-4 p-3.5 rounded-2xl bg-slate-800/70 hover:bg-slate-800 border border-slate-700/80 hover:border-emerald-500/50 flex items-center justify-between text-xs text-slate-300 transition group text-left active:scale-[0.99]"
           >
-            <div className="flex items-center gap-3">
+            <div className="flex items-center gap-3 min-w-0">
               <div className="w-9 h-9 rounded-xl bg-emerald-950/80 border border-emerald-800/80 text-emerald-400 flex items-center justify-center flex-shrink-0">
                 <QrCode className="w-4 h-4" />
               </div>
-              <div>
+              <div className="min-w-0">
                 <p className="font-bold text-slate-200 group-hover:text-emerald-300 transition flex items-center gap-1.5">
-                  <span>掃描紙本發票 QR Code</span>
+                  <span className="truncate">掃描紙本發票 QR Code</span>
                   <Sparkles className="w-3 h-3 text-emerald-400" />
                 </p>
-                <p className="text-[11px] text-slate-400">相機對準發票 · AI 自動逐項分類與對獎</p>
+                <p className="text-[11px] text-slate-400 truncate">相機對準發票 · AI 自動逐項分類與對獎</p>
               </div>
             </div>
-            <span className="text-xs font-bold text-emerald-400 bg-emerald-950/70 border border-emerald-800/70 px-3 py-1.5 rounded-xl group-hover:bg-emerald-600 group-hover:text-white transition shrink-0 ml-2">
+            <span className="text-xs font-bold text-emerald-400 bg-emerald-950/70 border border-emerald-800/70 px-3 py-1.5 rounded-xl group-hover:bg-emerald-600 group-hover:text-white transition shrink-0 whitespace-nowrap ml-2">
               開啟掃描
             </span>
           </button>

@@ -202,12 +202,12 @@ export const BudgetAllocationView: React.FC<BudgetAllocationViewProps> = ({
   return (
     <div className="space-y-4 animate-in fade-in">
       {/* 雙模式切換器：看板模式 vs 額度分配設定 */}
-      <div className="flex items-center justify-between pb-1">
-        <div className="flex items-center gap-1.5 p-1 rounded-2xl bg-slate-900 border border-slate-800">
+      <div className="flex items-center justify-between pb-1 min-w-0">
+        <div className="flex items-center gap-1 sm:gap-1.5 p-1 rounded-2xl max-w-full overflow-x-auto no-scrollbar bg-slate-900 border border-slate-800">
           <button
             type="button"
             onClick={() => setActiveMode('board')}
-            className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-bold transition ${
+            className={`flex items-center gap-1.5 shrink-0 whitespace-nowrap px-2.5 sm:px-3 py-1.5 rounded-xl text-xs font-bold transition ${
               activeMode === 'board'
                 ? 'bg-emerald-600 text-white shadow-sm'
                 : 'text-slate-400 hover:text-slate-200'
@@ -220,7 +220,7 @@ export const BudgetAllocationView: React.FC<BudgetAllocationViewProps> = ({
           <button
             type="button"
             onClick={() => setActiveMode('allocation')}
-            className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-bold transition ${
+            className={`flex items-center gap-1.5 shrink-0 whitespace-nowrap px-2.5 sm:px-3 py-1.5 rounded-xl text-xs font-bold transition ${
               activeMode === 'allocation'
                 ? 'bg-emerald-600 text-white shadow-sm'
                 : 'text-slate-400 hover:text-slate-200'
@@ -244,13 +244,13 @@ export const BudgetAllocationView: React.FC<BudgetAllocationViewProps> = ({
           {/* 1. 總預算配置卡片 */}
           <Card variant="panel" padding="md" className="space-y-4 shadow-sm border-emerald-500/20">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-          <div className="flex items-center gap-2.5">
-            <div className="p-2.5 rounded-2xl bg-emerald-950/80 border border-emerald-800 text-emerald-400">
+          <div className="flex items-center gap-2.5 min-w-0">
+            <div className="p-2.5 shrink-0 rounded-2xl bg-emerald-950/80 border border-emerald-800 text-emerald-400">
               <DollarSign className="w-5 h-5" />
             </div>
-            <div>
-              <h3 className="font-extrabold text-sm sm:text-base text-white flex items-center gap-2">
-                <span>{type === 'household' ? '群組公帳每月總預算' : '個人每月總預算'}</span>
+            <div className="min-w-0">
+              <h3 className="font-extrabold text-sm sm:text-base text-white flex items-center gap-2 flex-wrap">
+                <span className="whitespace-nowrap">{type === 'household' ? '群組公帳每月總預算' : '個人每月總預算'}</span>
                 <Badge variant={type === 'household' ? 'purple' : 'emerald'} size="xs">
                   {type === 'household' ? 'GROUP BUDGET' : 'PERSONAL BUDGET'}
                 </Badge>
@@ -261,13 +261,13 @@ export const BudgetAllocationView: React.FC<BudgetAllocationViewProps> = ({
             </div>
           </div>
 
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-2 flex-wrap">
             <Button
               variant="glass"
               size="sm"
               onClick={handleAiAutoAllocate}
               leftIcon={<Sparkles className="w-3.5 h-3.5 text-teal-400" />}
-              className="text-teal-300 border-teal-500/30 hover:border-teal-500"
+              className="text-teal-300 border-teal-500/30 hover:border-teal-500 whitespace-nowrap shrink-0"
               title="依過往消費佔比自動推算各標籤預算"
             >
               AI 智慧分配建議
@@ -278,7 +278,7 @@ export const BudgetAllocationView: React.FC<BudgetAllocationViewProps> = ({
               size="sm"
               onClick={handleSave}
               leftIcon={savedSuccess ? <Check className="w-3.5 h-3.5" /> : undefined}
-              className="px-4"
+              className="px-4 whitespace-nowrap shrink-0"
             >
               {savedSuccess ? '已儲存！' : '儲存預算配置'}
             </Button>
@@ -333,14 +333,14 @@ export const BudgetAllocationView: React.FC<BudgetAllocationViewProps> = ({
 
         {/* 2. 預算分配比例即時儀表條 */}
         <div className="p-3.5 rounded-2xl bg-slate-950/70 border border-slate-800 space-y-2">
-          <div className="flex items-center justify-between text-xs">
-            <div className="flex items-center gap-2">
-              <span className="font-bold text-slate-300">標籤預算分配進度</span>
-              <span className="font-mono text-emerald-400 font-extrabold">
+          <div className="flex items-center justify-between text-xs flex-wrap gap-x-3 gap-y-1">
+            <div className="flex items-center gap-2 flex-wrap">
+              <span className="font-bold text-slate-300 whitespace-nowrap">標籤預算分配進度</span>
+              <span className="font-mono text-emerald-400 font-extrabold tabular-nums whitespace-nowrap">
                 已分配 NT$ {allocatedTotal.toLocaleString()} ({allocationPercent}%)
               </span>
             </div>
-            <div className="text-slate-400 font-mono">
+            <div className="text-slate-400 font-mono tabular-nums">
               {remainingUnallocated >= 0 ? (
                 <span>剩餘彈性預備金：NT$ {remainingUnallocated.toLocaleString()}</span>
               ) : (
@@ -357,13 +357,13 @@ export const BudgetAllocationView: React.FC<BudgetAllocationViewProps> = ({
             height="md"
           />
 
-          <div className="flex items-center justify-between text-[11px] text-slate-400 pt-0.5">
-            <span>
+          <div className="flex items-center justify-between gap-2 text-[11px] text-slate-400 pt-0.5">
+            <span className="min-w-0 truncate">
               已為 {Object.keys(tagBudgets).length} 個標籤設定專屬預算
             </span>
             <button
               onClick={() => setTagBudgets({})}
-              className="text-slate-400 hover:text-rose-400 underline transition text-[11px]"
+              className="text-slate-400 hover:text-rose-400 underline transition text-[11px] whitespace-nowrap shrink-0"
             >
               清空所有標籤預算
             </button>
@@ -374,9 +374,9 @@ export const BudgetAllocationView: React.FC<BudgetAllocationViewProps> = ({
       {/* 3. 各標籤預算分配列表 */}
       <Card variant="panel" padding="md" className="space-y-3 shadow-sm">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 pb-2 border-b border-white/5">
-          <div className="flex items-center gap-2">
-            <Sliders className="w-4 h-4 text-emerald-400" />
-            <h4 className="font-bold text-sm text-white">標籤預算明細表 ({targetTagItems.length} 個標籤)</h4>
+          <div className="flex items-center gap-2 min-w-0">
+            <Sliders className="w-4 h-4 text-emerald-400 shrink-0" />
+            <h4 className="font-bold text-sm text-white whitespace-nowrap">標籤預算明細表 ({targetTagItems.length} 個標籤)</h4>
           </div>
 
           <div className="relative max-w-xs w-full">
@@ -411,9 +411,9 @@ export const BudgetAllocationView: React.FC<BudgetAllocationViewProps> = ({
               >
                 {/* Top: Tag name & Status */}
                 <div className="flex items-center justify-between gap-2 mb-2">
-                  <TagPill tag={tagItem.name} active={hasBudget} />
+                  <div className="min-w-0"><TagPill tag={tagItem.name} active={hasBudget} /></div>
 
-                  <div className="flex items-center gap-1.5">
+                  <div className="flex items-center gap-1.5 shrink-0 whitespace-nowrap">
                     {hasBudget && (
                       <Badge
                         variant={isOverBudget ? 'rose' : isNearLimit ? 'amber' : 'emerald'}
@@ -437,15 +437,15 @@ export const BudgetAllocationView: React.FC<BudgetAllocationViewProps> = ({
 
                 {/* Middle: Spending vs Budget Input */}
                 <div className="flex items-center justify-between gap-2 text-xs">
-                  <div className="text-slate-400">
+                  <div className="text-slate-400 whitespace-nowrap min-w-0">
                     本月已花費：
-                    <span className="font-mono font-bold text-slate-200 ml-1">
+                    <span className="font-mono font-bold text-slate-200 ml-1 tabular-nums">
                       ${spent.toLocaleString()}
                     </span>
                   </div>
 
-                  <div className="flex items-center gap-1">
-                    <span className="text-[11px] text-slate-400">預算:</span>
+                  <div className="flex items-center gap-1 shrink-0">
+                    <span className="text-[11px] text-slate-400 whitespace-nowrap">預算:</span>
                     <input
                       type="number"
                       value={budget || ''}
@@ -453,7 +453,7 @@ export const BudgetAllocationView: React.FC<BudgetAllocationViewProps> = ({
                         handleSetTagBudget(tagItem, Number(e.target.value))
                       }
                       placeholder="0"
-                      className="w-24 px-2 py-1 text-xs font-mono font-bold rounded-lg border border-slate-700 bg-slate-950 text-emerald-400 text-right focus:outline-none focus:ring-1 focus:ring-emerald-500"
+                      className="w-20 sm:w-24 px-2 py-1 text-xs font-mono font-bold rounded-lg border border-slate-700 bg-slate-950 text-emerald-400 text-right focus:outline-none focus:ring-1 focus:ring-emerald-500"
                     />
                   </div>
                 </div>
@@ -461,7 +461,7 @@ export const BudgetAllocationView: React.FC<BudgetAllocationViewProps> = ({
                 {/* Bottom: Progress Bar */}
                 {hasBudget && (
                   <div className="mt-2 space-y-1">
-                    <div className="flex justify-between text-[10px] text-slate-400 font-mono">
+                    <div className="flex justify-between gap-2 text-[10px] text-slate-400 font-mono whitespace-nowrap">
                       <span>已用 {usagePercent}%</span>
                       <span>佔總預算 {Math.round((budget / (totalBudget || 1)) * 100)}%</span>
                     </div>

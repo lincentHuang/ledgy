@@ -27,14 +27,28 @@ interface UseVoiceExpenseParserOptions {
   defaultPaymentMethod?: string;
   currentTags: string[];
   activeLedger: 'personal' | 'household';
+  hasHousehold?: boolean;
   learningEngine: any;
 }
+
+// 🎯 入帳帳本判定：預設一律跟隨「目前切換中的帳本」，只有使用者明確說出「公帳 / 私帳」才覆寫
+// (不採用 AI 或本地引擎猜測的 ledgerType，避免在群組帳本記帳卻被歸到個人帳)
+const resolveLedgerType = (
+  text: string,
+  activeLedger: 'personal' | 'household',
+  hasHousehold: boolean
+): 'personal' | 'household' => {
+  if (hasHousehold && /公帳|公費|公用/.test(text)) return 'household';
+  if (/私帳|個人帳/.test(text)) return 'personal';
+  return activeLedger === 'household' && hasHousehold ? 'household' : 'personal';
+};
 
 export function useVoiceExpenseParser({
   geminiApiKey,
   defaultPaymentMethod = '現金',
   currentTags,
   activeLedger,
+  hasHousehold = false,
   learningEngine,
 }: UseVoiceExpenseParserOptions) {
   const [isParsing, setIsParsing] = useState(false);
@@ -65,13 +79,7 @@ export function useVoiceExpenseParser({
           const itemRule = learningEngine?.matchRule(parsed.title || text);
           const effectiveRule = itemRule || matchedRule;
 
-          const isExplicitPersonal = /個人|私帳|自己/.test(parsed.title || text);
-          const isExplicitHousehold = /家庭|公帳|公用|家裡|大家/.test(parsed.title || text);
-          const determinedLedgerType: 'personal' | 'household' = isExplicitHousehold
-            ? 'household'
-            : isExplicitPersonal
-            ? 'personal'
-            : (parsed.ledgerType || activeLedger || 'personal');
+          const determinedLedgerType = resolveLedgerType(parsed.title || text, activeLedger, hasHousehold);
 
           const targetCatId = effectiveRule ? effectiveRule.targetCategoryId : parsed.categoryId;
           const cat = DEFAULT_CATEGORIES.find((c) => c.id === targetCatId);
@@ -121,7 +129,7 @@ export function useVoiceExpenseParser({
         setIsParsing(false);
       }
     },
-    [geminiApiKey, defaultPaymentMethod, currentTags, activeLedger, learningEngine]
+    [geminiApiKey, defaultPaymentMethod, currentTags, activeLedger, hasHousehold, learningEngine]
   );
 
   // 當 Web Speech API 未回傳逐字稿時，直接解析已錄製的音訊 (Gemini Audio Fallback)
@@ -142,13 +150,7 @@ export function useVoiceExpenseParser({
 
         if (expenses.length > 0) {
           const mapped: ParsedVoiceExpense[] = expenses.map((parsed, idx) => {
-            const isExplicitPersonal = /個人|私帳|自己/.test(parsed.title);
-            const isExplicitHousehold = /家庭|公帳|公用|家裡|大家/.test(parsed.title);
-            const determinedLedgerType: 'personal' | 'household' = isExplicitHousehold
-              ? 'household'
-              : isExplicitPersonal
-              ? 'personal'
-              : (parsed.ledgerType || activeLedger || 'personal');
+            const determinedLedgerType = resolveLedgerType(parsed.title || '', activeLedger, hasHousehold);
 
             return {
               id: `audio_item_${Date.now()}_${idx}`,
@@ -179,7 +181,7 @@ export function useVoiceExpenseParser({
         setIsParsing(false);
       }
     },
-    [geminiApiKey, defaultPaymentMethod, currentTags, activeLedger]
+    [geminiApiKey, defaultPaymentMethod, currentTags, activeLedger, hasHousehold]
   );
 
   const updateItem = useCallback((index: number, changes: Partial<ParsedVoiceExpense>) => {

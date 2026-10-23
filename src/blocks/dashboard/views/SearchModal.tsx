@@ -117,13 +117,13 @@ export const SearchModal: React.FC<SearchModalProps> = ({
         {/* 頂部搜尋列 */}
         <div className="p-4 border-b border-slate-800 space-y-3">
           <div className="flex items-center justify-between gap-2">
-            <div className="flex items-center gap-2 text-sm font-bold text-white">
+            <div className="flex items-center gap-2 text-sm font-bold text-white whitespace-nowrap min-w-0">
               <Search className="w-4 h-4 text-emerald-400" />
               <span>搜尋記帳項目</span>
             </div>
             <button
               onClick={onClose}
-              className="p-1.5 rounded-xl text-slate-400 hover:text-white hover:bg-slate-800 transition"
+              className="p-1.5 rounded-xl text-slate-400 hover:text-white hover:bg-slate-800 transition shrink-0"
               title="關閉"
             >
               <X className="w-4 h-4" />
@@ -157,7 +157,7 @@ export const SearchModal: React.FC<SearchModalProps> = ({
             <button
               type="button"
               onClick={() => setSelectedTag(null)}
-              className={`px-2.5 py-1 rounded-xl font-medium transition border ${
+              className={`px-2.5 py-1 rounded-xl font-medium whitespace-nowrap shrink-0 transition border ${
                 selectedTag === null
                   ? 'bg-emerald-600 border-emerald-500 text-white shadow-sm'
                   : 'bg-slate-800 border-slate-700 text-slate-400 hover:text-slate-200'
@@ -174,7 +174,7 @@ export const SearchModal: React.FC<SearchModalProps> = ({
                   onClick={() =>
                     setSelectedTag(isSelected ? null : tagItem.name)
                   }
-                  className={`px-2.5 py-1 rounded-xl font-medium transition flex items-center gap-1 border ${
+                  className={`px-2.5 py-1 rounded-xl font-medium whitespace-nowrap shrink-0 transition flex items-center gap-1 border ${
                     isSelected
                       ? 'bg-emerald-600 border-emerald-500 text-white shadow-sm'
                       : 'bg-slate-800/80 border-slate-700/80 text-slate-400 hover:text-slate-200'
@@ -188,14 +188,14 @@ export const SearchModal: React.FC<SearchModalProps> = ({
         </div>
 
         {/* 搜尋結果統計列 */}
-        <div className="px-4 py-2 bg-slate-950/60 border-b border-slate-800/80 flex items-center justify-between text-xs text-slate-400">
+        <div className="px-3 sm:px-4 py-2 bg-slate-950/60 border-b border-slate-800/80 flex items-center justify-between gap-2 text-xs whitespace-nowrap text-slate-400">
           <span>
             搜尋結果：<strong className="text-white font-bold">{searchResults.length}</strong> 筆
           </span>
           {searchResults.length > 0 && (
-            <span className="flex items-center gap-1">
+            <span className="flex items-center gap-1 shrink-0">
               總金額：
-              <strong className="text-emerald-400 font-mono font-bold text-sm">
+              <strong className="text-emerald-400 font-mono font-bold text-sm tabular-nums whitespace-nowrap">
                 NT$ {totalAmount.toLocaleString()}
               </strong>
             </span>
@@ -231,28 +231,28 @@ export const SearchModal: React.FC<SearchModalProps> = ({
                     </div>
 
                     <div className="min-w-0 space-y-0.5">
-                      <div className="flex items-center gap-2">
+                      <div className="flex items-center gap-2 min-w-0">
                         <h4 className="font-bold text-xs sm:text-sm text-white truncate group-hover:text-emerald-300 transition">
                           {tx.title || '無品項名稱'}
                         </h4>
-                        <span className="px-2 py-0.5 rounded-md bg-slate-900 border border-slate-700 text-[10px] text-emerald-400 font-medium truncate max-w-[90px]">
+                        <span className="px-2 py-0.5 rounded-md bg-slate-900 border border-slate-700 text-[10px] text-emerald-400 font-medium truncate max-w-[70px] sm:max-w-[90px] shrink-0 whitespace-nowrap">
                           #{mainTag}
                         </span>
                       </div>
 
-                      <div className="flex items-center gap-2 text-[11px] text-slate-400">
-                        <span className="flex items-center gap-1 font-mono">
+                      <div className="flex items-center gap-2 text-[11px] text-slate-400 min-w-0 overflow-hidden whitespace-nowrap">
+                        <span className="flex items-center gap-1 font-mono shrink-0">
                           <Calendar className="w-3 h-3 text-slate-500" />
                           {tx.date}
                         </span>
                         {tx.paymentMethod && (
-                          <span className="flex items-center gap-1">
+                          <span className="flex items-center gap-1 shrink-0">
                             <CreditCard className="w-3 h-3 text-slate-500" />
                             {tx.paymentMethod}
                           </span>
                         )}
                         {tx.merchant && (
-                          <span className="truncate max-w-[120px] text-slate-500">
+                          <span className="truncate max-w-[80px] sm:max-w-[120px] text-slate-500">
                             @{tx.merchant}
                           </span>
                         )}
@@ -263,13 +263,13 @@ export const SearchModal: React.FC<SearchModalProps> = ({
                   <div className="flex items-center gap-3 flex-shrink-0 text-right">
                     <div>
                       <p
-                        className={`font-mono font-black text-sm sm:text-base ${
+                        className={`font-mono font-black text-sm sm:text-base tabular-nums whitespace-nowrap ${
                           isIncome ? 'text-emerald-400' : 'text-slate-100'
                         }`}
                       >
                         {isIncome ? '+' : ''}${tx.amount?.toLocaleString()}
                       </p>
-                      <p className="text-[10px] text-slate-500 flex items-center justify-end gap-1 group-hover:text-emerald-400 transition">
+                      <p className="text-[10px] text-slate-500 flex items-center justify-end gap-1 whitespace-nowrap group-hover:text-emerald-400 transition">
                         <Edit2 className="w-3 h-3" />
                         <span>點擊編輯</span>
                       </p>
@@ -285,7 +285,7 @@ export const SearchModal: React.FC<SearchModalProps> = ({
         <div className="p-3 border-t border-slate-800 flex justify-end bg-slate-950/40">
           <button
             onClick={onClose}
-            className="px-4 py-1.5 rounded-xl bg-slate-800 text-slate-300 text-xs font-bold hover:bg-slate-700 hover:text-white transition"
+            className="px-4 py-1.5 whitespace-nowrap rounded-xl bg-slate-800 text-slate-300 text-xs font-bold hover:bg-slate-700 hover:text-white transition"
           >
             關閉搜尋
           </button>

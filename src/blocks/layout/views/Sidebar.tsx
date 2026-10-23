@@ -27,6 +27,7 @@ import {
   Barcode,
   BarChart3,
   PieChart,
+  CalendarClock,
 } from 'lucide-react';
 import { MainTabType } from './BottomNav';
 import { PersonalTabType, GroupTabType } from '@/blocks/settings';
@@ -71,6 +72,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
     activeLedger,
     setActiveLedger,
     logout,
+    dueFixedCosts,
   } = useAppStore();
 
   const handleNav = (tab: MainTabType) => {
@@ -262,6 +264,27 @@ export const Sidebar: React.FC<SidebarProps> = ({
               <span className="text-[10px] bg-slate-800 text-emerald-300 px-2 py-0.5 rounded-full border border-slate-700">
                 {1 + households.length} 本
               </span>
+            </button>
+
+            {/* 💸 每月固定成本 */}
+            <button
+              onClick={() => handleNav('fixed-costs')}
+              className={`w-full flex items-center justify-between px-3 py-2.5 rounded-2xl transition font-medium border ${currentTab === 'fixed-costs'
+                  ? 'bg-emerald-600/20 text-emerald-400 font-bold border-emerald-500/30'
+                  : 'border-transparent hover:bg-slate-800 text-slate-300'
+                }`}
+            >
+              <div className="flex items-center gap-2.5">
+                <CalendarClock className="w-4 h-4 text-emerald-400" />
+                <span>每月固定成本</span>
+              </div>
+              {dueFixedCosts.length > 0 ? (
+                <span className="text-[10px] bg-rose-600 text-white px-2 py-0.5 rounded-full font-bold whitespace-nowrap">
+                  {dueFixedCosts.length} 筆待確認
+                </span>
+              ) : (
+                <ChevronRight className="w-3.5 h-3.5 opacity-60" />
+              )}
             </button>
 
             {/* 3. 財務報表與 AI 顧問 */}

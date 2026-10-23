@@ -34,6 +34,25 @@ export interface UserProfile {
   paymentMethods?: string[];
   preferences?: UserPreferences;
   dateNotes?: Record<string, string>; // Key: "YYYY-MM-DD" (例如 "2026-09-30") -> Value: 當日備忘/活動說明
+  fixedCosts?: FixedCost[]; // 個人私帳的每月固定成本
+}
+
+/** 每月固定成本 (房租、訂閱、保險…)：每月指定日提醒是否已繳費，確認後自動入帳 */
+export interface FixedCost {
+  id: string;
+  title: string;
+  amount: number;
+  dayOfMonth: number; // 1 ~ 31 (若當月沒有該日，以月底計)
+  tag?: string;
+  paymentMethod?: string;
+  categoryId?: string;
+  ledgerType: 'personal' | 'household';
+  householdId?: string;
+  active: boolean;
+  // Key: "YYYY-MM" -> 已入帳的交易 ID，或 'skipped' 表示本月略過
+  paidMonths?: Record<string, string>;
+  createdAt: number;
+  updatedAt: number;
 }
 
 export interface LearningRule {

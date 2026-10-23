@@ -479,13 +479,13 @@ export const BudgetBoardView: React.FC<BudgetBoardViewProps> = ({
               <span className="font-extrabold text-sm text-white truncate block">
                 #{item.tagItem.name}
               </span>
-              <span className="text-[10px] text-slate-400 block">
+              <span className="text-[10px] text-slate-400 block whitespace-nowrap truncate">
                 {item.txs.length} 筆消費
               </span>
             </div>
           </div>
 
-          <div className="flex items-center gap-1.5 flex-shrink-0">
+          <div className="flex items-center gap-1.5 flex-shrink-0 whitespace-nowrap">
             <Badge variant={statusConfig.badge} size="xs">
               {statusConfig.label}
             </Badge>
@@ -510,15 +510,15 @@ export const BudgetBoardView: React.FC<BudgetBoardViewProps> = ({
 
         {/* Middle: 金額與進度資訊 */}
         <div className="space-y-1.5 pt-1">
-          <div className="flex items-baseline justify-between text-xs">
-            <div className="text-slate-400">
+          <div className="flex items-baseline justify-between gap-2 text-xs">
+            <div className="text-slate-400 whitespace-nowrap min-w-0">
               已花費{' '}
-              <span className={`font-mono font-black text-sm ${statusConfig.textColor}`}>
+              <span className={`font-mono font-black text-sm tabular-nums whitespace-nowrap ${statusConfig.textColor}`}>
                 NT$ {item.spent.toLocaleString()}
               </span>
             </div>
 
-            <div className="text-slate-300 font-mono text-[11px]">
+            <div className="text-slate-300 font-mono text-[11px] tabular-nums whitespace-nowrap shrink-0">
               {item.hasBudget ? (
                 <span>
                   預算 NT$ <span className="font-bold">{item.budget.toLocaleString()}</span>
@@ -533,7 +533,7 @@ export const BudgetBoardView: React.FC<BudgetBoardViewProps> = ({
                       amount: item.spent > 0 ? Math.ceil(item.spent / 500) * 500 : 3000,
                     })
                   }
-                  className="text-teal-400 hover:text-teal-300 underline font-bold transition flex items-center gap-0.5"
+                  className="text-teal-400 hover:text-teal-300 underline font-bold transition flex items-center gap-0.5 whitespace-nowrap"
                 >
                   <Plus className="w-3 h-3" /> 設定預算
                 </button>
@@ -551,8 +551,8 @@ export const BudgetBoardView: React.FC<BudgetBoardViewProps> = ({
                 />
               </div>
 
-              <div className="flex items-center justify-between text-[10px] text-slate-400 font-mono">
-                <span>
+              <div className="flex items-center justify-between gap-2 text-[10px] text-slate-400 font-mono tabular-nums">
+                <span className="min-w-0">
                   {item.status === 'over' ? (
                     <span className="text-rose-400 font-bold">
                       超支 +NT$ {item.overAmount.toLocaleString()} ({item.usagePercent}%)
@@ -576,9 +576,9 @@ export const BudgetBoardView: React.FC<BudgetBoardViewProps> = ({
           {/* 快速微調預算列 */}
           {isEditing ? (
             <div className="pt-2 border-t border-white/5 space-y-2 animate-in fade-in">
-              <div className="flex items-center justify-between text-[11px]">
-                <span className="text-slate-400 font-medium">調整每月預算：</span>
-                <div className="flex items-center gap-1">
+              <div className="flex items-center justify-between gap-2 text-[11px]">
+                <span className="text-slate-400 font-medium whitespace-nowrap">調整每月預算：</span>
+                <div className="flex items-center gap-1 shrink-0">
                   <button
                     type="button"
                     onClick={() =>
@@ -586,7 +586,7 @@ export const BudgetBoardView: React.FC<BudgetBoardViewProps> = ({
                         prev ? { ...prev, amount: Math.max(0, prev.amount - 500) } : null
                       )
                     }
-                    className="px-1.5 py-0.5 rounded bg-slate-800 hover:bg-slate-700 text-slate-300 text-[10px] font-mono"
+                    className="px-1.5 py-0.5 rounded bg-slate-800 hover:bg-slate-700 text-slate-300 text-[10px] font-mono whitespace-nowrap"
                   >
                     -500
                   </button>
@@ -597,7 +597,7 @@ export const BudgetBoardView: React.FC<BudgetBoardViewProps> = ({
                         prev ? { ...prev, amount: prev.amount + 500 } : null
                       )
                     }
-                    className="px-1.5 py-0.5 rounded bg-slate-800 hover:bg-slate-700 text-slate-300 text-[10px] font-mono"
+                    className="px-1.5 py-0.5 rounded bg-slate-800 hover:bg-slate-700 text-slate-300 text-[10px] font-mono whitespace-nowrap"
                   >
                     +500
                   </button>
@@ -608,7 +608,7 @@ export const BudgetBoardView: React.FC<BudgetBoardViewProps> = ({
                         prev ? { ...prev, amount: prev.amount + 1000 } : null
                       )
                     }
-                    className="px-1.5 py-0.5 rounded bg-slate-800 hover:bg-slate-700 text-emerald-400 text-[10px] font-mono"
+                    className="px-1.5 py-0.5 rounded bg-slate-800 hover:bg-slate-700 text-emerald-400 text-[10px] font-mono whitespace-nowrap"
                   >
                     +1k
                   </button>
@@ -625,13 +625,14 @@ export const BudgetBoardView: React.FC<BudgetBoardViewProps> = ({
                     )
                   }
                   placeholder="輸入預算金額"
-                  className="flex-1 px-2.5 py-1 rounded-xl bg-slate-950 border border-slate-700 text-xs font-mono font-bold text-emerald-400 focus:outline-none focus:ring-1 focus:ring-emerald-500"
+                  className="flex-1 min-w-0 px-2.5 py-1 rounded-xl bg-slate-950 border border-slate-700 text-xs font-mono font-bold text-emerald-400 focus:outline-none focus:ring-1 focus:ring-emerald-500"
                 />
                 <Button
                   size="xs"
                   variant="primary"
                   onClick={() => handleSaveTagBudget(item.tagItem, editingTag?.amount || 0)}
                   leftIcon={<Check className="w-3 h-3" />}
+                  className="whitespace-nowrap shrink-0"
                 >
                   儲存
                 </Button>
@@ -639,6 +640,7 @@ export const BudgetBoardView: React.FC<BudgetBoardViewProps> = ({
                   size="xs"
                   variant="secondary"
                   onClick={() => setEditingTag(null)}
+                  className="whitespace-nowrap shrink-0"
                 >
                   取消
                 </Button>
@@ -655,7 +657,7 @@ export const BudgetBoardView: React.FC<BudgetBoardViewProps> = ({
                     amount: item.budget,
                   })
                 }
-                className="text-[10px] text-slate-400 hover:text-emerald-400 flex items-center gap-1 transition"
+                className="text-[10px] text-slate-400 hover:text-emerald-400 flex items-center gap-1 transition whitespace-nowrap"
                 title="快速微調此預算額度"
               >
                 <Sliders className="w-2.5 h-2.5" />
@@ -668,9 +670,9 @@ export const BudgetBoardView: React.FC<BudgetBoardViewProps> = ({
         {/* 展開：穿透式支出明細抽屜 (Drilldown) */}
         {isExpanded && (
           <div className="mt-3 pt-2.5 border-t border-slate-800/80 space-y-1.5 animate-in fade-in">
-            <div className="flex items-center justify-between text-[11px] text-slate-400 pb-1">
-              <span className="font-bold text-slate-300">本月支出紀錄明細</span>
-              <span className="font-mono text-emerald-400">
+            <div className="flex items-center justify-between gap-2 text-[11px] text-slate-400 pb-1">
+              <span className="font-bold text-slate-300 whitespace-nowrap">本月支出紀錄明細</span>
+              <span className="font-mono text-emerald-400 tabular-nums truncate">
                 共 {item.txs.length} 筆 · 合計 NT$ {item.spent.toLocaleString()}
               </span>
             </div>
@@ -693,7 +695,7 @@ export const BudgetBoardView: React.FC<BudgetBoardViewProps> = ({
                     </div>
                   </div>
 
-                  <div className="font-mono font-extrabold text-rose-400 flex-shrink-0">
+                  <div className="font-mono font-extrabold text-rose-400 flex-shrink-0 tabular-nums whitespace-nowrap">
                     -NT$ {Number(tx.amount).toLocaleString()}
                   </div>
                 </div>
@@ -709,11 +711,11 @@ export const BudgetBoardView: React.FC<BudgetBoardViewProps> = ({
     <div className="space-y-4 animate-in fade-in">
       {/* 1. 頂部大盤標題列與月份切換器 */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-        <div className="flex items-center gap-2.5">
+        <div className="flex items-center gap-2 sm:gap-2.5 min-w-0">
           {!embedded && onBack && (
             <button
               onClick={onBack}
-              className="p-2 rounded-xl bg-slate-900 border border-slate-800 hover:bg-slate-800 text-slate-300 transition"
+              className="p-2 rounded-xl bg-slate-900 border border-slate-800 hover:bg-slate-800 text-slate-300 transition shrink-0"
               title="返回總覽"
             >
               <ArrowLeft className="w-4 h-4" />
@@ -724,21 +726,21 @@ export const BudgetBoardView: React.FC<BudgetBoardViewProps> = ({
             <PieChart className="w-5 h-5" />
           </div>
 
-          <div>
-            <h2 className="font-extrabold text-base sm:text-lg text-white flex items-center gap-2">
+          <div className="min-w-0">
+            <h2 className="font-extrabold text-base sm:text-lg text-white flex items-center gap-2 whitespace-nowrap">
               <span>預算看板模式</span>
               <Badge variant={currentLedgerType === 'household' ? 'purple' : 'emerald'} size="xs">
                 {currentLedgerType === 'household' ? 'GROUP KANBAN' : 'PERSONAL KANBAN'}
               </Badge>
             </h2>
-            <p className="text-xs text-slate-400">
+            <p className="text-xs text-slate-400 truncate">
               各分類預算執行狀態、超支預警與每日限額一目了然
             </p>
           </div>
         </div>
 
         {/* 月份導航器 */}
-        <div className="flex items-center gap-2 self-start sm:self-auto">
+        <div className="flex flex-wrap items-center gap-2 self-start sm:self-auto">
           <div className="flex items-center bg-slate-900/90 border border-slate-800 rounded-2xl p-1 shadow-sm">
             <button
               type="button"
@@ -749,7 +751,7 @@ export const BudgetBoardView: React.FC<BudgetBoardViewProps> = ({
               <ChevronLeft className="w-4 h-4" />
             </button>
 
-            <span className="px-3 text-xs font-mono font-extrabold text-slate-200">
+            <span className="px-2 sm:px-3 text-xs font-mono font-extrabold text-slate-200 whitespace-nowrap tabular-nums">
               {pacingStats.year} 年 {pacingStats.month} 月
             </span>
 
@@ -767,7 +769,7 @@ export const BudgetBoardView: React.FC<BudgetBoardViewProps> = ({
             <button
               type="button"
               onClick={handleResetCurrentMonth}
-              className="px-2.5 py-1.5 rounded-xl bg-slate-900 border border-emerald-500/40 text-emerald-400 hover:bg-slate-800 text-xs font-bold transition"
+              className="px-2.5 py-1.5 rounded-xl bg-slate-900 border border-emerald-500/40 text-emerald-400 hover:bg-slate-800 text-xs font-bold transition whitespace-nowrap shrink-0"
             >
               當月
             </button>
@@ -779,7 +781,7 @@ export const BudgetBoardView: React.FC<BudgetBoardViewProps> = ({
               variant="glass"
               onClick={onManageBudget}
               leftIcon={<Sliders className="w-3.5 h-3.5 text-emerald-400" />}
-              className="text-xs"
+              className="text-xs whitespace-nowrap shrink-0"
             >
               分配總表
             </Button>
@@ -794,10 +796,10 @@ export const BudgetBoardView: React.FC<BudgetBoardViewProps> = ({
           {/* A. 總預算 */}
           <div className="p-3 rounded-2xl bg-slate-950/70 border border-slate-800 space-y-1">
             <div className="flex items-center justify-between text-xs text-slate-400 font-medium">
-              <span>每月總目標預算</span>
+              <span className="truncate">每月總目標預算</span>
               <DollarSign className="w-3.5 h-3.5 text-emerald-400" />
             </div>
-            <div className="font-mono font-black text-xl text-white">
+            <div className="font-mono font-black text-lg sm:text-xl text-white tabular-nums whitespace-nowrap">
               NT$ {totalBudget.toLocaleString()}
             </div>
             <div className="text-[10px] text-slate-400">
@@ -808,10 +810,10 @@ export const BudgetBoardView: React.FC<BudgetBoardViewProps> = ({
           {/* B. 本月累計支出 */}
           <div className="p-3 rounded-2xl bg-slate-950/70 border border-slate-800 space-y-1">
             <div className="flex items-center justify-between text-xs text-slate-400 font-medium">
-              <span>本月累計總支出</span>
+              <span className="truncate">本月累計總支出</span>
               <Flame className="w-3.5 h-3.5 text-amber-400" />
             </div>
-            <div className="font-mono font-black text-xl text-amber-400">
+            <div className="font-mono font-black text-lg sm:text-xl text-amber-400 tabular-nums whitespace-nowrap">
               NT$ {totalSpent.toLocaleString()}
             </div>
             <div className="text-[10px] text-slate-400">
@@ -828,7 +830,7 @@ export const BudgetBoardView: React.FC<BudgetBoardViewProps> = ({
             }`}
           >
             <div className="flex items-center justify-between text-xs text-slate-400 font-medium">
-              <span>{remainingTotalBudget >= 0 ? '預算總剩餘額度' : '⚠️ 已超出總預算'}</span>
+              <span className="truncate">{remainingTotalBudget >= 0 ? '預算總剩餘額度' : '⚠️ 已超出總預算'}</span>
               <PiggyBank
                 className={`w-3.5 h-3.5 ${
                   remainingTotalBudget >= 0 ? 'text-emerald-400' : 'text-rose-400'
@@ -836,7 +838,7 @@ export const BudgetBoardView: React.FC<BudgetBoardViewProps> = ({
               />
             </div>
             <div
-              className={`font-mono font-black text-xl ${
+              className={`font-mono font-black text-lg sm:text-xl tabular-nums whitespace-nowrap ${
                 remainingTotalBudget >= 0 ? 'text-emerald-400' : 'text-rose-400'
               }`}
             >
@@ -856,12 +858,12 @@ export const BudgetBoardView: React.FC<BudgetBoardViewProps> = ({
 
         {/* 燃盡率步調進度條 (時間進度 vs 預算進度) */}
         <div className="p-3 rounded-2xl bg-slate-900/60 border border-slate-800/80 space-y-2">
-          <div className="flex items-center justify-between text-xs">
-            <div className="flex items-center gap-1.5 text-slate-300">
+          <div className="flex flex-wrap items-center justify-between gap-x-2 gap-y-1 text-xs">
+            <div className="flex items-center gap-1.5 text-slate-300 whitespace-nowrap">
               <Clock className="w-3.5 h-3.5 text-teal-400" />
               <span className="font-bold">時間步調與預算燃盡對比</span>
             </div>
-            <div className="text-slate-400 font-mono text-[11px]">
+            <div className="text-slate-400 font-mono text-[11px] tabular-nums whitespace-nowrap">
               {pacingStats.isThisMonth ? (
                 <span>
                   本月第 {pacingStats.daysPassed}/{pacingStats.totalDays} 天 (時間已過 {pacingStats.timeProgressPercent}%)
@@ -879,8 +881,8 @@ export const BudgetBoardView: React.FC<BudgetBoardViewProps> = ({
               variant={remainingTotalBudget < 0 ? 'auto' : 'emerald'}
               height="md"
             />
-            <div className="flex justify-between text-[10px] text-slate-400 font-mono">
-              <span>預算已消耗 {overallUsagePercent}%</span>
+            <div className="flex justify-between gap-2 text-[10px] text-slate-400 font-mono tabular-nums">
+              <span className="whitespace-nowrap">預算已消耗 {overallUsagePercent}%</span>
               <span>
                 {pacingStats.isThisMonth
                   ? overallUsagePercent <= pacingStats.timeProgressPercent
@@ -894,27 +896,27 @@ export const BudgetBoardView: React.FC<BudgetBoardViewProps> = ({
 
         {/* 即時健康度膠囊分類統計 (Status Counter Pills) */}
         <div className="flex flex-wrap items-center gap-2 pt-1 border-t border-white/5 text-xs">
-          <span className="text-slate-400 text-[11px] font-bold">看板分類統計：</span>
+          <span className="text-slate-400 text-[11px] font-bold whitespace-nowrap">看板分類統計：</span>
           <div className="flex items-center gap-1.5 flex-wrap">
-            <span className="px-2.5 py-1 rounded-xl bg-rose-950/80 border border-rose-800 text-rose-300 font-mono font-bold flex items-center gap-1">
+            <span className="px-2.5 py-1 rounded-xl bg-rose-950/80 border border-rose-800 text-rose-300 font-mono font-bold flex items-center gap-1 whitespace-nowrap">
               <span className="w-2 h-2 rounded-full bg-rose-500 animate-pulse" />
               嚴重超支 {overList.length} 項
             </span>
-            <span className="px-2.5 py-1 rounded-xl bg-amber-950/80 border border-amber-800 text-amber-300 font-mono font-bold flex items-center gap-1">
+            <span className="px-2.5 py-1 rounded-xl bg-amber-950/80 border border-amber-800 text-amber-300 font-mono font-bold flex items-center gap-1 whitespace-nowrap">
               <span className="w-2 h-2 rounded-full bg-amber-500" />
               接近上限 {warningList.length} 項
             </span>
-            <span className="px-2.5 py-1 rounded-xl bg-emerald-950/80 border border-emerald-800 text-emerald-300 font-mono font-bold flex items-center gap-1">
+            <span className="px-2.5 py-1 rounded-xl bg-emerald-950/80 border border-emerald-800 text-emerald-300 font-mono font-bold flex items-center gap-1 whitespace-nowrap">
               <span className="w-2 h-2 rounded-full bg-emerald-500" />
               安全寬裕 {safeList.length} 項
             </span>
             {unusedList.length > 0 && (
-              <span className="px-2.5 py-1 rounded-xl bg-slate-900 border border-slate-800 text-slate-400 font-mono text-[11px]">
+              <span className="px-2.5 py-1 rounded-xl bg-slate-900 border border-slate-800 text-slate-400 font-mono text-[11px] whitespace-nowrap">
                 未動用 {unusedList.length} 項
               </span>
             )}
             {unbudgetedList.length > 0 && (
-              <span className="px-2.5 py-1 rounded-xl bg-teal-950/80 border border-teal-800 text-teal-300 font-mono text-[11px]">
+              <span className="px-2.5 py-1 rounded-xl bg-teal-950/80 border border-teal-800 text-teal-300 font-mono text-[11px] whitespace-nowrap">
                 未設預算 {unbudgetedList.length} 項
               </span>
             )}
@@ -925,11 +927,11 @@ export const BudgetBoardView: React.FC<BudgetBoardViewProps> = ({
       {/* 3. 看板檢視工具列 (看板分欄 vs 網格全覽切換 & 搜尋 & 排序) */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2.5 pt-1">
         {/* 檢視模式切換 */}
-        <div className="flex items-center gap-1 bg-slate-900/90 p-1 rounded-2xl border border-slate-800 self-start">
+        <div className="flex items-center gap-1 bg-slate-900/90 p-1 rounded-2xl border border-slate-800 self-start max-w-full">
           <button
             type="button"
             onClick={() => setBoardLayout('kanban')}
-            className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-bold transition ${
+            className={`flex items-center gap-1.5 px-2.5 sm:px-3 py-1.5 rounded-xl text-xs font-bold whitespace-nowrap shrink-0 transition ${
               boardLayout === 'kanban'
                 ? 'bg-emerald-600 text-white shadow-sm'
                 : 'text-slate-400 hover:text-slate-200'
@@ -942,7 +944,7 @@ export const BudgetBoardView: React.FC<BudgetBoardViewProps> = ({
           <button
             type="button"
             onClick={() => setBoardLayout('grid')}
-            className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-bold transition ${
+            className={`flex items-center gap-1.5 px-2.5 sm:px-3 py-1.5 rounded-xl text-xs font-bold whitespace-nowrap shrink-0 transition ${
               boardLayout === 'grid'
                 ? 'bg-emerald-600 text-white shadow-sm'
                 : 'text-slate-400 hover:text-slate-200'
@@ -954,9 +956,9 @@ export const BudgetBoardView: React.FC<BudgetBoardViewProps> = ({
         </div>
 
         {/* 搜尋與排序 */}
-        <div className="flex items-center gap-2">
+        <div className="flex flex-wrap items-center gap-2">
           {boardLayout === 'grid' && (
-            <div className="flex items-center gap-1 bg-slate-900 border border-slate-800 rounded-xl px-2 py-1 text-xs">
+            <div className="flex items-center gap-1 bg-slate-900 border border-slate-800 rounded-xl px-2 py-1 text-xs whitespace-nowrap shrink-0">
               <ArrowUpDown className="w-3 h-3 text-slate-400" />
               <select
                 value={sortBy}
@@ -977,7 +979,7 @@ export const BudgetBoardView: React.FC<BudgetBoardViewProps> = ({
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               placeholder="搜尋標籤..."
-              className="w-40 sm:w-48 px-3 py-1.5 pl-8 rounded-xl bg-slate-900 border border-slate-800 text-xs text-white placeholder-slate-500 focus:outline-none focus:ring-1 focus:ring-emerald-500"
+              className="w-36 sm:w-48 px-3 py-1.5 pl-8 rounded-xl bg-slate-900 border border-slate-800 text-xs text-white placeholder-slate-500 focus:outline-none focus:ring-1 focus:ring-emerald-500"
             />
             <Search className="w-3.5 h-3.5 text-slate-400 absolute left-2.5 top-1/2 -translate-y-1/2" />
             {searchQuery && (
@@ -1001,9 +1003,9 @@ export const BudgetBoardView: React.FC<BudgetBoardViewProps> = ({
             {/* 🔴 欄位 1: 超支警報欄 (Over Budget) */}
             <div className="space-y-3 bg-slate-950/60 p-3 rounded-3xl border border-rose-900/40">
               <div className="flex items-center justify-between px-1 pb-1 border-b border-rose-900/30">
-                <div className="flex items-center gap-1.5">
-                  <span className="w-2.5 h-2.5 rounded-full bg-rose-500" />
-                  <h3 className="font-extrabold text-sm text-rose-300">🔴 超支警報</h3>
+                <div className="flex items-center gap-1.5 min-w-0">
+                  <span className="w-2.5 h-2.5 shrink-0 rounded-full bg-rose-500" />
+                  <h3 className="font-extrabold text-sm whitespace-nowrap truncate text-rose-300">🔴 超支警報</h3>
                 </div>
                 <Badge variant="rose" size="xs">
                   {overList.length} 項
@@ -1025,9 +1027,9 @@ export const BudgetBoardView: React.FC<BudgetBoardViewProps> = ({
             {/* 🟡 欄位 2: 接近上限欄 (Warning) */}
             <div className="space-y-3 bg-slate-950/60 p-3 rounded-3xl border border-amber-900/40">
               <div className="flex items-center justify-between px-1 pb-1 border-b border-amber-900/30">
-                <div className="flex items-center gap-1.5">
-                  <span className="w-2.5 h-2.5 rounded-full bg-amber-500" />
-                  <h3 className="font-extrabold text-sm text-amber-300">🟡 接近上限 (≥70%)</h3>
+                <div className="flex items-center gap-1.5 min-w-0">
+                  <span className="w-2.5 h-2.5 shrink-0 rounded-full bg-amber-500" />
+                  <h3 className="font-extrabold text-sm whitespace-nowrap truncate text-amber-300">🟡 接近上限 (≥70%)</h3>
                 </div>
                 <Badge variant="amber" size="xs">
                   {warningList.length} 項
@@ -1048,9 +1050,9 @@ export const BudgetBoardView: React.FC<BudgetBoardViewProps> = ({
             {/* 🟢 欄位 3: 安全寬裕欄 (Safe) */}
             <div className="space-y-3 bg-slate-950/60 p-3 rounded-3xl border border-emerald-900/40">
               <div className="flex items-center justify-between px-1 pb-1 border-b border-emerald-900/30">
-                <div className="flex items-center gap-1.5">
-                  <span className="w-2.5 h-2.5 rounded-full bg-emerald-500" />
-                  <h3 className="font-extrabold text-sm text-emerald-300">🟢 安全寬裕 (&lt;70%)</h3>
+                <div className="flex items-center gap-1.5 min-w-0">
+                  <span className="w-2.5 h-2.5 shrink-0 rounded-full bg-emerald-500" />
+                  <h3 className="font-extrabold text-sm whitespace-nowrap truncate text-emerald-300">🟢 安全寬裕 (&lt;70%)</h3>
                 </div>
                 <Badge variant="emerald" size="xs">
                   {safeList.length} 項
@@ -1073,9 +1075,9 @@ export const BudgetBoardView: React.FC<BudgetBoardViewProps> = ({
           {(unusedList.length > 0 || unbudgetedList.length > 0) && (
             <Card variant="panel" padding="md" className="space-y-3">
               <div className="flex items-center justify-between pb-2 border-b border-white/5">
-                <div className="flex items-center gap-2">
-                  <Sliders className="w-4 h-4 text-slate-400" />
-                  <h4 className="font-bold text-xs sm:text-sm text-slate-300">
+                <div className="flex items-center gap-2 min-w-0">
+                  <Sliders className="w-4 h-4 text-slate-400 shrink-0" />
+                  <h4 className="font-bold text-xs sm:text-sm text-slate-300 min-w-0">
                     其他標籤狀況 (尚未動用 {unusedList.length} 項 · 未設預算 {unbudgetedList.length} 項)
                   </h4>
                 </div>

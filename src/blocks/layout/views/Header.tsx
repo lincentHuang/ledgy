@@ -77,7 +77,7 @@ const LedgerSwitcher: React.FC<LedgerSwitcherProps> = ({
         title="切換帳本"
       >
         {getLedgerIcon()}
-        <span className="text-[11px] sm:text-xs truncate max-w-[90px] sm:max-w-[140px]">
+        <span className="text-[11px] sm:text-xs truncate whitespace-nowrap max-w-[110px] min-[400px]:max-w-[140px]">
           {getLedgerName()}
         </span>
         <ChevronDown className={`w-3 h-3 text-slate-400 opacity-70 transition-transform ${isOpen ? 'rotate-180' : ''}`} />
@@ -207,8 +207,8 @@ export const Header: React.FC<HeaderProps> = ({
               alt="智帳君 Ledgy"
               className="w-7 h-7 sm:w-8 sm:h-8 rounded-xl object-cover shadow-sm border border-emerald-500/30 shrink-0"
             />
-            <span className="font-extrabold text-sm sm:text-base tracking-tight text-white flex items-center gap-1 truncate">
-              智帳君 <span className="text-emerald-400 font-black">Ledgy</span>
+            <span className="font-extrabold text-sm sm:text-base tracking-tight text-white flex items-center gap-1 truncate whitespace-nowrap">
+              智帳君 <span className="text-emerald-400 font-black hidden min-[360px]:inline">Ledgy</span>
             </span>
           </div>
         </div>

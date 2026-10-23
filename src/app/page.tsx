@@ -12,6 +12,7 @@ import { QuickInputModal } from '@/blocks/transactions';
 import { FinancialChatModal, FinancialReportView } from '@/blocks/ai-consultant';
 import { UserProfileModal, WelcomeView, OnboardingWizardModal } from '@/blocks/auth';
 import { VoiceInputModal } from '@/blocks/voice-input';
+import { FixedCostsView, FixedCostReminder } from '@/blocks/fixed-costs';
 
 // 🚀 延遲載入含重型相機/二維碼解碼庫 (html5-qrcode) 的彈窗，極速瘦身首屏與 APK 啟動耗時
 const InvoiceScannerModal = dynamic(
@@ -178,7 +179,16 @@ export default function Home() {
           <main className="max-w-4xl w-full mx-auto px-4 py-4 sm:py-6 space-y-5">
             {/* 收支明細列表與總覽 */}
             {currentTab === 'overview' && (
-              <TransactionList onOpenQuickInput={() => setIsQuickInputOpen(true)} />
+              <>
+                {/* 💸 固定成本到期提醒 (確認後自動入帳) */}
+                <FixedCostReminder onManage={() => setCurrentTab('fixed-costs')} />
+                <TransactionList onOpenQuickInput={() => setIsQuickInputOpen(true)} />
+              </>
+            )}
+
+            {/* 💸 每月固定成本管理 */}
+            {currentTab === 'fixed-costs' && (
+              <FixedCostsView onBack={() => setCurrentTab('overview')} />
             )}
 
             {/* 📊 預算看板模式 (各標籤預算一目了然) */}

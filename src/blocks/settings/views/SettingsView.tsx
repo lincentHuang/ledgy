@@ -243,20 +243,20 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
   return (
     <div className="space-y-4 animate-in fade-in duration-200">
       {/* 頁面頂部導航與標題 */}
-      <div className="glass-panel p-4 rounded-3xl flex items-center justify-between shadow-sm">
-        <div className="flex items-center gap-3">
+      <div className="glass-panel p-4 rounded-3xl flex items-center justify-between gap-2 shadow-sm">
+        <div className="flex items-center gap-2 sm:gap-3 min-w-0">
           <button
             onClick={onBack}
-            className="p-2 rounded-2xl bg-slate-800/90 hover:bg-slate-800 text-slate-300 hover:text-white border border-slate-700/80 transition active:scale-95 shadow-sm"
+            className="p-2 shrink-0 rounded-2xl bg-slate-800/90 hover:bg-slate-800 text-slate-300 hover:text-white border border-slate-700/80 transition active:scale-95 shadow-sm"
             title="返回明細總覽"
           >
             <ArrowLeft className="w-5 h-5 text-emerald-400" />
           </button>
-          <div>
-            <h1 className="text-base sm:text-lg font-black tracking-tight text-white flex items-center gap-2">
-              <span>系統設定與管理</span>
+          <div className="min-w-0">
+            <h1 className="text-base sm:text-lg font-black tracking-tight text-white flex items-center gap-2 min-w-0">
+              <span className="truncate">系統設定與管理</span>
             </h1>
-            <p className="text-xs text-slate-400">
+            <p className="text-xs text-slate-400 truncate">
               複數群組管理、審核與邀請、付款方式與標籤庫
             </p>
           </div>
@@ -264,7 +264,7 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
 
         <button
           onClick={onBack}
-          className="hidden sm:inline-flex px-3 py-1.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs font-bold transition border border-slate-700"
+          className="hidden sm:inline-flex px-3 py-1.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs font-bold transition border border-slate-700 whitespace-nowrap shrink-0"
         >
           返回記帳
         </button>
@@ -274,7 +274,7 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
       {incomingInvitations.length > 0 && (
         <div className="p-4 rounded-3xl bg-purple-950/70 border border-purple-600/60 shadow-xl space-y-3 animate-in fade-in">
           <div className="flex items-center gap-2 text-purple-300">
-            <BellRing className="w-4 h-4 text-purple-400 animate-bounce" />
+            <BellRing className="w-4 h-4 text-purple-400 animate-bounce shrink-0" />
             <h3 className="font-black text-sm">您有 {incomingInvitations.length} 則未回覆的群組邀請！</h3>
           </div>
 
@@ -299,7 +299,7 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
                       const res = await respondToIncomingInvitation(inv.id, 'reject');
                       alert(res.message);
                     }}
-                    className="px-3 py-1.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-400 hover:text-slate-200 font-bold transition text-xs"
+                    className="px-3 py-1.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-400 hover:text-slate-200 font-bold transition text-xs whitespace-nowrap shrink-0"
                   >
                     婉拒
                   </button>
@@ -308,7 +308,7 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
                       const res = await respondToIncomingInvitation(inv.id, 'accept');
                       alert(res.message);
                     }}
-                    className="px-4 py-1.5 rounded-xl bg-purple-600 hover:bg-purple-700 text-white font-bold transition text-xs shadow-md"
+                    className="px-4 py-1.5 rounded-xl bg-purple-600 hover:bg-purple-700 text-white font-bold transition text-xs shadow-md whitespace-nowrap shrink-0"
                   >
                     ✔ 同意加入
                   </button>
@@ -323,7 +323,7 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
       <div className="flex gap-1.5 p-1 bg-slate-900/90 border border-slate-800 rounded-2xl text-xs font-semibold overflow-x-auto no-scrollbar shadow-sm">
         <button
           onClick={() => setActiveTab('group')}
-          className={`px-3.5 py-2 rounded-xl transition flex-shrink-0 flex items-center gap-1.5 ${
+          className={`px-3.5 py-2 rounded-xl transition flex-shrink-0 whitespace-nowrap flex items-center gap-1.5 ${
             activeTab === 'group'
               ? 'bg-purple-600 text-white shadow-md font-bold'
               : 'text-slate-400 hover:text-slate-200'
@@ -338,7 +338,7 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
 
         <button
           onClick={() => setActiveTab('payments')}
-          className={`px-3.5 py-2 rounded-xl transition flex-shrink-0 flex items-center gap-1.5 ${
+          className={`px-3.5 py-2 rounded-xl transition flex-shrink-0 whitespace-nowrap flex items-center gap-1.5 ${
             activeTab === 'payments'
               ? 'bg-emerald-600 text-white shadow-md font-bold'
               : 'text-slate-400 hover:text-slate-200'
@@ -350,7 +350,7 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
 
         <button
           onClick={() => setActiveTab('tags')}
-          className={`px-3.5 py-2 rounded-xl transition flex-shrink-0 flex items-center gap-1.5 ${
+          className={`px-3.5 py-2 rounded-xl transition flex-shrink-0 whitespace-nowrap flex items-center gap-1.5 ${
             activeTab === 'tags'
               ? 'bg-emerald-600 text-white shadow-md font-bold'
               : 'text-slate-400 hover:text-slate-200'
@@ -362,7 +362,7 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
 
         <button
           onClick={() => setActiveTab('general')}
-          className={`px-3.5 py-2 rounded-xl transition flex-shrink-0 flex items-center gap-1.5 ${
+          className={`px-3.5 py-2 rounded-xl transition flex-shrink-0 whitespace-nowrap flex items-center gap-1.5 ${
             activeTab === 'general'
               ? 'bg-emerald-600 text-white shadow-md font-bold'
               : 'text-slate-400 hover:text-slate-200'
@@ -374,7 +374,7 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
 
         <button
           onClick={() => setActiveTab('ai')}
-          className={`px-3.5 py-2 rounded-xl transition flex-shrink-0 flex items-center gap-1.5 ${
+          className={`px-3.5 py-2 rounded-xl transition flex-shrink-0 whitespace-nowrap flex items-center gap-1.5 ${
             activeTab === 'ai'
               ? 'bg-emerald-600 text-white shadow-md font-bold'
               : 'text-slate-400 hover:text-slate-200'
@@ -386,7 +386,7 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
 
         <button
           onClick={() => setActiveTab('export')}
-          className={`px-3.5 py-2 rounded-xl transition flex-shrink-0 flex items-center gap-1.5 ${
+          className={`px-3.5 py-2 rounded-xl transition flex-shrink-0 whitespace-nowrap flex items-center gap-1.5 ${
             activeTab === 'export'
               ? 'bg-emerald-600 text-white shadow-md font-bold'
               : 'text-slate-400 hover:text-slate-200'
@@ -405,15 +405,15 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
             {/* 群組切換與新增選單 */}
             <div className="glass-panel p-4 rounded-3xl space-y-3 shadow-sm">
               <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-slate-800 pb-2.5">
-                <div className="flex items-center gap-2">
-                  <Users className="w-4 h-4 text-purple-400" />
+                <div className="flex items-center gap-2 whitespace-nowrap">
+                  <Users className="w-4 h-4 text-purple-400 shrink-0" />
                   <span className="font-bold text-sm text-white">我的記帳群組列表</span>
-                  <span className="text-xs font-mono bg-purple-950 text-purple-300 px-2 py-0.5 rounded-full border border-purple-800">
+                  <span className="text-xs font-mono bg-purple-950 text-purple-300 px-2 py-0.5 rounded-full border border-purple-800 whitespace-nowrap shrink-0">
                     {households.length} 個群組
                   </span>
                 </div>
 
-                <div className="flex items-center gap-1.5 self-start sm:self-auto">
+                <div className="flex items-center gap-1.5 self-start sm:self-auto max-w-full overflow-x-auto no-scrollbar">
                   <button
                     onClick={() => setSelectedGroupSubTab('create')}
                     className={`px-3 py-1.5 rounded-xl font-bold text-xs transition flex items-center gap-1 ${
@@ -453,7 +453,7 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
                           switchActiveHousehold(h.id);
                           setSelectedGroupSubTab('manage');
                         }}
-                        className={`px-3.5 py-2 rounded-2xl flex-shrink-0 transition-all font-bold flex items-center gap-2 border ${
+                        className={`px-3.5 py-2 rounded-2xl flex-shrink-0 whitespace-nowrap transition-all font-bold flex items-center gap-2 border ${
                           isSelected && selectedGroupSubTab === 'manage'
                             ? 'bg-purple-950/90 text-purple-200 border-purple-500 shadow-md ring-1 ring-purple-500/50'
                             : 'bg-slate-900/80 text-slate-400 border-slate-800 hover:text-slate-200 hover:border-slate-700'
@@ -461,7 +461,7 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
                       >
                         <Users className="w-3.5 h-3.5 text-purple-400" />
                         <span>{h.name}</span>
-                        <span className="text-[10px] text-slate-500 font-mono">
+                        <span className="text-[10px] text-slate-500 font-mono whitespace-nowrap">
                           ({h.members.length}人)
                         </span>
                         {reqCount > 0 && (
@@ -521,14 +521,14 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
                   {households.length > 0 && (
                     <button
                       onClick={() => setSelectedGroupSubTab('manage')}
-                      className="px-3 py-1.5 rounded-xl bg-slate-800 text-slate-400 text-xs"
+                      className="px-3 py-1.5 rounded-xl bg-slate-800 text-slate-400 text-xs whitespace-nowrap shrink-0"
                     >
                       取消
                     </button>
                   )}
                   <button
                     onClick={handleCreateHousehold}
-                    className="px-5 py-2 bg-purple-600 hover:bg-purple-700 text-white font-bold rounded-xl text-xs transition shadow-md"
+                    className="px-5 py-2 bg-purple-600 hover:bg-purple-700 text-white font-bold rounded-xl text-xs transition shadow-md whitespace-nowrap shrink-0"
                   >
                     立即建立群組
                   </button>
@@ -557,7 +557,7 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
                     value={joinCode}
                     onChange={(e) => setJoinCode(e.target.value)}
                     placeholder="輸入 6 位邀請碼 (例如: WARM88)..."
-                    className="flex-1 px-3.5 py-2.5 text-xs font-mono uppercase rounded-xl border border-slate-700 bg-slate-900 text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-purple-500"
+                    className="flex-1 min-w-0 px-3.5 py-2.5 text-xs font-mono uppercase rounded-xl border border-slate-700 bg-slate-900 text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-purple-500"
                     onKeyDown={(e) => {
                       if (e.key === 'Enter') {
                         e.preventDefault();
@@ -567,7 +567,7 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
                   />
                   <button
                     onClick={handleRequestJoin}
-                    className="px-5 py-2.5 bg-purple-600 hover:bg-purple-700 text-white font-bold rounded-xl text-xs transition shadow-md"
+                    className="px-5 py-2.5 bg-purple-600 hover:bg-purple-700 text-white font-bold rounded-xl text-xs transition shadow-md whitespace-nowrap shrink-0"
                   >
                     送出申請
                   </button>
@@ -626,7 +626,7 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
                                 const res = await respondToJoinRequest(req.id, 'reject');
                                 alert(res.message);
                               }}
-                              className="px-3 py-1.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-400 hover:text-rose-400 font-bold transition text-xs"
+                              className="px-3 py-1.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-400 hover:text-rose-400 font-bold transition text-xs whitespace-nowrap shrink-0"
                             >
                               ✕ 拒絕
                             </button>
@@ -635,7 +635,7 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
                                 const res = await respondToJoinRequest(req.id, 'approve');
                                 alert(res.message);
                               }}
-                              className="px-4 py-1.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold transition text-xs shadow-md"
+                              className="px-4 py-1.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold transition text-xs shadow-md whitespace-nowrap shrink-0"
                             >
                               ✔ 同意加入
                             </button>
@@ -649,19 +649,19 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
                 {/* 群組資訊卡片 */}
                 <div className="glass-panel p-5 rounded-3xl space-y-4 shadow-sm">
                   <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b border-slate-800">
-                    <div>
-                      <div className="flex items-center gap-2">
-                        <span className="text-[10px] font-extrabold uppercase px-2 py-0.5 rounded-md bg-purple-950/80 text-purple-300 border border-purple-800">
+                    <div className="min-w-0">
+                      <div className="flex items-center gap-2 flex-wrap">
+                        <span className="text-[10px] font-extrabold uppercase px-2 py-0.5 rounded-md bg-purple-950/80 text-purple-300 border border-purple-800 whitespace-nowrap shrink-0">
                           ACTIVE GROUP
                         </span>
                         {isLeader && (
-                          <span className="text-[10px] font-bold px-2 py-0.5 rounded-md bg-amber-950 text-amber-300 border border-amber-800 flex items-center gap-1">
+                          <span className="text-[10px] font-bold px-2 py-0.5 rounded-md bg-amber-950 text-amber-300 border border-amber-800 flex items-center gap-1 whitespace-nowrap shrink-0">
                             <Crown className="w-3 h-3 text-amber-400" />
                             您是此群組組長
                           </span>
                         )}
                       </div>
-                      <h2 className="text-xl font-black text-white mt-1">{household.name}</h2>
+                      <h2 className="text-lg sm:text-xl font-black text-white mt-1 truncate">{household.name}</h2>
                     </div>
 
                     {isLeader && (
@@ -671,7 +671,7 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
                           setEditGroupNameInput(household.name);
                           setEditGroupBudgetInput(household.monthlyBudget || 40000);
                         }}
-                        className="px-3 py-1.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs font-bold transition flex items-center gap-1.5 border border-slate-700 self-start sm:self-auto"
+                        className="px-3 py-1.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs font-bold transition flex items-center gap-1.5 border border-slate-700 self-start sm:self-auto whitespace-nowrap shrink-0"
                       >
                         <Edit2 className="w-3.5 h-3.5" />
                         <span>{isEditingGroupName ? '收起編輯' : '編輯群組資訊'}</span>
@@ -706,13 +706,13 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
                       <div className="flex justify-end gap-2 pt-1">
                         <button
                           onClick={() => setIsEditingGroupName(false)}
-                          className="px-3 py-1.5 bg-slate-800 text-slate-400 rounded-xl text-xs"
+                          className="px-3 py-1.5 bg-slate-800 text-slate-400 rounded-xl text-xs whitespace-nowrap shrink-0"
                         >
                           取消
                         </button>
                         <button
                           onClick={handleSaveGroupInfo}
-                          className="px-4 py-1.5 bg-purple-600 hover:bg-purple-700 text-white font-bold rounded-xl text-xs"
+                          className="px-4 py-1.5 bg-purple-600 hover:bg-purple-700 text-white font-bold rounded-xl text-xs whitespace-nowrap shrink-0"
                         >
                           儲存變更
                         </button>
@@ -723,9 +723,9 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
                   {/* 📲 邀請新成員 (邀請碼 + 審核說明) */}
                   <div className="p-4 rounded-2xl bg-gradient-to-r from-purple-950/40 to-slate-900 border border-purple-800/40 space-y-2.5">
                     <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
-                      <div>
+                      <div className="min-w-0">
                         <h3 className="font-bold text-sm text-purple-200 flex items-center gap-1.5">
-                          <UserPlus className="w-4 h-4 text-purple-400" />
+                          <UserPlus className="w-4 h-4 text-purple-400 shrink-0" />
                           <span>群組專屬 6 位邀請碼</span>
                         </h3>
                         <p className="text-[11px] text-slate-400 mt-0.5">
@@ -736,7 +736,7 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
                       {/* 邀請碼複製按鈕 */}
                       <button
                         onClick={() => handleCopyInviteCode(household.inviteCode)}
-                        className="px-4 py-2.5 rounded-2xl bg-purple-600 hover:bg-purple-500 text-white font-mono font-black text-sm flex items-center gap-2 shadow-lg shadow-purple-600/30 transition active:scale-95 self-start sm:self-auto"
+                        className="px-4 py-2.5 rounded-2xl bg-purple-600 hover:bg-purple-500 text-white font-mono font-black text-sm flex items-center gap-2 shadow-lg shadow-purple-600/30 transition active:scale-95 self-start sm:self-auto whitespace-nowrap shrink-0"
                       >
                         {copiedCode ? <Check className="w-4 h-4 text-white" /> : <Copy className="w-4 h-4" />}
                         <span>{copiedCode ? '已複製！' : household.inviteCode}</span>
@@ -746,18 +746,18 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
 
                   {/* 👥 成員列表與組長 Email 邀請專區 */}
                   <div className="space-y-3 pt-2">
-                    <div className="flex items-center justify-between">
-                      <h3 className="font-bold text-xs text-slate-200">
+                    <div className="flex items-center justify-between gap-2">
+                      <h3 className="font-bold text-xs text-slate-200 min-w-0 truncate">
                         群組正式成員列表 ({household.members.length} 人)
                       </h3>
 
                       {isLeader && (
                         <button
                           onClick={() => setShowEmailInviteForm(!showEmailInviteForm)}
-                          className="px-3 py-1.5 rounded-xl bg-purple-950 text-purple-300 hover:bg-purple-900 border border-purple-800 text-xs font-bold transition flex items-center gap-1.5"
+                          className="px-3 py-1.5 rounded-xl bg-purple-950 text-purple-300 hover:bg-purple-900 border border-purple-800 text-xs font-bold transition flex items-center gap-1.5 whitespace-nowrap shrink-0"
                         >
                           <Mail className="w-3.5 h-3.5" />
-                          <span>{showEmailInviteForm ? '收起邀請' : '✉️ 以 Email 邀請新成員'}</span>
+                          <span>{showEmailInviteForm ? '收起邀請' : <>✉️ <span className="hidden sm:inline">以 Email </span>邀請新成員</>}</span>
                         </button>
                       )}
                     </div>
@@ -801,14 +801,14 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
                         <div className="flex justify-end gap-2 pt-1">
                           <button
                             onClick={() => setShowEmailInviteForm(false)}
-                            className="px-3 py-1.5 bg-slate-800 text-slate-400 rounded-xl text-xs"
+                            className="px-3 py-1.5 bg-slate-800 text-slate-400 rounded-xl text-xs whitespace-nowrap shrink-0"
                           >
                             取消
                           </button>
                           <button
                             onClick={handleSendEmailInvite}
                             disabled={isInviting || !inviteEmailInput.trim()}
-                            className="px-4 py-1.5 bg-purple-600 hover:bg-purple-700 text-white font-bold rounded-xl text-xs shadow-md disabled:opacity-50 flex items-center gap-1"
+                            className="px-4 py-1.5 bg-purple-600 hover:bg-purple-700 text-white font-bold rounded-xl text-xs shadow-md disabled:opacity-50 flex items-center gap-1 whitespace-nowrap shrink-0"
                           >
                             <Mail className="w-3.5 h-3.5" />
                             <span>{isInviting ? '發送中...' : '發送 Email 邀請'}</span>
@@ -903,7 +903,7 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
                     {isLeader && (
                       <button
                         onClick={() => setShowDeleteModal(true)}
-                        className="px-3 py-1.5 rounded-xl bg-rose-950/30 hover:bg-rose-950/60 border border-rose-900/40 text-rose-400 text-xs font-bold transition flex items-center gap-1"
+                        className="px-3 py-1.5 rounded-xl bg-rose-950/30 hover:bg-rose-950/60 border border-rose-900/40 text-rose-400 text-xs font-bold transition flex items-center gap-1 whitespace-nowrap shrink-0"
                       >
                         <Trash2 className="w-3.5 h-3.5" />
                         <span>解散群組 (組長)</span>
@@ -912,7 +912,7 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
 
                     <button
                       onClick={() => setShowDeleteModal(true)}
-                      className="px-4 py-2 bg-slate-800 hover:bg-rose-950/60 border border-slate-700 hover:border-rose-900/50 text-slate-400 hover:text-rose-400 rounded-xl text-xs font-bold transition flex items-center gap-1.5 ml-auto"
+                      className="px-4 py-2 bg-slate-800 hover:bg-rose-950/60 border border-slate-700 hover:border-rose-900/50 text-slate-400 hover:text-rose-400 rounded-xl text-xs font-bold transition flex items-center gap-1.5 ml-auto whitespace-nowrap shrink-0"
                     >
                       <LogOut className="w-3.5 h-3.5" />
                       <span>退出此群組</span>
@@ -941,7 +941,7 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
                 value={newPaymentInput}
                 onChange={(e) => setNewPaymentInput(e.target.value)}
                 placeholder="例如：玉山星宇卡, 街口支付, 悠遊付..."
-                className="flex-1 px-3 py-2 text-xs rounded-xl border border-slate-700 bg-slate-900 text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-emerald-500"
+                className="flex-1 min-w-0 px-3 py-2 text-xs rounded-xl border border-slate-700 bg-slate-900 text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-emerald-500"
                 onKeyDown={(e) => {
                   if (e.key === 'Enter') {
                     e.preventDefault();
@@ -951,7 +951,7 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
               />
               <button
                 onClick={handleAddPayment}
-                className="px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white font-bold rounded-xl text-xs transition"
+                className="px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white font-bold rounded-xl text-xs transition whitespace-nowrap shrink-0"
               >
                 新增方式
               </button>
@@ -970,17 +970,17 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
                         type="text"
                         value={editingPaymentNew}
                         onChange={(e) => setEditingPaymentNew(e.target.value)}
-                        className="flex-1 px-2.5 py-1 rounded-lg border border-slate-700 bg-slate-800 text-white text-xs outline-none focus:ring-1 focus:ring-emerald-500"
+                        className="flex-1 min-w-0 px-2.5 py-1 rounded-lg border border-slate-700 bg-slate-800 text-white text-xs outline-none focus:ring-1 focus:ring-emerald-500"
                       />
                       <button
                         onClick={handleSaveEditPayment}
-                        className="px-3 py-1 bg-emerald-600 text-white rounded-lg text-xs font-bold"
+                        className="px-3 py-1 bg-emerald-600 text-white rounded-lg text-xs font-bold whitespace-nowrap shrink-0"
                       >
                         儲存
                       </button>
                       <button
                         onClick={() => setEditingPaymentOld(null)}
-                        className="px-2 py-1 bg-slate-800 text-slate-400 rounded-lg text-xs"
+                        className="px-2 py-1 bg-slate-800 text-slate-400 rounded-lg text-xs whitespace-nowrap shrink-0"
                       >
                         取消
                       </button>
@@ -1036,7 +1036,7 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
                 value={newTagInput}
                 onChange={(e) => setNewTagInput(e.target.value)}
                 placeholder="輸入新標籤名稱 (如: 貓咪飼料, 健身房, 房租)..."
-                className="flex-1 px-3 py-2 text-xs rounded-xl border border-slate-700 bg-slate-900 text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-emerald-500"
+                className="flex-1 min-w-0 px-3 py-2 text-xs rounded-xl border border-slate-700 bg-slate-900 text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-emerald-500"
                 onKeyDown={(e) => {
                   if (e.key === 'Enter') {
                     e.preventDefault();
@@ -1046,7 +1046,7 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
               />
               <button
                 onClick={handleAddTag}
-                className="px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white font-bold rounded-xl text-xs transition"
+                className="px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white font-bold rounded-xl text-xs transition whitespace-nowrap shrink-0"
               >
                 + 新增標籤
               </button>
@@ -1058,7 +1058,7 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
                 {availableTags.map((tag) => (
                   <div
                     key={tag}
-                    className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-slate-900 border border-slate-800 hover:border-emerald-500/40 text-xs text-slate-200 transition"
+                    className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-slate-900 border border-slate-800 hover:border-emerald-500/40 text-xs text-slate-200 transition whitespace-nowrap shrink-0"
                   >
                     <Tag className="w-3 h-3 text-emerald-400" />
                     <span>#{tag}</span>
@@ -1130,7 +1130,7 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
 
               <button
                 onClick={handleSaveGeneral}
-                className="px-5 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white font-bold rounded-xl text-xs transition shadow-md"
+                className="px-5 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white font-bold rounded-xl text-xs transition shadow-md whitespace-nowrap shrink-0"
               >
                 儲存基本設定
               </button>

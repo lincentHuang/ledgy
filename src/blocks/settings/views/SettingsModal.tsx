@@ -171,16 +171,16 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/75 backdrop-blur-sm animate-in fade-in duration-200">
       <div className="relative w-full max-w-lg max-h-[90vh] rounded-3xl bg-slate-900 text-slate-100 shadow-2xl border border-slate-800 p-5 sm:p-6 flex flex-col overflow-hidden">
         {/* Header */}
-        <div className="flex items-center justify-between pb-3 border-b border-slate-800">
-          <div>
-            <h2 className="text-base font-extrabold text-white">設定與偏好管理</h2>
-            <p className="text-xs text-slate-400">
+        <div className="flex items-center justify-between gap-2 pb-3 border-b border-slate-800">
+          <div className="min-w-0">
+            <h2 className="text-base font-extrabold text-white whitespace-nowrap truncate">設定與偏好管理</h2>
+            <p className="text-xs text-slate-400 truncate">
               群組分帳設定、付款方式、標籤庫與 AI 模型金鑰
             </p>
           </div>
           <button
             onClick={onClose}
-            className="p-1.5 rounded-full hover:bg-slate-800 text-slate-400 hover:text-slate-200 transition"
+            className="p-1.5 shrink-0 rounded-full hover:bg-slate-800 text-slate-400 hover:text-slate-200 transition"
           >
             <X className="w-5 h-5" />
           </button>
@@ -190,7 +190,7 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
         <div className="flex gap-1 p-1 bg-slate-800/80 rounded-2xl my-3 text-xs font-semibold overflow-x-auto no-scrollbar">
           <button
             onClick={() => setActiveTab('general')}
-            className={`px-3 py-1.5 rounded-xl transition flex-shrink-0 ${
+            className={`px-3 py-1.5 rounded-xl transition flex-shrink-0 whitespace-nowrap ${
               activeTab === 'general'
                 ? 'bg-slate-900 text-emerald-400 shadow-sm font-bold'
                 : 'text-slate-400 hover:text-slate-200'
@@ -200,7 +200,7 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
           </button>
           <button
             onClick={() => setActiveTab('group')}
-            className={`px-3 py-1.5 rounded-xl transition flex-shrink-0 ${
+            className={`px-3 py-1.5 rounded-xl transition flex-shrink-0 whitespace-nowrap ${
               activeTab === 'group'
                 ? 'bg-slate-900 text-emerald-400 shadow-sm font-bold'
                 : 'text-slate-400 hover:text-slate-200'
@@ -210,7 +210,7 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
           </button>
           <button
             onClick={() => setActiveTab('payments')}
-            className={`px-3 py-1.5 rounded-xl transition flex-shrink-0 ${
+            className={`px-3 py-1.5 rounded-xl transition flex-shrink-0 whitespace-nowrap ${
               activeTab === 'payments'
                 ? 'bg-slate-900 text-emerald-400 shadow-sm font-bold'
                 : 'text-slate-400 hover:text-slate-200'
@@ -220,7 +220,7 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
           </button>
           <button
             onClick={() => setActiveTab('tags')}
-            className={`px-3 py-1.5 rounded-xl transition flex-shrink-0 ${
+            className={`px-3 py-1.5 rounded-xl transition flex-shrink-0 whitespace-nowrap ${
               activeTab === 'tags'
                 ? 'bg-slate-900 text-emerald-400 shadow-sm font-bold'
                 : 'text-slate-400 hover:text-slate-200'
@@ -230,7 +230,7 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
           </button>
           <button
             onClick={() => setActiveTab('ai')}
-            className={`px-3 py-1.5 rounded-xl transition flex-shrink-0 ${
+            className={`px-3 py-1.5 rounded-xl transition flex-shrink-0 whitespace-nowrap ${
               activeTab === 'ai'
                 ? 'bg-slate-900 text-emerald-400 shadow-sm font-bold'
                 : 'text-slate-400 hover:text-slate-200'
@@ -240,7 +240,7 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
           </button>
           <button
             onClick={() => setActiveTab('export')}
-            className={`px-3 py-1.5 rounded-xl transition flex-shrink-0 ${
+            className={`px-3 py-1.5 rounded-xl transition flex-shrink-0 whitespace-nowrap ${
               activeTab === 'export'
                 ? 'bg-slate-900 text-emerald-400 shadow-sm font-bold'
                 : 'text-slate-400 hover:text-slate-200'
@@ -311,14 +311,14 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
             <div className="space-y-4">
               {household ? (
                 <div className="p-4 rounded-2xl bg-slate-800/50 border border-slate-800 space-y-4">
-                  <div className="flex items-center justify-between">
-                    <div>
+                  <div className="flex items-center justify-between gap-2">
+                    <div className="min-w-0">
                       <p className="text-[10px] text-slate-400 font-bold uppercase">目前記帳群組</p>
-                      <h3 className="font-bold text-base text-slate-100 mt-0.5">{household.name}</h3>
+                      <h3 className="font-bold text-base text-slate-100 mt-0.5 truncate">{household.name}</h3>
                     </div>
                     <button
                       onClick={() => handleCopyInviteCode(household.inviteCode)}
-                      className="px-3 py-1.5 rounded-xl bg-purple-950/80 hover:bg-purple-900 text-purple-300 border border-purple-800/80 font-mono text-xs font-bold flex items-center gap-1.5 transition shadow-sm"
+                      className="px-3 py-1.5 rounded-xl bg-purple-950/80 hover:bg-purple-900 text-purple-300 border border-purple-800/80 font-mono text-xs font-bold flex items-center gap-1.5 transition shadow-sm whitespace-nowrap shrink-0"
                       title="複製邀請碼"
                     >
                       {copiedCode ? <Check className="w-3.5 h-3.5 text-emerald-400" /> : <Copy className="w-3.5 h-3.5" />}
@@ -340,18 +340,18 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
                           key={m.userId}
                           className="flex items-center justify-between p-2.5 rounded-xl bg-slate-900/80 border border-slate-800"
                         >
-                          <div className="flex items-center gap-2">
-                            <div className="w-7 h-7 rounded-full bg-purple-950 text-purple-400 border border-purple-800 flex items-center justify-center font-bold text-xs">
+                          <div className="flex items-center gap-2 min-w-0">
+                            <div className="w-7 h-7 shrink-0 rounded-full bg-purple-950 text-purple-400 border border-purple-800 flex items-center justify-center font-bold text-xs">
                               {m.displayName?.[0] || 'U'}
                             </div>
-                            <div>
-                              <p className="font-bold text-slate-200">{m.displayName}</p>
+                            <div className="min-w-0">
+                              <p className="font-bold text-slate-200 truncate">{m.displayName}</p>
                               <p className="text-[10px] text-slate-500 font-mono">
                                 載具: {m.carrierCode || '未設定'}
                               </p>
                             </div>
                           </div>
-                          <span className="text-[10px] px-2 py-0.5 rounded-lg bg-slate-800 text-slate-400">
+                          <span className="text-[10px] px-2 py-0.5 rounded-lg bg-slate-800 text-slate-400 whitespace-nowrap shrink-0">
                             {m.role === 'owner' || m.role === 'admin' ? '建立者' : '成員'}
                           </span>
                         </div>
@@ -360,11 +360,11 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
                   </div>
 
                   {/* 退出與解散群組按鈕 */}
-                  <div className="pt-2 border-t border-slate-800 flex justify-between items-center">
+                  <div className="pt-2 border-t border-slate-800 flex justify-between items-center gap-2">
                     {household.ownerId === user.uid && (
                       <button
                         onClick={() => setShowDeleteModal(true)}
-                        className="px-3 py-1.5 bg-rose-950/30 hover:bg-rose-950/60 border border-rose-900/40 text-rose-400 rounded-xl text-xs font-bold transition flex items-center gap-1.5"
+                        className="px-3 py-1.5 bg-rose-950/30 hover:bg-rose-950/60 border border-rose-900/40 text-rose-400 rounded-xl text-xs font-bold transition flex items-center gap-1.5 whitespace-nowrap shrink-0"
                       >
                         <Trash2 className="w-3.5 h-3.5" />
                         <span>解散群組 (組長)</span>
@@ -373,7 +373,7 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
 
                     <button
                       onClick={() => setShowDeleteModal(true)}
-                      className="px-3 py-1.5 bg-rose-950/40 hover:bg-rose-950/70 border border-rose-900/50 text-rose-400 rounded-xl text-xs font-bold transition flex items-center gap-1.5 ml-auto"
+                      className="px-3 py-1.5 bg-rose-950/40 hover:bg-rose-950/70 border border-rose-900/50 text-rose-400 rounded-xl text-xs font-bold transition flex items-center gap-1.5 ml-auto whitespace-nowrap shrink-0"
                     >
                       <LogOut className="w-3.5 h-3.5" />
                       <span>退出此群組</span>
@@ -397,7 +397,7 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
                         value={houseName}
                         onChange={(e) => setHouseName(e.target.value)}
                         placeholder="輸入群組名稱 (例如：我們這一家, 7月日本行)..."
-                        className="flex-1 px-3 py-2 text-xs rounded-xl border border-slate-700 bg-slate-900 text-slate-100 placeholder-slate-600 focus:outline-none focus:ring-2 focus:ring-emerald-500"
+                        className="flex-1 min-w-0 px-3 py-2 text-xs rounded-xl border border-slate-700 bg-slate-900 text-slate-100 placeholder-slate-600 focus:outline-none focus:ring-2 focus:ring-emerald-500"
                         onKeyDown={(e) => {
                           if (e.key === 'Enter') {
                             e.preventDefault();
@@ -407,7 +407,7 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
                       />
                       <button
                         onClick={handleCreateHousehold}
-                        className="px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white font-bold rounded-xl text-xs transition"
+                        className="px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white font-bold rounded-xl text-xs transition whitespace-nowrap shrink-0"
                       >
                         建立群組
                       </button>
@@ -428,7 +428,7 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
                         value={joinCode}
                         onChange={(e) => setJoinCode(e.target.value)}
                         placeholder="輸入 6 位邀請碼 (例如: WARM88)"
-                        className="flex-1 px-3 py-2 text-xs font-mono uppercase rounded-xl border border-slate-700 bg-slate-900 text-slate-100 placeholder-slate-600 focus:outline-none focus:ring-2 focus:ring-emerald-500"
+                        className="flex-1 min-w-0 px-3 py-2 text-xs font-mono uppercase rounded-xl border border-slate-700 bg-slate-900 text-slate-100 placeholder-slate-600 focus:outline-none focus:ring-2 focus:ring-emerald-500"
                         onKeyDown={(e) => {
                           if (e.key === 'Enter') {
                             e.preventDefault();
@@ -438,7 +438,7 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
                       />
                       <button
                         onClick={handleJoinHousehold}
-                        className="px-4 py-2 bg-purple-600 hover:bg-purple-700 text-white font-bold rounded-xl text-xs transition"
+                        className="px-4 py-2 bg-purple-600 hover:bg-purple-700 text-white font-bold rounded-xl text-xs transition whitespace-nowrap shrink-0"
                       >
                         加入群組
                       </button>
@@ -458,7 +458,7 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
                     <CreditCard className="w-4 h-4 text-sky-400" />
                     <h3 className="font-bold text-sm text-slate-200">付款方式管理</h3>
                   </div>
-                  <span className="text-[10px] text-slate-400">
+                  <span className="text-[10px] text-slate-400 whitespace-nowrap shrink-0">
                     共 {paymentMethods.length} 種方式
                   </span>
                 </div>
@@ -473,7 +473,7 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
                     value={newPaymentInput}
                     onChange={(e) => setNewPaymentInput(e.target.value)}
                     placeholder="新增付款方式 (例如：台新黑狗卡, 全盈+PAY)..."
-                    className="flex-1 px-3 py-2 text-xs rounded-xl border border-slate-700 bg-slate-900 text-slate-100 placeholder-slate-600 focus:outline-none focus:ring-2 focus:ring-emerald-500"
+                    className="flex-1 min-w-0 px-3 py-2 text-xs rounded-xl border border-slate-700 bg-slate-900 text-slate-100 placeholder-slate-600 focus:outline-none focus:ring-2 focus:ring-emerald-500"
                     onKeyDown={(e) => {
                       if (e.key === 'Enter') {
                         e.preventDefault();
@@ -483,7 +483,7 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
                   />
                   <button
                     onClick={handleAddPayment}
-                    className="px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white font-bold rounded-xl text-xs transition flex items-center gap-1 shadow-sm"
+                    className="px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white font-bold rounded-xl text-xs transition flex items-center gap-1 shadow-sm whitespace-nowrap shrink-0"
                   >
                     <Plus className="w-3.5 h-3.5" />
                     新增
@@ -503,31 +503,31 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
                             type="text"
                             value={editingPaymentNew}
                             onChange={(e) => setEditingPaymentNew(e.target.value)}
-                            className="flex-1 px-2.5 py-1 text-xs rounded-lg border border-slate-700 bg-slate-800 text-white focus:outline-none focus:ring-1 focus:ring-emerald-500"
+                            className="flex-1 min-w-0 px-2.5 py-1 text-xs rounded-lg border border-slate-700 bg-slate-800 text-white focus:outline-none focus:ring-1 focus:ring-emerald-500"
                             autoFocus
                           />
                           <button
                             onClick={handleSaveEditPayment}
-                            className="px-2.5 py-1 rounded-lg bg-emerald-600 text-white font-bold text-[11px]"
+                            className="px-2.5 py-1 rounded-lg bg-emerald-600 text-white font-bold text-[11px] whitespace-nowrap shrink-0"
                           >
                             儲存
                           </button>
                           <button
                             onClick={() => setEditingPaymentOld(null)}
-                            className="px-2 py-1 rounded-lg bg-slate-800 text-slate-400 text-[11px]"
+                            className="px-2 py-1 rounded-lg bg-slate-800 text-slate-400 text-[11px] whitespace-nowrap shrink-0"
                           >
                             取消
                           </button>
                         </div>
                       ) : (
-                        <span className="font-bold text-slate-200 text-xs flex items-center gap-2">
-                          <span className="w-2 h-2 rounded-full bg-sky-400" />
+                        <span className="font-bold text-slate-200 text-xs flex items-center gap-2 min-w-0 truncate">
+                          <span className="w-2 h-2 shrink-0 rounded-full bg-sky-400" />
                           {pm}
                         </span>
                       )}
 
                       {editingPaymentOld !== pm && (
-                        <div className="flex items-center gap-1">
+                        <div className="flex items-center gap-1 shrink-0">
                           <button
                             onClick={() => {
                               setEditingPaymentOld(pm);
@@ -567,7 +567,7 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
                     <Tag className="w-4 h-4 text-emerald-400" />
                     <h3 className="font-bold text-sm text-slate-200">標籤與分類庫管理</h3>
                   </div>
-                  <span className="text-[10px] text-slate-400">共 {availableTags.length} 個標籤</span>
+                  <span className="text-[10px] text-slate-400 whitespace-nowrap shrink-0">共 {availableTags.length} 個標籤</span>
                 </div>
                 <p className="text-slate-400 leading-relaxed">
                   系統已將主分類與子分類整合為靈活直覺的標籤體系。您可以在此自訂屬於您的生活標籤。
@@ -580,7 +580,7 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
                     value={newTagInput}
                     onChange={(e) => setNewTagInput(e.target.value)}
                     placeholder="新增標籤 (例如：毛小孩·寵物, 投資理財)..."
-                    className="flex-1 px-3 py-2 text-xs rounded-xl border border-slate-700 bg-slate-900 text-slate-100 placeholder-slate-600 focus:outline-none focus:ring-2 focus:ring-emerald-500"
+                    className="flex-1 min-w-0 px-3 py-2 text-xs rounded-xl border border-slate-700 bg-slate-900 text-slate-100 placeholder-slate-600 focus:outline-none focus:ring-2 focus:ring-emerald-500"
                     onKeyDown={(e) => {
                       if (e.key === 'Enter') {
                         e.preventDefault();
@@ -590,7 +590,7 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
                   />
                   <button
                     onClick={handleAddTag}
-                    className="px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white font-bold rounded-xl text-xs transition flex items-center gap-1 shadow-sm"
+                    className="px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white font-bold rounded-xl text-xs transition flex items-center gap-1 shadow-sm whitespace-nowrap shrink-0"
                   >
                     <Plus className="w-3.5 h-3.5" />
                     新增標籤
@@ -602,7 +602,7 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
                   {availableTags.map((tag) => (
                     <div
                       key={tag}
-                      className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-slate-800 border border-slate-700 text-slate-200 font-medium text-xs group"
+                      className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-slate-800 border border-slate-700 text-slate-200 font-medium text-xs group whitespace-nowrap shrink-0"
                     >
                       <span className="text-emerald-400 font-bold">#</span>
                       <span>{tag}</span>
@@ -651,7 +651,7 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
                           {rule.usageCount || 1}
                         </p>
                       </div>
-                      <span className="text-[10px] px-2 py-0.5 rounded bg-emerald-950 text-emerald-400 border border-emerald-800">
+                      <span className="text-[10px] px-2 py-0.5 rounded bg-emerald-950 text-emerald-400 border border-emerald-800 whitespace-nowrap shrink-0">
                         自動生效
                       </span>
                     </div>

@@ -180,23 +180,23 @@ export const PersonalSettingsView: React.FC<PersonalSettingsViewProps> = ({
   return (
     <div className="space-y-4 animate-in fade-in duration-200">
       {/* 頂部標題列與返回按鈕 */}
-      <div className="flex items-center justify-between pb-1">
-        <div className="flex items-center gap-3">
+      <div className="flex items-center justify-between gap-2 pb-1">
+        <div className="flex items-center gap-3 min-w-0">
           <button
             onClick={onBack}
-            className="p-2 rounded-2xl bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-white transition border border-slate-700 active:scale-95"
+            className="p-2 shrink-0 rounded-2xl bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-white transition border border-slate-700 active:scale-95"
             title="返回上一頁"
           >
             <ArrowLeft className="w-4 h-4" />
           </button>
-          <div>
+          <div className="min-w-0">
             <div className="flex items-center gap-2">
-              <h2 className="font-extrabold text-base sm:text-lg text-white">個人設定</h2>
-              <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-emerald-950 text-emerald-400 border border-emerald-800">
+              <h2 className="font-extrabold text-base sm:text-lg text-white whitespace-nowrap">個人設定</h2>
+              <span className="text-[10px] font-bold whitespace-nowrap shrink-0 px-2 py-0.5 rounded-full bg-emerald-950 text-emerald-400 border border-emerald-800">
                 PERSONAL
               </span>
             </div>
-            <p className="text-xs text-slate-400">
+            <p className="text-xs text-slate-400 truncate">
               個人專屬付款方式、私帳標籤庫、載具與 AI 模型金鑰
             </p>
           </div>
@@ -205,7 +205,7 @@ export const PersonalSettingsView: React.FC<PersonalSettingsViewProps> = ({
         {households.length > 0 && onSwitchToGroup && (
           <button
             onClick={onSwitchToGroup}
-            className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-purple-950/80 hover:bg-purple-900 border border-purple-800/80 text-purple-300 text-xs font-bold transition active:scale-95 shadow-sm shrink-0"
+            className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-purple-950/80 hover:bg-purple-900 border border-purple-800/80 text-purple-300 text-xs font-bold transition active:scale-95 shadow-sm shrink-0 whitespace-nowrap"
             title="切換至群組公帳設定"
           >
             <Users className="w-3.5 h-3.5" />
@@ -218,7 +218,7 @@ export const PersonalSettingsView: React.FC<PersonalSettingsViewProps> = ({
       <div className="flex gap-1.5 p-1 bg-slate-900/90 border border-slate-800 rounded-2xl text-xs font-semibold overflow-x-auto no-scrollbar shadow-sm">
         <button
           onClick={() => handleTabChange('payments')}
-          className={`px-3 py-2 rounded-xl transition flex-shrink-0 flex items-center gap-1.5 active:scale-95 ${
+          className={`px-3 py-2 rounded-xl transition flex-shrink-0 whitespace-nowrap flex items-center gap-1.5 active:scale-95 ${
             activeTab === 'payments'
               ? 'bg-emerald-600 text-white shadow-md font-bold border border-emerald-500/50'
               : 'text-slate-400 hover:text-slate-200 hover:bg-slate-800/60 border border-transparent'
@@ -230,7 +230,7 @@ export const PersonalSettingsView: React.FC<PersonalSettingsViewProps> = ({
 
         <button
           onClick={() => handleTabChange('tags')}
-          className={`px-3 py-2 rounded-xl transition flex-shrink-0 flex items-center gap-1.5 active:scale-95 ${
+          className={`px-3 py-2 rounded-xl transition flex-shrink-0 whitespace-nowrap flex items-center gap-1.5 active:scale-95 ${
             activeTab === 'tags'
               ? 'bg-emerald-600 text-white shadow-md font-bold border border-emerald-500/50'
               : 'text-slate-400 hover:text-slate-200 hover:bg-slate-800/60 border border-transparent'
@@ -242,7 +242,7 @@ export const PersonalSettingsView: React.FC<PersonalSettingsViewProps> = ({
 
         <button
           onClick={() => handleTabChange('budget')}
-          className={`px-3 py-2 rounded-xl transition flex-shrink-0 flex items-center gap-1.5 active:scale-95 ${
+          className={`px-3 py-2 rounded-xl transition flex-shrink-0 whitespace-nowrap flex items-center gap-1.5 active:scale-95 ${
             activeTab === 'budget'
               ? 'bg-emerald-600 text-white shadow-md font-bold border border-emerald-500/50'
               : 'text-slate-400 hover:text-slate-200 hover:bg-slate-800/60 border border-transparent'
@@ -254,7 +254,7 @@ export const PersonalSettingsView: React.FC<PersonalSettingsViewProps> = ({
 
         <button
           onClick={() => handleTabChange('general')}
-          className={`px-3 py-2 rounded-xl transition flex-shrink-0 flex items-center gap-1.5 active:scale-95 ${
+          className={`px-3 py-2 rounded-xl transition flex-shrink-0 whitespace-nowrap flex items-center gap-1.5 active:scale-95 ${
             activeTab === 'general'
               ? 'bg-emerald-600 text-white shadow-md font-bold border border-emerald-500/50'
               : 'text-slate-400 hover:text-slate-200 hover:bg-slate-800/60 border border-transparent'
@@ -266,7 +266,7 @@ export const PersonalSettingsView: React.FC<PersonalSettingsViewProps> = ({
 
         <button
           onClick={() => handleTabChange('ai')}
-          className={`px-3 py-2 rounded-xl transition flex-shrink-0 flex items-center gap-1.5 active:scale-95 ${
+          className={`px-3 py-2 rounded-xl transition flex-shrink-0 whitespace-nowrap flex items-center gap-1.5 active:scale-95 ${
             activeTab === 'ai'
               ? 'bg-emerald-600 text-white shadow-md font-bold border border-emerald-500/50'
               : 'text-slate-400 hover:text-slate-200 hover:bg-slate-800/60 border border-transparent'
@@ -278,7 +278,7 @@ export const PersonalSettingsView: React.FC<PersonalSettingsViewProps> = ({
 
         <button
           onClick={() => handleTabChange('export')}
-          className={`px-3 py-2 rounded-xl transition flex-shrink-0 flex items-center gap-1.5 active:scale-95 ${
+          className={`px-3 py-2 rounded-xl transition flex-shrink-0 whitespace-nowrap flex items-center gap-1.5 active:scale-95 ${
             activeTab === 'export'
               ? 'bg-emerald-600 text-white shadow-md font-bold border border-emerald-500/50'
               : 'text-slate-400 hover:text-slate-200 hover:bg-slate-800/60 border border-transparent'
@@ -311,7 +311,7 @@ export const PersonalSettingsView: React.FC<PersonalSettingsViewProps> = ({
                 value={newPaymentInput}
                 onChange={(e) => setNewPaymentInput(e.target.value)}
                 placeholder="例如：國泰CUBE卡, 個人現金, 街口支付..."
-                className="flex-1 px-3 py-2 text-xs rounded-xl border border-slate-700 bg-slate-900 text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-emerald-500"
+                className="flex-1 min-w-0 px-3 py-2 text-xs rounded-xl border border-slate-700 bg-slate-900 text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-emerald-500"
                 onKeyDown={(e) => {
                   if (e.key === 'Enter') {
                     e.preventDefault();
@@ -321,7 +321,7 @@ export const PersonalSettingsView: React.FC<PersonalSettingsViewProps> = ({
               />
               <button
                 onClick={handleAddPayment}
-                className="px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white font-bold rounded-xl text-xs transition"
+                className="px-3.5 sm:px-4 py-2 shrink-0 whitespace-nowrap bg-emerald-600 hover:bg-emerald-700 text-white font-bold rounded-xl text-xs transition"
               >
                 新增方式
               </button>
@@ -335,35 +335,35 @@ export const PersonalSettingsView: React.FC<PersonalSettingsViewProps> = ({
                   className="flex items-center justify-between p-3 rounded-2xl bg-slate-900/80 border border-slate-800 hover:border-slate-700 transition text-xs"
                 >
                   {editingPaymentOld === pm ? (
-                    <div className="flex-1 flex gap-2 mr-2">
+                    <div className="flex-1 min-w-0 flex gap-2 mr-2">
                       <input
                         type="text"
                         value={editingPaymentNew}
                         onChange={(e) => setEditingPaymentNew(e.target.value)}
-                        className="flex-1 px-2.5 py-1 rounded-lg border border-slate-700 bg-slate-800 text-white text-xs outline-none focus:ring-1 focus:ring-emerald-500"
+                        className="flex-1 min-w-0 px-2.5 py-1 rounded-lg border border-slate-700 bg-slate-800 text-white text-xs outline-none focus:ring-1 focus:ring-emerald-500"
                       />
                       <button
                         onClick={handleSaveEditPayment}
-                        className="px-3 py-1 bg-emerald-600 text-white rounded-lg text-xs font-bold"
+                        className="px-3 py-1 shrink-0 whitespace-nowrap bg-emerald-600 text-white rounded-lg text-xs font-bold"
                       >
                         儲存
                       </button>
                       <button
                         onClick={() => setEditingPaymentOld(null)}
-                        className="px-2 py-1 bg-slate-800 text-slate-400 rounded-lg text-xs"
+                        className="px-2 py-1 shrink-0 whitespace-nowrap bg-slate-800 text-slate-400 rounded-lg text-xs"
                       >
                         取消
                       </button>
                     </div>
                   ) : (
-                    <div className="flex items-center gap-2.5">
-                      <CreditCard className="w-4 h-4 text-emerald-400" />
-                      <span className="font-bold text-slate-200">{pm}</span>
+                    <div className="flex items-center gap-2.5 min-w-0">
+                      <CreditCard className="w-4 h-4 text-emerald-400 shrink-0" />
+                      <span className="font-bold text-slate-200 truncate">{pm}</span>
                     </div>
                   )}
 
                   {editingPaymentOld !== pm && (
-                    <div className="flex items-center gap-1">
+                    <div className="flex items-center gap-1 shrink-0">
                       <button
                         onClick={() => {
                           setEditingPaymentOld(pm);
@@ -406,7 +406,7 @@ export const PersonalSettingsView: React.FC<PersonalSettingsViewProps> = ({
                 value={newTagInput}
                 onChange={(e) => setNewTagInput(e.target.value)}
                 placeholder="輸入新個人標籤 (如: 貓咪零食, 健身房, 投資理財)..."
-                className="flex-1 px-3 py-2 text-xs rounded-xl border border-slate-700 bg-slate-900 text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-emerald-500"
+                className="flex-1 min-w-0 px-3 py-2 text-xs rounded-xl border border-slate-700 bg-slate-900 text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-emerald-500"
                 onKeyDown={(e) => {
                   if (e.key === 'Enter') {
                     e.preventDefault();
@@ -416,7 +416,7 @@ export const PersonalSettingsView: React.FC<PersonalSettingsViewProps> = ({
               />
               <button
                 onClick={handleAddTag}
-                className="px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white font-bold rounded-xl text-xs transition"
+                className="px-3.5 sm:px-4 py-2 shrink-0 whitespace-nowrap bg-emerald-600 hover:bg-emerald-700 text-white font-bold rounded-xl text-xs transition"
               >
                 + 新增標籤
               </button>
@@ -424,12 +424,12 @@ export const PersonalSettingsView: React.FC<PersonalSettingsViewProps> = ({
 
             {/* 標籤雲清單與拖曳排序 */}
             <div className="pt-2 space-y-3">
-              <div className="flex items-center justify-between text-xs text-slate-400 bg-slate-900/60 p-2.5 rounded-2xl border border-slate-800">
-                <span className="flex items-center gap-1.5">
-                  <GripVertical className="w-4 h-4 text-emerald-400" />
+              <div className="flex items-center justify-between gap-2 text-xs text-slate-400 bg-slate-900/60 p-2.5 rounded-2xl border border-slate-800">
+                <span className="flex items-center gap-1.5 min-w-0">
+                  <GripVertical className="w-4 h-4 text-emerald-400 shrink-0" />
                   <span>拖曳標籤 ⠿ 即可調整排列順序，明細檢視與記帳選單將即時同步！</span>
                 </span>
-                <span className="text-[11px] font-mono text-slate-500">共 {availableTagItems.length} 個標籤</span>
+                <span className="text-[11px] font-mono text-slate-500 whitespace-nowrap shrink-0">共 {availableTagItems.length} 個標籤</span>
               </div>
 
               <div className="flex flex-wrap gap-2">
@@ -489,7 +489,7 @@ export const PersonalSettingsView: React.FC<PersonalSettingsViewProps> = ({
                             type="text"
                             value={editingTagNew}
                             onChange={(e) => setEditingTagNew(e.target.value)}
-                            className="w-28 px-2 py-0.5 text-xs rounded-lg border border-slate-700 bg-slate-950 text-white outline-none focus:ring-1 focus:ring-emerald-500 font-medium"
+                            className="w-24 sm:w-28 min-w-0 px-2 py-0.5 text-xs rounded-lg border border-slate-700 bg-slate-950 text-white outline-none focus:ring-1 focus:ring-emerald-500 font-medium"
                             autoFocus
                             onKeyDown={(e) => {
                               if (e.key === 'Enter') handleSaveEditingTag();
@@ -498,13 +498,13 @@ export const PersonalSettingsView: React.FC<PersonalSettingsViewProps> = ({
                           />
                           <button
                             onClick={handleSaveEditingTag}
-                            className="px-2 py-0.5 bg-emerald-600 hover:bg-emerald-500 text-white rounded-lg text-xs font-bold transition"
+                            className="px-2 py-0.5 shrink-0 whitespace-nowrap bg-emerald-600 hover:bg-emerald-500 text-white rounded-lg text-xs font-bold transition"
                           >
                             儲存
                           </button>
                           <button
                             onClick={() => setEditingTagKey(null)}
-                            className="px-2 py-0.5 bg-slate-800 text-slate-400 rounded-lg text-xs hover:text-white"
+                            className="px-2 py-0.5 shrink-0 whitespace-nowrap bg-slate-800 text-slate-400 rounded-lg text-xs hover:text-white"
                           >
                             取消
                           </button>
@@ -520,7 +520,7 @@ export const PersonalSettingsView: React.FC<PersonalSettingsViewProps> = ({
                           </div>
 
                           <Tag className="w-3.5 h-3.5 text-emerald-400" />
-                          <span className="text-xs font-medium">#{tagItem.name}</span>
+                          <span className="text-xs font-medium whitespace-nowrap">#{tagItem.name}</span>
 
                           <div className="flex items-center gap-0.5 ml-1 pl-1 border-l border-slate-800">
                             {/* 順序微調按鈕 */}
@@ -616,14 +616,14 @@ export const PersonalSettingsView: React.FC<PersonalSettingsViewProps> = ({
               </div>
 
               <div>
-                <div className="flex items-center justify-between mb-1.5">
-                  <label className="block text-slate-300 font-bold text-xs">
+                <div className="flex items-center justify-between gap-2 mb-1.5">
+                  <label className="block text-slate-300 font-bold text-xs min-w-0 truncate">
                     Google Gemini API Key (可選)
                   </label>
                   <button
                     type="button"
                     onClick={() => setIsApiKeyGuideOpen(true)}
-                    className="inline-flex items-center gap-1 text-[11px] font-bold text-emerald-400 hover:text-emerald-300 transition active:scale-95"
+                    className="inline-flex items-center gap-1 text-[11px] font-bold text-emerald-400 hover:text-emerald-300 transition active:scale-95 whitespace-nowrap shrink-0"
                   >
                     <Sparkles className="w-3 h-3" />
                     如何免費取得？
@@ -643,14 +643,14 @@ export const PersonalSettingsView: React.FC<PersonalSettingsViewProps> = ({
                   </div>
                 </div>
 
-                <div className="flex items-center justify-between mt-1.5 text-[11px]">
-                  <p className="text-slate-500 truncate max-w-[240px]">
+                <div className="flex items-center justify-between gap-2 mt-1.5 text-[11px]">
+                  <p className="text-slate-500 truncate min-w-0">
                     {user.geminiApiKey
                       ? `已綁定：${maskApiKey(user.geminiApiKey)}`
                       : '系統已內建即時 AI，填寫個人 Key 享專屬額度'}
                   </p>
                   {user.geminiApiKey && (
-                    <span className="text-emerald-400 font-bold flex items-center gap-1 flex-shrink-0">
+                    <span className="text-emerald-400 font-bold flex items-center gap-1 flex-shrink-0 whitespace-nowrap">
                       <Check className="w-3 h-3" />
                       獨立配額生效中
                     </span>
@@ -729,7 +729,7 @@ export const PersonalSettingsView: React.FC<PersonalSettingsViewProps> = ({
 
               <button
                 onClick={handleSaveGeneral}
-                className="px-5 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white font-bold rounded-xl text-xs transition shadow-md"
+                className="px-5 py-2.5 whitespace-nowrap bg-emerald-600 hover:bg-emerald-700 text-white font-bold rounded-xl text-xs transition shadow-md"
               >
                 儲存個人設定
               </button>
@@ -762,9 +762,9 @@ export const PersonalSettingsView: React.FC<PersonalSettingsViewProps> = ({
                     key={rule.id}
                     className="p-3 rounded-2xl bg-slate-900/80 border border-slate-800 flex items-center justify-between text-xs"
                   >
-                    <div>
-                      <div className="flex items-center gap-2">
-                        <span className="font-bold text-white font-mono">
+                    <div className="min-w-0">
+                      <div className="flex items-center gap-2 flex-wrap">
+                        <span className="font-bold text-white font-mono break-all">
                           「{rule.vendorPattern || rule.keywordPattern}」
                         </span>
                         <span className="text-slate-500">→</span>
@@ -795,8 +795,8 @@ export const PersonalSettingsView: React.FC<PersonalSettingsViewProps> = ({
 
             <div className="p-4 rounded-2xl bg-slate-900 border border-slate-800 space-y-3 text-xs">
               <div className="flex justify-between items-center text-slate-300">
-                <span>個人私帳累計筆數</span>
-                <span className="font-bold font-mono text-emerald-400">
+                <span className="whitespace-nowrap">個人私帳累計筆數</span>
+                <span className="font-bold font-mono text-emerald-400 tabular-nums whitespace-nowrap">
                   {transactions.filter((t) => t.ledgerType === 'personal').length} 筆
                 </span>
               </div>

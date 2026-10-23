@@ -283,33 +283,33 @@ export const GroupSettingsView: React.FC<GroupSettingsViewProps> = ({
   return (
     <div className="space-y-4 animate-in fade-in duration-200">
       {/* 頁面頂部導航與標題 */}
-      <div className="glass-panel p-4 rounded-3xl flex items-center justify-between shadow-sm">
-        <div className="flex items-center gap-3">
+      <div className="glass-panel p-4 rounded-3xl flex items-center justify-between gap-2 shadow-sm">
+        <div className="flex items-center gap-2 sm:gap-3 min-w-0">
           <button
             onClick={onBack}
-            className="p-2 rounded-2xl bg-slate-800/90 hover:bg-slate-800 text-slate-300 hover:text-white border border-slate-700/80 transition active:scale-95 shadow-sm"
+            className="p-2 shrink-0 rounded-2xl bg-slate-800/90 hover:bg-slate-800 text-slate-300 hover:text-white border border-slate-700/80 transition active:scale-95 shadow-sm"
             title="返回明細總覽"
           >
             <ArrowLeft className="w-5 h-5 text-purple-400" />
           </button>
-          <div>
-            <h1 className="text-base sm:text-lg font-black tracking-tight text-white flex items-center gap-2">
-              <span>帳本設定與共用管理</span>
-              <span className="text-[10px] font-extrabold uppercase px-2 py-0.5 rounded-md bg-purple-950/80 text-purple-300 border border-purple-800">
+          <div className="min-w-0">
+            <h1 className="text-base sm:text-lg font-black tracking-tight text-white flex items-center gap-2 min-w-0">
+              <span className="truncate min-w-0">帳本設定與共用管理</span>
+              <span className="hidden min-[400px]:inline-block shrink-0 whitespace-nowrap text-[10px] font-extrabold uppercase px-2 py-0.5 rounded-md bg-purple-950/80 text-purple-300 border border-purple-800">
                 LEDGERS
               </span>
             </h1>
-            <p className="text-xs text-slate-400">
+            <p className="text-xs text-slate-400 truncate">
               帳本成員與邀請、專用付款方式、標籤庫與月預算管理
             </p>
           </div>
         </div>
 
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-2 shrink-0">
           {onSwitchToPersonal && (
             <button
               onClick={onSwitchToPersonal}
-              className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-emerald-950/80 hover:bg-emerald-900 border border-emerald-800/80 text-emerald-300 text-xs font-bold transition active:scale-95 shadow-sm shrink-0"
+              className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-emerald-950/80 hover:bg-emerald-900 border border-emerald-800/80 text-emerald-300 text-xs font-bold transition active:scale-95 shadow-sm shrink-0 whitespace-nowrap"
               title="切換至個人私帳設定"
             >
               <CreditCard className="w-3.5 h-3.5" />
@@ -330,7 +330,7 @@ export const GroupSettingsView: React.FC<GroupSettingsViewProps> = ({
       {incomingInvitations.length > 0 && (
         <div className="p-4 rounded-3xl bg-purple-950/70 border border-purple-600/60 shadow-xl space-y-3 animate-in fade-in">
           <div className="flex items-center gap-2 text-purple-300">
-            <BellRing className="w-4 h-4 text-purple-400 animate-bounce" />
+            <BellRing className="w-4 h-4 text-purple-400 animate-bounce shrink-0" />
             <h3 className="font-black text-sm">您有 {incomingInvitations.length} 則未回覆的群組邀請！</h3>
           </div>
 
@@ -355,7 +355,7 @@ export const GroupSettingsView: React.FC<GroupSettingsViewProps> = ({
                       const res = await respondToIncomingInvitation(inv.id, 'reject');
                       alert(res.message);
                     }}
-                    className="px-3 py-1.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-400 hover:text-slate-200 font-bold transition text-xs"
+                    className="px-3 py-1.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-400 hover:text-slate-200 font-bold transition text-xs whitespace-nowrap shrink-0"
                   >
                     婉拒
                   </button>
@@ -364,7 +364,7 @@ export const GroupSettingsView: React.FC<GroupSettingsViewProps> = ({
                       const res = await respondToIncomingInvitation(inv.id, 'accept');
                       alert(res.message);
                     }}
-                    className="px-4 py-1.5 rounded-xl bg-purple-600 hover:bg-purple-700 text-white font-bold transition text-xs shadow-md"
+                    className="px-4 py-1.5 rounded-xl bg-purple-600 hover:bg-purple-700 text-white font-bold transition text-xs shadow-md whitespace-nowrap shrink-0"
                   >
                     ✔ 同意加入
                   </button>
@@ -378,18 +378,18 @@ export const GroupSettingsView: React.FC<GroupSettingsViewProps> = ({
       {/* 群組清單切換與建立/加入選單 */}
       <div className="glass-panel p-4 rounded-3xl space-y-3 shadow-sm">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-slate-800 pb-2.5">
-          <div className="flex items-center gap-2">
-            <Users className="w-4 h-4 text-purple-400" />
+          <div className="flex items-center gap-2 whitespace-nowrap">
+            <Users className="w-4 h-4 text-purple-400 shrink-0" />
             <span className="font-bold text-sm text-white">切換或管理群組</span>
-            <span className="text-xs font-mono bg-purple-950 text-purple-300 px-2 py-0.5 rounded-full border border-purple-800">
+            <span className="text-xs font-mono whitespace-nowrap bg-purple-950 text-purple-300 px-2 py-0.5 rounded-full border border-purple-800">
               {households.length} 個群組
             </span>
           </div>
 
-          <div className="flex items-center gap-1.5 self-start sm:self-auto">
+          <div className="flex items-center gap-1.5 self-start sm:self-auto max-w-full overflow-x-auto no-scrollbar">
             <button
               onClick={() => setSelectedGroupSubTab('create')}
-              className={`px-3 py-1.5 rounded-xl font-bold text-xs transition flex items-center gap-1 border ${
+              className={`px-3 py-1.5 shrink-0 whitespace-nowrap rounded-xl font-bold text-xs transition flex items-center gap-1 border ${
                 selectedGroupSubTab === 'create'
                   ? 'bg-purple-600 border-purple-500 text-white'
                   : 'bg-slate-800 text-purple-300 hover:bg-slate-700 border-slate-700'
@@ -401,7 +401,7 @@ export const GroupSettingsView: React.FC<GroupSettingsViewProps> = ({
 
             <button
               onClick={() => setSelectedGroupSubTab('join')}
-              className={`px-3 py-1.5 rounded-xl font-bold text-xs transition flex items-center gap-1 border ${
+              className={`px-3 py-1.5 shrink-0 whitespace-nowrap rounded-xl font-bold text-xs transition flex items-center gap-1 border ${
                 selectedGroupSubTab === 'join'
                   ? 'bg-purple-600 border-purple-500 text-white'
                   : 'bg-slate-800 text-slate-300 hover:bg-slate-700 border-slate-700'
@@ -426,7 +426,7 @@ export const GroupSettingsView: React.FC<GroupSettingsViewProps> = ({
                     switchActiveHousehold(h.id);
                     setSelectedGroupSubTab('manage');
                   }}
-                  className={`px-3.5 py-2 rounded-2xl flex-shrink-0 transition-all font-bold flex items-center gap-2 border ${
+                  className={`px-3.5 py-2 rounded-2xl flex-shrink-0 whitespace-nowrap transition-all font-bold flex items-center gap-2 border ${
                     isSelected && selectedGroupSubTab === 'manage'
                       ? 'bg-purple-950/90 text-purple-200 border-purple-500 shadow-md ring-1 ring-purple-500/50'
                       : 'bg-slate-900/80 text-slate-400 border-slate-800 hover:text-slate-200 hover:border-slate-700'
@@ -435,7 +435,7 @@ export const GroupSettingsView: React.FC<GroupSettingsViewProps> = ({
                   <Users className="w-3.5 h-3.5 text-purple-400" />
                   <span>{h.name}</span>
                   {reqCount > 0 && isLeader && (
-                    <span className="text-[10px] bg-rose-500 text-white px-1.5 py-0.2 rounded-full font-bold">
+                    <span className="text-[10px] bg-rose-500 text-white px-1.5 py-0.2 rounded-full font-bold whitespace-nowrap">
                       {reqCount} 審核
                     </span>
                   )}
@@ -454,7 +454,7 @@ export const GroupSettingsView: React.FC<GroupSettingsViewProps> = ({
       {selectedGroupSubTab === 'create' && (
         <div className="glass-panel p-5 rounded-3xl space-y-3.5 shadow-sm animate-in fade-in">
           <div className="flex items-center gap-2">
-            <div className="p-2 rounded-2xl bg-purple-950 border border-purple-800 text-purple-400">
+            <div className="p-2 shrink-0 rounded-2xl bg-purple-950 border border-purple-800 text-purple-400">
               <Plus className="w-4 h-4" />
             </div>
             <div>
@@ -493,14 +493,14 @@ export const GroupSettingsView: React.FC<GroupSettingsViewProps> = ({
             {households.length > 0 && (
               <button
                 onClick={() => setSelectedGroupSubTab('manage')}
-                className="px-3 py-1.5 rounded-xl bg-slate-800 text-slate-400 text-xs border border-transparent"
+                className="px-3 py-1.5 whitespace-nowrap shrink-0 rounded-xl bg-slate-800 text-slate-400 text-xs border border-transparent"
               >
                 取消
               </button>
             )}
             <button
               onClick={handleCreateHousehold}
-              className="px-5 py-2 bg-purple-600 hover:bg-purple-700 text-white font-bold rounded-xl text-xs transition shadow-md border border-purple-500"
+              className="px-5 py-2 whitespace-nowrap bg-purple-600 hover:bg-purple-700 text-white font-bold rounded-xl text-xs transition shadow-md border border-purple-500"
             >
               立即建立群組
             </button>
@@ -512,7 +512,7 @@ export const GroupSettingsView: React.FC<GroupSettingsViewProps> = ({
       {selectedGroupSubTab === 'join' && (
         <div className="glass-panel p-5 rounded-3xl space-y-3.5 shadow-sm animate-in fade-in">
           <div className="flex items-center gap-2">
-            <div className="p-2 rounded-2xl bg-purple-950 border border-purple-800 text-purple-400">
+            <div className="p-2 shrink-0 rounded-2xl bg-purple-950 border border-purple-800 text-purple-400">
               <UserPlus className="w-4 h-4" />
             </div>
             <div>
@@ -539,14 +539,14 @@ export const GroupSettingsView: React.FC<GroupSettingsViewProps> = ({
             {households.length > 0 && (
               <button
                 onClick={() => setSelectedGroupSubTab('manage')}
-                className="px-3 py-1.5 rounded-xl bg-slate-800 text-slate-400 text-xs border border-transparent"
+                className="px-3 py-1.5 whitespace-nowrap shrink-0 rounded-xl bg-slate-800 text-slate-400 text-xs border border-transparent"
               >
                 取消
               </button>
             )}
             <button
               onClick={handleRequestJoin}
-              className="px-5 py-2.5 bg-purple-600 hover:bg-purple-700 text-white font-bold rounded-xl text-xs transition shadow-md border border-purple-500"
+              className="px-5 py-2.5 whitespace-nowrap bg-purple-600 hover:bg-purple-700 text-white font-bold rounded-xl text-xs transition shadow-md border border-purple-500"
             >
               送出申請
             </button>
@@ -559,14 +559,14 @@ export const GroupSettingsView: React.FC<GroupSettingsViewProps> = ({
         <>
           {/* 群組標題橫幅與即時改名列 */}
           <div className="p-4 rounded-3xl bg-slate-900/90 border border-slate-800 flex flex-col sm:flex-row sm:items-center justify-between gap-3 shadow-sm animate-in fade-in">
-            <div className="flex items-center gap-3">
+            <div className="flex items-center gap-3 min-w-0">
               <div className="w-10 h-10 rounded-2xl bg-purple-950 border border-purple-800 text-purple-400 flex items-center justify-center flex-shrink-0">
                 <Users className="w-5 h-5" />
               </div>
-              <div>
+              <div className="min-w-0">
                 <div className="flex items-center gap-2">
                   {isEditingGroupName ? (
-                    <div className="flex items-center gap-1.5 animate-in fade-in">
+                    <div className="flex items-center gap-1.5 animate-in fade-in min-w-0">
                       <input
                         type="text"
                         value={editGroupNameInput}
@@ -580,13 +580,13 @@ export const GroupSettingsView: React.FC<GroupSettingsViewProps> = ({
                           }
                         }}
                         autoFocus
-                        className="px-2.5 py-1 text-sm font-bold bg-slate-950 border border-purple-500 rounded-xl text-white outline-none focus:ring-1 focus:ring-purple-400"
+                        className="min-w-0 w-full px-2.5 py-1 text-sm font-bold bg-slate-950 border border-purple-500 rounded-xl text-white outline-none focus:ring-1 focus:ring-purple-400"
                         placeholder="輸入新群組名稱..."
                       />
                       <button
                         type="button"
                         onClick={handleSaveGroupInfo}
-                        className="px-2.5 py-1 bg-purple-600 hover:bg-purple-500 text-white text-xs font-bold rounded-xl transition shadow"
+                        className="px-2.5 py-1 shrink-0 whitespace-nowrap bg-purple-600 hover:bg-purple-500 text-white text-xs font-bold rounded-xl transition shadow"
                       >
                         儲存
                       </button>
@@ -599,8 +599,8 @@ export const GroupSettingsView: React.FC<GroupSettingsViewProps> = ({
                       </button>
                     </div>
                   ) : (
-                    <div className="flex items-center gap-2">
-                      <h2 className="text-base font-black text-white">{household.name}</h2>
+                    <div className="flex items-center gap-2 min-w-0">
+                      <h2 className="text-base font-black text-white truncate min-w-0">{household.name}</h2>
                       <button
                         type="button"
                         onClick={() => {
@@ -608,7 +608,7 @@ export const GroupSettingsView: React.FC<GroupSettingsViewProps> = ({
                           setEditGroupNameInput(household.name);
                           setEditGroupBudgetInput(household.monthlyBudget || 40000);
                         }}
-                        className="p-1 text-slate-400 hover:text-purple-300 rounded-lg hover:bg-purple-950/60 transition"
+                        className="p-1 shrink-0 text-slate-400 hover:text-purple-300 rounded-lg hover:bg-purple-950/60 transition"
                         title="點擊修改群組名稱"
                       >
                         <Edit2 className="w-3.5 h-3.5" />
@@ -616,7 +616,7 @@ export const GroupSettingsView: React.FC<GroupSettingsViewProps> = ({
                     </div>
                   )}
                 </div>
-                <p className="text-[11px] text-slate-400 mt-0.5">
+                <p className="text-[11px] text-slate-400 mt-0.5 truncate">
                   成員 {household.members.length} 人 · 邀請碼 {household.inviteCode}
                 </p>
               </div>
@@ -625,7 +625,7 @@ export const GroupSettingsView: React.FC<GroupSettingsViewProps> = ({
             <div className="flex items-center gap-2 self-start sm:self-auto">
               <button
                 onClick={() => handleCopyInviteCode(household.inviteCode)}
-                className="px-3 py-1.5 rounded-xl bg-purple-950/80 hover:bg-purple-900 border border-purple-800 text-purple-300 text-xs font-bold transition flex items-center gap-1.5"
+                className="px-3 py-1.5 rounded-xl bg-purple-950/80 hover:bg-purple-900 border border-purple-800 text-purple-300 text-xs font-bold transition flex items-center gap-1.5 whitespace-nowrap shrink-0"
               >
                 {copiedCode ? <Check className="w-3.5 h-3.5 text-emerald-400" /> : <Copy className="w-3.5 h-3.5" />}
                 <span>{copiedCode ? '已複製！' : '複製邀請碼'}</span>
@@ -637,7 +637,7 @@ export const GroupSettingsView: React.FC<GroupSettingsViewProps> = ({
           <div className="flex gap-1.5 p-1 bg-slate-900/90 border border-slate-800 rounded-2xl text-xs font-semibold overflow-x-auto no-scrollbar shadow-sm">
             <button
               onClick={() => handleTabChange('members')}
-              className={`px-3.5 py-2 rounded-xl transition flex-shrink-0 flex items-center gap-1.5 active:scale-95 ${
+              className={`px-3.5 py-2 rounded-xl transition flex-shrink-0 whitespace-nowrap flex items-center gap-1.5 active:scale-95 ${
                 activeTab === 'members'
                   ? 'bg-purple-600 text-white shadow-md font-bold border border-purple-500/50'
                   : 'text-slate-400 hover:text-slate-200 hover:bg-slate-800/60 border border-transparent'
@@ -652,7 +652,7 @@ export const GroupSettingsView: React.FC<GroupSettingsViewProps> = ({
 
             <button
               onClick={() => handleTabChange('payments')}
-              className={`px-3.5 py-2 rounded-xl transition flex-shrink-0 flex items-center gap-1.5 active:scale-95 ${
+              className={`px-3.5 py-2 rounded-xl transition flex-shrink-0 whitespace-nowrap flex items-center gap-1.5 active:scale-95 ${
                 activeTab === 'payments'
                   ? 'bg-purple-600 text-white shadow-md font-bold border border-purple-500/50'
                   : 'text-slate-400 hover:text-slate-200 hover:bg-slate-800/60 border border-transparent'
@@ -664,7 +664,7 @@ export const GroupSettingsView: React.FC<GroupSettingsViewProps> = ({
 
             <button
               onClick={() => handleTabChange('tags')}
-              className={`px-3.5 py-2 rounded-xl transition flex-shrink-0 flex items-center gap-1.5 active:scale-95 ${
+              className={`px-3.5 py-2 rounded-xl transition flex-shrink-0 whitespace-nowrap flex items-center gap-1.5 active:scale-95 ${
                 activeTab === 'tags'
                   ? 'bg-purple-600 text-white shadow-md font-bold border border-purple-500/50'
                   : 'text-slate-400 hover:text-slate-200 hover:bg-slate-800/60 border border-transparent'
@@ -676,7 +676,7 @@ export const GroupSettingsView: React.FC<GroupSettingsViewProps> = ({
 
             <button
               onClick={() => handleTabChange('budget')}
-              className={`px-3.5 py-2 rounded-xl transition flex-shrink-0 flex items-center gap-1.5 active:scale-95 ${
+              className={`px-3.5 py-2 rounded-xl transition flex-shrink-0 whitespace-nowrap flex items-center gap-1.5 active:scale-95 ${
                 activeTab === 'budget'
                   ? 'bg-purple-600 text-white shadow-md font-bold border border-purple-500/50'
                   : 'text-slate-400 hover:text-slate-200 hover:bg-slate-800/60 border border-transparent'
@@ -688,7 +688,7 @@ export const GroupSettingsView: React.FC<GroupSettingsViewProps> = ({
 
             <button
               onClick={() => handleTabChange('export')}
-              className={`px-3.5 py-2 rounded-xl transition flex-shrink-0 flex items-center gap-1.5 active:scale-95 ${
+              className={`px-3.5 py-2 rounded-xl transition flex-shrink-0 whitespace-nowrap flex items-center gap-1.5 active:scale-95 ${
                 activeTab === 'export'
                   ? 'bg-purple-600 text-white shadow-md font-bold border border-purple-500/50'
                   : 'text-slate-400 hover:text-slate-200 hover:bg-slate-800/60 border border-transparent'
@@ -706,7 +706,7 @@ export const GroupSettingsView: React.FC<GroupSettingsViewProps> = ({
               {isLeader && pendingJoinRequests.length > 0 && (
                 <div className="p-4 rounded-3xl bg-amber-950/50 border border-amber-500/50 space-y-3 animate-in fade-in shadow-lg">
                   <div className="flex items-center gap-2">
-                    <Clock className="w-4 h-4 text-amber-400" />
+                    <Clock className="w-4 h-4 text-amber-400 shrink-0" />
                     <h3 className="font-bold text-sm text-amber-200">
                       待審核的加入申請 ({pendingJoinRequests.length} 筆)
                     </h3>
@@ -721,8 +721,8 @@ export const GroupSettingsView: React.FC<GroupSettingsViewProps> = ({
                         key={req.id}
                         className="flex flex-col sm:flex-row sm:items-center justify-between gap-2.5 p-3 rounded-2xl bg-slate-900/90 border border-slate-800 text-xs"
                       >
-                        <div>
-                          <p className="font-bold text-white">
+                        <div className="min-w-0">
+                          <p className="font-bold text-white break-all">
                             {req.applicantName}{' '}
                             {req.applicantEmail && (
                               <span className="text-slate-400 font-normal">({req.applicantEmail})</span>
@@ -739,7 +739,7 @@ export const GroupSettingsView: React.FC<GroupSettingsViewProps> = ({
                               const res = await respondToJoinRequest(req.id, 'reject');
                               alert(res.message);
                             }}
-                            className="px-3 py-1.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-400 hover:text-rose-400 font-bold transition text-xs"
+                            className="px-3 py-1.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-400 hover:text-rose-400 font-bold transition text-xs whitespace-nowrap shrink-0"
                           >
                             ✕ 拒絕
                           </button>
@@ -748,7 +748,7 @@ export const GroupSettingsView: React.FC<GroupSettingsViewProps> = ({
                               const res = await respondToJoinRequest(req.id, 'approve');
                               alert(res.message);
                             }}
-                            className="px-4 py-1.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold transition text-xs shadow-md"
+                            className="px-4 py-1.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold transition text-xs shadow-md whitespace-nowrap shrink-0"
                           >
                             ✔ 同意加入
                           </button>
@@ -762,10 +762,10 @@ export const GroupSettingsView: React.FC<GroupSettingsViewProps> = ({
               {/* 專屬 6 位邀請碼卡片 */}
               <div className="p-4 rounded-3xl bg-gradient-to-r from-purple-950/40 to-slate-900 border border-purple-800/40 space-y-2.5">
                 <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
-                  <div>
+                  <div className="min-w-0">
                     <h3 className="font-bold text-sm text-purple-200 flex items-center gap-1.5">
-                      <UserPlus className="w-4 h-4 text-purple-400" />
-                      <span>「{household.name}」專屬 6 位邀請碼</span>
+                      <UserPlus className="w-4 h-4 text-purple-400 shrink-0" />
+                      <span className="min-w-0 truncate">「{household.name}」專屬 6 位邀請碼</span>
                     </h3>
                     <p className="text-[11px] text-slate-400 mt-0.5">
                       朋友輸入代碼送出申請後，經組長審核同意即可入組！
@@ -774,7 +774,7 @@ export const GroupSettingsView: React.FC<GroupSettingsViewProps> = ({
 
                   <button
                     onClick={() => handleCopyInviteCode(household.inviteCode)}
-                    className="px-4 py-2.5 rounded-2xl bg-purple-600 hover:bg-purple-500 text-white font-mono font-black text-sm flex items-center gap-2 shadow-lg shadow-purple-600/30 transition active:scale-95 self-start sm:self-auto"
+                    className="px-4 py-2.5 rounded-2xl bg-purple-600 hover:bg-purple-500 text-white font-mono font-black text-sm flex items-center gap-2 shadow-lg shadow-purple-600/30 transition active:scale-95 self-start sm:self-auto whitespace-nowrap shrink-0 tabular-nums"
                   >
                     {copiedCode ? <Check className="w-4 h-4 text-white" /> : <Copy className="w-4 h-4" />}
                     <span>{copiedCode ? '已複製！' : household.inviteCode}</span>
@@ -784,21 +784,21 @@ export const GroupSettingsView: React.FC<GroupSettingsViewProps> = ({
 
               {/* 成員列表與 Email 邀請專區 */}
               <div className="glass-panel p-5 rounded-3xl space-y-4 shadow-sm">
-                <div className="flex items-center justify-between border-b border-slate-800 pb-3">
-                  <div>
-                    <h3 className="font-bold text-sm text-slate-200">
+                <div className="flex items-center justify-between gap-2 border-b border-slate-800 pb-3">
+                  <div className="min-w-0">
+                    <h3 className="font-bold text-sm text-slate-200 whitespace-nowrap">
                       正式成員名單 ({household.members.length} 人)
                     </h3>
-                    <p className="text-xs text-slate-400">目前享有此群組公帳與分帳結算權限之成員</p>
+                    <p className="text-xs text-slate-400 truncate">目前享有此群組公帳與分帳結算權限之成員</p>
                   </div>
 
                   {isLeader && (
                     <button
                       onClick={() => setShowEmailInviteForm(!showEmailInviteForm)}
-                      className="px-3.5 py-2 rounded-xl bg-purple-950 text-purple-300 hover:bg-purple-900 border border-purple-800 text-xs font-bold transition flex items-center gap-1.5 shadow"
+                      className="px-3.5 py-2 rounded-xl bg-purple-950 text-purple-300 hover:bg-purple-900 border border-purple-800 text-xs font-bold transition flex items-center gap-1.5 shadow whitespace-nowrap shrink-0"
                     >
                       <Mail className="w-3.5 h-3.5" />
-                      <span>{showEmailInviteForm ? '收起邀請' : '以 Email 邀請新成員'}</span>
+                      <span>{showEmailInviteForm ? '收起邀請' : <><span className="hidden sm:inline">以 Email </span>邀請新成員</>}</span>
                     </button>
                   )}
                 </div>
@@ -808,7 +808,7 @@ export const GroupSettingsView: React.FC<GroupSettingsViewProps> = ({
                   <div className="p-4 rounded-2xl bg-slate-900 border border-purple-700/60 space-y-3 animate-in fade-in">
                     <div className="flex items-center gap-2">
                       <Mail className="w-4 h-4 text-purple-400" />
-                      <h4 className="text-xs font-bold text-slate-200">輸入對方的 Email 發送加入邀請</h4>
+                      <h4 className="text-xs font-bold text-slate-200 min-w-0 truncate">輸入對方的 Email 發送加入邀請</h4>
                     </div>
                     <p className="text-[11px] text-slate-400">
                       對方登入系統後，會在群組設定頁面直接收到「同意加入」通知，點擊即可入組！
@@ -842,14 +842,14 @@ export const GroupSettingsView: React.FC<GroupSettingsViewProps> = ({
                     <div className="flex justify-end gap-2 pt-1">
                       <button
                         onClick={() => setShowEmailInviteForm(false)}
-                        className="px-3 py-1.5 bg-slate-800 text-slate-400 rounded-xl text-xs"
+                        className="px-3 py-1.5 whitespace-nowrap shrink-0 bg-slate-800 text-slate-400 rounded-xl text-xs"
                       >
                         取消
                       </button>
                       <button
                         onClick={handleSendEmailInvite}
                         disabled={isInviting || !inviteEmailInput.trim()}
-                        className="px-4 py-1.5 bg-purple-600 hover:bg-purple-700 text-white font-bold rounded-xl text-xs shadow-md disabled:opacity-50 flex items-center gap-1"
+                        className="px-4 py-1.5 bg-purple-600 hover:bg-purple-700 text-white font-bold rounded-xl text-xs shadow-md disabled:opacity-50 flex items-center gap-1 whitespace-nowrap shrink-0"
                       >
                         <Mail className="w-3.5 h-3.5" />
                         <span>{isInviting ? '發送中...' : '發送 Email 邀請'}</span>
@@ -867,9 +867,9 @@ export const GroupSettingsView: React.FC<GroupSettingsViewProps> = ({
                     </p>
                     <div className="space-y-1">
                       {pendingInvitations.map((inv) => (
-                        <div key={inv.id} className="flex items-center justify-between text-[11px] text-slate-300 py-1 border-b border-slate-800/60 last:border-none">
-                          <span>{inv.inviteeEmail} ({inv.role === 'admin' ? '副管理員' : '一般成員'})</span>
-                          <span className="text-amber-400 font-mono text-[10px]">待確認</span>
+                        <div key={inv.id} className="flex items-center justify-between gap-2 text-[11px] text-slate-300 py-1 border-b border-slate-800/60 last:border-none">
+                          <span className="min-w-0 truncate">{inv.inviteeEmail} ({inv.role === 'admin' ? '副管理員' : '一般成員'})</span>
+                          <span className="text-amber-400 font-mono text-[10px] whitespace-nowrap shrink-0">待確認</span>
                         </div>
                       ))}
                     </div>
@@ -910,7 +910,7 @@ export const GroupSettingsView: React.FC<GroupSettingsViewProps> = ({
 
                         <div className="flex items-center gap-2 flex-shrink-0">
                           <span
-                            className={`text-[10px] px-2 py-0.5 rounded-lg border font-semibold ${
+                            className={`text-[10px] px-2 py-0.5 rounded-lg border font-semibold whitespace-nowrap ${
                               isMemberOwner
                                 ? 'bg-amber-950/80 text-amber-300 border-amber-800 flex items-center gap-1'
                                 : m.role === 'admin'
@@ -940,11 +940,11 @@ export const GroupSettingsView: React.FC<GroupSettingsViewProps> = ({
               </div>
 
               {/* 退出與解散群組 */}
-              <div className="pt-2 flex justify-between items-center">
+              <div className="pt-2 flex justify-between items-center gap-2">
                 {isLeader && (
                   <button
                     onClick={() => setShowDeleteModal(true)}
-                    className="px-3 py-1.5 rounded-xl bg-rose-950/30 hover:bg-rose-950/60 border border-rose-900/40 text-rose-400 text-xs font-bold transition flex items-center gap-1"
+                    className="px-3 py-1.5 rounded-xl bg-rose-950/30 hover:bg-rose-950/60 border border-rose-900/40 text-rose-400 text-xs font-bold transition flex items-center gap-1 whitespace-nowrap shrink-0"
                   >
                     <Trash2 className="w-3.5 h-3.5" />
                     <span>解散群組 (組長)</span>
@@ -953,7 +953,7 @@ export const GroupSettingsView: React.FC<GroupSettingsViewProps> = ({
 
                 <button
                   onClick={() => setShowDeleteModal(true)}
-                  className="px-4 py-2 bg-slate-800 hover:bg-rose-950/60 border border-slate-700 hover:border-rose-900/50 text-slate-400 hover:text-rose-400 rounded-xl text-xs font-bold transition flex items-center gap-1.5 ml-auto"
+                  className="px-4 py-2 bg-slate-800 hover:bg-rose-950/60 border border-slate-700 hover:border-rose-900/50 text-slate-400 hover:text-rose-400 rounded-xl text-xs font-bold transition flex items-center gap-1.5 ml-auto whitespace-nowrap shrink-0"
                 >
                   <LogOut className="w-3.5 h-3.5" />
                   <span>退出此群組</span>
@@ -966,9 +966,9 @@ export const GroupSettingsView: React.FC<GroupSettingsViewProps> = ({
           {activeTab === 'payments' && (
             <div className="glass-panel p-5 rounded-3xl space-y-4 shadow-sm">
               <div>
-                <h3 className="font-bold text-sm text-white flex items-center gap-1.5">
-                  <CreditCard className="w-4 h-4 text-purple-400" />
-                  <span>「{household.name}」公帳專屬付款方式</span>
+                <h3 className="font-bold text-sm text-white flex items-center gap-1.5 min-w-0">
+                  <CreditCard className="w-4 h-4 text-purple-400 shrink-0" />
+                  <span className="min-w-0 truncate">「{household.name}」公帳專屬付款方式</span>
                 </h3>
                 <p className="text-xs text-slate-400 mt-0.5">
                   自訂此群組在公帳記帳時的付款方式選項（例如：公用公積金、公帳專用信用卡、組長代墊等）。
@@ -982,7 +982,7 @@ export const GroupSettingsView: React.FC<GroupSettingsViewProps> = ({
                   value={newGroupPaymentInput}
                   onChange={(e) => setNewGroupPaymentInput(e.target.value)}
                   placeholder="例如：公用零用金, 富邦公帳信用卡, 街口公用帳號..."
-                  className="flex-1 px-3 py-2 text-xs rounded-xl border border-slate-700 bg-slate-900 text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-purple-500"
+                  className="flex-1 min-w-0 px-3 py-2 text-xs rounded-xl border border-slate-700 bg-slate-900 text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-purple-500"
                   onKeyDown={(e) => {
                     if (e.key === 'Enter') {
                       e.preventDefault();
@@ -992,7 +992,7 @@ export const GroupSettingsView: React.FC<GroupSettingsViewProps> = ({
                 />
                 <button
                   onClick={handleAddGroupPayment}
-                  className="px-4 py-2 bg-purple-600 hover:bg-purple-700 text-white font-bold rounded-xl text-xs transition"
+                  className="px-3.5 sm:px-4 py-2 shrink-0 whitespace-nowrap bg-purple-600 hover:bg-purple-700 text-white font-bold rounded-xl text-xs transition"
                 >
                   新增方式
                 </button>
@@ -1006,35 +1006,35 @@ export const GroupSettingsView: React.FC<GroupSettingsViewProps> = ({
                     className="flex items-center justify-between p-3 rounded-2xl bg-slate-900/80 border border-slate-800 hover:border-purple-700/50 transition text-xs"
                   >
                     {editingPaymentOld === pm ? (
-                      <div className="flex-1 flex gap-2 mr-2">
+                      <div className="flex-1 min-w-0 flex gap-2 mr-2">
                         <input
                           type="text"
                           value={editingPaymentNew}
                           onChange={(e) => setEditingPaymentNew(e.target.value)}
-                          className="flex-1 px-2.5 py-1 rounded-lg border border-slate-700 bg-slate-800 text-white text-xs outline-none focus:ring-1 focus:ring-purple-500"
+                          className="flex-1 min-w-0 px-2.5 py-1 rounded-lg border border-slate-700 bg-slate-800 text-white text-xs outline-none focus:ring-1 focus:ring-purple-500"
                         />
                         <button
                           onClick={handleSaveEditGroupPayment}
-                          className="px-3 py-1 bg-purple-600 text-white rounded-lg text-xs font-bold"
+                          className="px-3 py-1 shrink-0 whitespace-nowrap bg-purple-600 text-white rounded-lg text-xs font-bold"
                         >
                           儲存
                         </button>
                         <button
                           onClick={() => setEditingPaymentOld(null)}
-                          className="px-2 py-1 bg-slate-800 text-slate-400 rounded-lg text-xs"
+                          className="px-2 py-1 shrink-0 whitespace-nowrap bg-slate-800 text-slate-400 rounded-lg text-xs"
                         >
                           取消
                         </button>
                       </div>
                     ) : (
-                      <div className="flex items-center gap-2.5">
-                        <CreditCard className="w-4 h-4 text-purple-400" />
-                        <span className="font-bold text-slate-200">{pm}</span>
+                      <div className="flex items-center gap-2.5 min-w-0">
+                        <CreditCard className="w-4 h-4 text-purple-400 shrink-0" />
+                        <span className="font-bold text-slate-200 truncate">{pm}</span>
                       </div>
                     )}
 
                     {editingPaymentOld !== pm && (
-                      <div className="flex items-center gap-1">
+                      <div className="flex items-center gap-1 shrink-0">
                         <button
                           onClick={() => {
                             setEditingPaymentOld(pm);
@@ -1064,9 +1064,9 @@ export const GroupSettingsView: React.FC<GroupSettingsViewProps> = ({
           {activeTab === 'tags' && (
             <div className="glass-panel p-5 rounded-3xl space-y-4 shadow-sm">
               <div>
-                <h3 className="font-bold text-sm text-white flex items-center gap-1.5">
-                  <Tag className="w-4 h-4 text-purple-400" />
-                  <span>「{household.name}」群組專屬標籤庫</span>
+                <h3 className="font-bold text-sm text-white flex items-center gap-1.5 min-w-0">
+                  <Tag className="w-4 h-4 text-purple-400 shrink-0" />
+                  <span className="min-w-0 truncate">「{household.name}」群組專屬標籤庫</span>
                 </h3>
                 <p className="text-xs text-slate-400 mt-0.5">
                   自訂此群組常用的公帳標籤，按住 ⠿ 可拖曳排序，明細頁與記帳選單將自動同步此排序。
@@ -1080,7 +1080,7 @@ export const GroupSettingsView: React.FC<GroupSettingsViewProps> = ({
                   value={newGroupTagInput}
                   onChange={(e) => setNewGroupTagInput(e.target.value)}
                   placeholder="輸入新群組標籤 (如: 共同採買, 住宿分攤, 慶祝聚餐)..."
-                  className="flex-1 px-3 py-2 text-xs rounded-xl border border-slate-700 bg-slate-900 text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-purple-500"
+                  className="flex-1 min-w-0 px-3 py-2 text-xs rounded-xl border border-slate-700 bg-slate-900 text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-purple-500"
                   onKeyDown={(e) => {
                     if (e.key === 'Enter') {
                       e.preventDefault();
@@ -1090,7 +1090,7 @@ export const GroupSettingsView: React.FC<GroupSettingsViewProps> = ({
                 />
                 <button
                   onClick={handleAddGroupTag}
-                  className="px-4 py-2 bg-purple-600 hover:bg-purple-700 text-white font-bold rounded-xl text-xs transition"
+                  className="px-3.5 sm:px-4 py-2 shrink-0 whitespace-nowrap bg-purple-600 hover:bg-purple-700 text-white font-bold rounded-xl text-xs transition"
                 >
                   + 新增標籤
                 </button>
@@ -1098,12 +1098,12 @@ export const GroupSettingsView: React.FC<GroupSettingsViewProps> = ({
 
               {/* 標籤清單與拖曳排序 */}
               <div className="pt-2 space-y-3">
-                <div className="flex items-center justify-between text-xs text-slate-400 bg-slate-900/60 p-2.5 rounded-2xl border border-slate-800">
-                  <span className="flex items-center gap-1.5">
-                    <GripVertical className="w-4 h-4 text-purple-400" />
+                <div className="flex items-center justify-between gap-2 text-xs text-slate-400 bg-slate-900/60 p-2.5 rounded-2xl border border-slate-800">
+                  <span className="flex items-center gap-1.5 min-w-0">
+                    <GripVertical className="w-4 h-4 text-purple-400 shrink-0" />
                     <span>拖曳標籤 ⠿ 即可調整排列順序，明細檢視與記帳選單將即時同步！</span>
                   </span>
-                  <span className="text-[11px] font-mono text-purple-300">共 {groupTagItems.length} 個群組標籤</span>
+                  <span className="text-[11px] font-mono text-purple-300 whitespace-nowrap shrink-0">共 {groupTagItems.length} 個群組標籤</span>
                 </div>
 
                 <div className="flex flex-wrap gap-2">
@@ -1163,7 +1163,7 @@ export const GroupSettingsView: React.FC<GroupSettingsViewProps> = ({
                               type="text"
                               value={editingGroupTagNew}
                               onChange={(e) => setEditingGroupTagNew(e.target.value)}
-                              className="w-28 px-2 py-0.5 text-xs rounded-lg border border-slate-700 bg-slate-950 text-white outline-none focus:ring-1 focus:ring-purple-500 font-medium"
+                              className="w-24 sm:w-28 min-w-0 px-2 py-0.5 text-xs rounded-lg border border-slate-700 bg-slate-950 text-white outline-none focus:ring-1 focus:ring-purple-500 font-medium"
                               autoFocus
                               onKeyDown={(e) => {
                                 if (e.key === 'Enter') handleSaveEditingGroupTag();
@@ -1172,13 +1172,13 @@ export const GroupSettingsView: React.FC<GroupSettingsViewProps> = ({
                             />
                             <button
                               onClick={handleSaveEditingGroupTag}
-                              className="px-2 py-0.5 bg-purple-600 hover:bg-purple-500 text-white rounded-lg text-xs font-bold transition"
+                              className="px-2 py-0.5 shrink-0 whitespace-nowrap bg-purple-600 hover:bg-purple-500 text-white rounded-lg text-xs font-bold transition"
                             >
                               儲存
                             </button>
                             <button
                               onClick={() => setEditingGroupTagKey(null)}
-                              className="px-2 py-0.5 bg-slate-800 text-slate-400 rounded-lg text-xs hover:text-white"
+                              className="px-2 py-0.5 shrink-0 whitespace-nowrap bg-slate-800 text-slate-400 rounded-lg text-xs hover:text-white"
                             >
                               取消
                             </button>
@@ -1194,7 +1194,7 @@ export const GroupSettingsView: React.FC<GroupSettingsViewProps> = ({
                             </div>
 
                             <Tag className="w-3.5 h-3.5 text-purple-400" />
-                            <span className="text-xs font-medium">#{tagItem.name}</span>
+                            <span className="text-xs font-medium whitespace-nowrap">#{tagItem.name}</span>
 
                             <div className="flex items-center gap-0.5 ml-1 pl-1 border-l border-slate-800">
                               {/* 順序微調按鈕 */}
@@ -1253,8 +1253,8 @@ export const GroupSettingsView: React.FC<GroupSettingsViewProps> = ({
           {activeTab === 'budget' && (
             <div className="space-y-4">
               <div className="glass-panel p-5 rounded-3xl space-y-4 shadow-sm">
-                <div className="flex items-center justify-between border-b border-slate-800 pb-3">
-                  <div>
+                <div className="flex items-center justify-between gap-2 border-b border-slate-800 pb-3">
+                  <div className="min-w-0">
                     <h3 className="font-bold text-sm text-white">群組資訊與每月公帳預算</h3>
                     <p className="text-xs text-slate-400 mt-0.5">
                       設定群組名稱與每月公帳總花費預算上限
@@ -1266,7 +1266,7 @@ export const GroupSettingsView: React.FC<GroupSettingsViewProps> = ({
                       setEditGroupNameInput(household.name);
                       setEditGroupBudgetInput(household.monthlyBudget || 40000);
                     }}
-                    className="px-3 py-1.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs font-bold transition flex items-center gap-1.5 border border-slate-700"
+                    className="px-3 py-1.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs font-bold transition flex items-center gap-1.5 border border-slate-700 whitespace-nowrap shrink-0"
                   >
                     <Edit2 className="w-3.5 h-3.5" />
                     <span>{isEditingGroupName ? '收起編輯' : '修改資訊'}</span>
@@ -1298,13 +1298,13 @@ export const GroupSettingsView: React.FC<GroupSettingsViewProps> = ({
                     <div className="flex justify-end gap-2 pt-1">
                       <button
                         onClick={() => setIsEditingGroupName(false)}
-                        className="px-3 py-1.5 bg-slate-800 text-slate-400 rounded-xl text-xs"
+                        className="px-3 py-1.5 whitespace-nowrap shrink-0 bg-slate-800 text-slate-400 rounded-xl text-xs"
                       >
                         取消
                       </button>
                       <button
                         onClick={handleSaveGroupInfo}
-                        className="px-4 py-1.5 bg-purple-600 hover:bg-purple-700 text-white font-bold rounded-xl text-xs shadow-md"
+                        className="px-4 py-1.5 whitespace-nowrap shrink-0 bg-purple-600 hover:bg-purple-700 text-white font-bold rounded-xl text-xs shadow-md"
                       >
                         儲存變更
                       </button>
@@ -1318,7 +1318,7 @@ export const GroupSettingsView: React.FC<GroupSettingsViewProps> = ({
                     </div>
                     <div className="p-3.5 rounded-2xl bg-slate-900/80 border border-slate-800 space-y-1">
                       <p className="text-[11px] text-slate-400">每月公帳預算上限</p>
-                      <p className="text-sm font-bold font-mono text-purple-400">
+                      <p className="text-sm font-bold font-mono text-purple-400 tabular-nums whitespace-nowrap">
                         NT$ {(household.monthlyBudget || 40000).toLocaleString()}
                       </p>
                     </div>
@@ -1343,8 +1343,8 @@ export const GroupSettingsView: React.FC<GroupSettingsViewProps> = ({
 
               <div className="p-4 rounded-2xl bg-slate-900 border border-slate-800 space-y-3 text-xs">
                 <div className="flex justify-between items-center text-slate-300">
-                  <span>此群組累計公帳交易筆數</span>
-                  <span className="font-bold font-mono text-purple-400">
+                  <span className="whitespace-nowrap">此群組累計公帳交易筆數</span>
+                  <span className="font-bold font-mono text-purple-400 tabular-nums whitespace-nowrap">
                     {transactions.filter((t) => t.ledgerType === 'household' && (t.householdId === household.id || !t.householdId)).length} 筆
                   </span>
                 </div>

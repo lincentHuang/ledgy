@@ -306,22 +306,22 @@ export const OverviewCards: React.FC = () => {
         <Card
           variant="panel"
           padding="md"
-          className="border-amber-500/40 bg-amber-950/30 backdrop-blur-md flex items-center justify-between gap-3 shadow-lg shadow-amber-950/20 animate-in fade-in slide-in-from-top-2"
+          className="border-amber-500/40 bg-amber-950/30 backdrop-blur-md flex flex-wrap sm:flex-nowrap items-center justify-between gap-2 sm:gap-3 shadow-lg shadow-amber-950/20 animate-in fade-in slide-in-from-top-2"
         >
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-2 sm:gap-3 min-w-0 flex-1">
             <div className="p-2 rounded-2xl bg-amber-500/20 text-amber-400 border border-amber-500/30 flex-shrink-0">
               <ShieldAlert className="w-5 h-5" />
             </div>
-            <div>
+            <div className="min-w-0">
               <div className="flex items-center gap-2">
-                <span className="text-xs font-bold text-amber-300">
+                <span className="text-xs font-bold text-amber-300 whitespace-nowrap">
                   AI 疑似重複扣款偵測
                 </span>
-                <span className="text-[10px] px-1.5 py-0.5 rounded bg-amber-500/20 text-amber-400 border border-amber-500/40 font-mono">
+                <span className="text-[10px] px-1.5 py-0.5 rounded bg-amber-500/20 text-amber-400 border border-amber-500/40 font-mono tabular-nums whitespace-nowrap shrink-0">
                   NT$ {currentAnomaly.amount.toLocaleString()}
                 </span>
               </div>
-              <p className="text-xs text-slate-300 mt-0.5">
+              <p className="text-xs text-slate-300 mt-0.5 break-words">
                 {currentAnomaly.title} (
                 {currentAnomaly.anomalyReason || '短時間內連續相同金額扣款'}
                 )
@@ -329,14 +329,14 @@ export const OverviewCards: React.FC = () => {
             </div>
           </div>
 
-          <div className="flex items-center gap-2 flex-shrink-0">
+          <div className="flex items-center gap-1.5 sm:gap-2 flex-shrink-0 ml-auto">
             {/* 一鍵確認無誤 */}
             <Button
               variant="secondary"
               size="xs"
               onClick={() => handleConfirmNormal(currentAnomaly.id)}
               leftIcon={<Check className="w-3 h-3 text-emerald-400" />}
-              className="text-[11px]"
+              className="text-[11px] whitespace-nowrap shrink-0"
               title="確認此筆消費無誤，消除 AI 警示"
             >
               確認無誤
@@ -348,7 +348,7 @@ export const OverviewCards: React.FC = () => {
               size="xs"
               onClick={() => handleDeleteDuplicate(currentAnomaly.id)}
               leftIcon={<Trash2 className="w-3 h-3 text-rose-400" />}
-              className="text-[11px]"
+              className="text-[11px] whitespace-nowrap shrink-0"
               title="刪除這筆重複記帳"
             >
               刪除重複
@@ -357,7 +357,7 @@ export const OverviewCards: React.FC = () => {
             {/* 關閉按鈕 */}
             <button
               onClick={() => setIsAlertDismissed(true)}
-              className="p-1 rounded-lg hover:bg-amber-500/20 text-amber-400 hover:text-amber-200 transition ml-0.5"
+              className="p-1 rounded-lg hover:bg-amber-500/20 text-amber-400 hover:text-amber-200 transition ml-0.5 shrink-0"
               title="關閉此警示"
             >
               <X className="w-3.5 h-3.5" />
@@ -371,25 +371,25 @@ export const OverviewCards: React.FC = () => {
         <div className="grid grid-cols-3 divide-x divide-white/10 text-center">
           {/* 1. 支出 */}
           <div className="px-1.5">
-            <p className="text-[10px] font-bold text-slate-400">{getExpenseMobileLabel()}</p>
-            <p className="text-xs font-black text-rose-400 font-mono mt-0.5 truncate">
+            <p className="text-[10px] font-bold text-slate-400 whitespace-nowrap truncate">{getExpenseMobileLabel()}</p>
+            <p className="text-xs font-black text-rose-400 font-mono tabular-nums whitespace-nowrap mt-0.5 truncate">
               ${totalExpense.toLocaleString()}
             </p>
           </div>
 
           {/* 2. 中間欄：週/月模式為「本週/月目標預算」，列表模式為「歷史總預算」 */}
           <div className="px-1.5">
-            <p className="text-[10px] font-bold text-slate-400">{getMiddleMobileLabel()}</p>
-            <p className="text-xs font-black text-emerald-400 font-mono mt-0.5 truncate">
+            <p className="text-[10px] font-bold text-slate-400 whitespace-nowrap truncate">{getMiddleMobileLabel()}</p>
+            <p className="text-xs font-black text-emerald-400 font-mono tabular-nums whitespace-nowrap mt-0.5 truncate">
               ${effectiveBudget.toLocaleString()}
             </p>
           </div>
 
           {/* 3. 右側欄：週/月模式為「預算剩餘」，列表模式為「歷史省下」 */}
           <div className="px-1.5">
-            <p className="text-[10px] font-bold text-slate-400">{getRightMobileLabel()}</p>
+            <p className="text-[10px] font-bold text-slate-400 whitespace-nowrap truncate">{getRightMobileLabel()}</p>
             <p
-              className={`text-xs font-black font-mono mt-0.5 truncate ${
+              className={`text-xs font-black font-mono tabular-nums whitespace-nowrap mt-0.5 truncate ${
                 savedMoney >= 0 ? 'text-emerald-400' : 'text-rose-400'
               }`}
             >
@@ -406,13 +406,13 @@ export const OverviewCards: React.FC = () => {
         {/* 1. 總支出卡片 */}
         <Card variant="panel" padding="md" className="space-y-2">
           <div className="flex justify-between items-start">
-            <span className="text-xs font-semibold text-slate-400">{getExpenseTitle()}</span>
+            <span className="text-xs font-semibold text-slate-400 whitespace-nowrap">{getExpenseTitle()}</span>
             <div className="p-2 rounded-2xl bg-rose-950/60 text-rose-400 border border-rose-900/50">
               <TrendingDown className="w-4 h-4" />
             </div>
           </div>
           <div>
-            <span className="text-2xl font-black tracking-tight text-slate-100 font-mono">
+            <span className="text-xl lg:text-2xl font-black tracking-tight text-slate-100 font-mono tabular-nums whitespace-nowrap">
               NT$ {totalExpense.toLocaleString()}
             </span>
           </div>
@@ -450,14 +450,14 @@ export const OverviewCards: React.FC = () => {
         {/* 2. 中間欄卡片：目標預算 / 歷史總預算 */}
         <Card variant="panel" padding="md" className="space-y-2">
           <div className="flex justify-between items-start">
-            <span className="text-xs font-semibold text-slate-400">{getBudgetTitle()}</span>
+            <span className="text-xs font-semibold text-slate-400 whitespace-nowrap">{getBudgetTitle()}</span>
             <div className="p-2 rounded-2xl bg-emerald-950/60 text-emerald-400 border border-emerald-900/50">
               <DollarSign className="w-4 h-4" />
             </div>
           </div>
           <div>
             <span
-              className={`text-2xl font-black tracking-tight font-mono ${
+              className={`text-xl lg:text-2xl font-black tracking-tight font-mono tabular-nums whitespace-nowrap ${
                 effectiveBudget > 0 ? 'text-emerald-400' : 'text-slate-400'
               }`}
             >
@@ -482,7 +482,7 @@ export const OverviewCards: React.FC = () => {
                   new CustomEvent('app-navigate-tab', { detail: { tab: 'budget-board' } })
                 );
               }}
-              className="inline-flex items-center gap-1.5 text-xs text-emerald-400 hover:text-emerald-300 font-bold bg-emerald-950/70 hover:bg-emerald-900/80 px-2.5 py-1 rounded-xl border border-emerald-800/60 transition active:scale-95 shadow-sm"
+              className="inline-flex items-center gap-1.5 text-xs text-emerald-400 hover:text-emerald-300 font-bold bg-emerald-950/70 hover:bg-emerald-900/80 px-2.5 py-1 rounded-xl border border-emerald-800/60 transition active:scale-95 shadow-sm whitespace-nowrap shrink-0"
               title="查看各分類預算健康狀況與看板"
             >
               <PieChart className="w-3.5 h-3.5" />
@@ -495,7 +495,7 @@ export const OverviewCards: React.FC = () => {
         {/* 3. 右側欄卡片：歷史省下的錢 / 本週/月預算剩餘 */}
         <Card variant="panel" padding="md" className="space-y-2">
           <div className="flex justify-between items-start">
-            <span className="text-xs font-semibold text-slate-400">{getSavedMoneyTitle()}</span>
+            <span className="text-xs font-semibold text-slate-400 whitespace-nowrap">{getSavedMoneyTitle()}</span>
             <div className={`p-2 rounded-2xl border ${
               savedMoney >= 0
                 ? 'bg-emerald-950/60 text-emerald-400 border-emerald-900/50'
@@ -506,7 +506,7 @@ export const OverviewCards: React.FC = () => {
           </div>
           <div>
             <span
-              className={`text-2xl font-black tracking-tight font-mono ${
+              className={`text-xl lg:text-2xl font-black tracking-tight font-mono tabular-nums whitespace-nowrap ${
                 effectiveBudget === 0 && viewMode !== 'list'
                   ? 'text-slate-400'
                   : savedMoney >= 0

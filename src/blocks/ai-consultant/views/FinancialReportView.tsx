@@ -785,11 +785,11 @@ export const FinancialReportView: React.FC<FinancialReportViewProps> = ({
             </div>
 
             <div className="min-w-0">
-              <div className="flex items-center gap-1.5 flex-wrap">
-                <h1 className="text-sm sm:text-base font-black tracking-tight text-white truncate">
+              <div className="flex items-center gap-1.5 min-w-0">
+                <h1 className="text-sm sm:text-base font-black tracking-tight text-white truncate min-w-0 whitespace-nowrap">
                   財務報表與 AI 顧問
                 </h1>
-                <span className="text-[9px] font-black uppercase px-1.5 py-0.5 rounded-full bg-emerald-950 text-emerald-400 border border-emerald-800 shrink-0">
+                <span className="hidden min-[400px]:inline-block text-[9px] font-black uppercase px-1.5 py-0.5 rounded-full bg-emerald-950 text-emerald-400 border border-emerald-800 shrink-0 whitespace-nowrap">
                   REPORTS
                 </span>
               </div>
@@ -814,7 +814,7 @@ export const FinancialReportView: React.FC<FinancialReportViewProps> = ({
         <div className="w-full p-1 rounded-2xl bg-slate-900 border border-slate-800 flex items-center gap-1 shadow-inner">
           <button
             onClick={() => setActiveMode('report')}
-            className={`flex-1 py-2 rounded-xl text-xs font-bold transition-all flex items-center justify-center gap-1.5 active:scale-95 ${activeMode === 'report'
+            className={`flex-1 py-2 rounded-xl text-xs font-bold whitespace-nowrap transition-all flex items-center justify-center gap-1.5 active:scale-95 ${activeMode === 'report'
               ? 'bg-emerald-600 text-white shadow-md'
               : 'text-slate-400 hover:text-slate-200'
               }`}
@@ -825,7 +825,7 @@ export const FinancialReportView: React.FC<FinancialReportViewProps> = ({
 
           <button
             onClick={() => setActiveMode('advisor')}
-            className={`flex-1 py-2 rounded-xl text-xs font-bold transition-all flex items-center justify-center gap-1.5 active:scale-95 ${activeMode === 'advisor'
+            className={`flex-1 py-2 rounded-xl text-xs font-bold whitespace-nowrap transition-all flex items-center justify-center gap-1.5 active:scale-95 ${activeMode === 'advisor'
               ? 'bg-emerald-600 text-white shadow-md'
               : 'text-slate-400 hover:text-slate-200'
               }`}
@@ -842,24 +842,24 @@ export const FinancialReportView: React.FC<FinancialReportViewProps> = ({
         <div className="w-full p-1 rounded-2xl bg-slate-900 border border-slate-800 flex items-center gap-1">
           <button
             onClick={() => setTimeMode('month')}
-            className={`flex-1 py-1.5 rounded-xl text-xs font-bold transition-all flex items-center justify-center gap-1.5 ${timeMode === 'month'
+            className={`flex-1 min-w-0 py-1.5 rounded-xl text-xs font-bold whitespace-nowrap transition-all flex items-center justify-center gap-1 sm:gap-1.5 ${timeMode === 'month'
               ? 'bg-emerald-950 text-emerald-300 border border-emerald-700 shadow-sm'
               : 'text-slate-400 hover:text-slate-200'
               }`}
           >
-            <Calendar className="w-3.5 h-3.5" />
-            <span>按月分析 (預設)</span>
+            <Calendar className="w-3.5 h-3.5 shrink-0" />
+            <span className="truncate">按月分析 (預設)</span>
           </button>
 
           <button
             onClick={() => setTimeMode('range')}
-            className={`flex-1 py-1.5 rounded-xl text-xs font-bold transition-all flex items-center justify-center gap-1.5 ${timeMode === 'range'
+            className={`flex-1 min-w-0 py-1.5 rounded-xl text-xs font-bold whitespace-nowrap transition-all flex items-center justify-center gap-1 sm:gap-1.5 ${timeMode === 'range'
               ? 'bg-emerald-950 text-emerald-300 border border-emerald-700 shadow-sm'
               : 'text-slate-400 hover:text-slate-200'
               }`}
           >
-            <Sliders className="w-3.5 h-3.5" />
-            <span>自訂/快捷區間</span>
+            <Sliders className="w-3.5 h-3.5 shrink-0" />
+            <span className="truncate">自訂/快捷區間</span>
           </button>
         </div>
 
@@ -875,7 +875,7 @@ export const FinancialReportView: React.FC<FinancialReportViewProps> = ({
               <ChevronLeft className="w-4 h-4" />
             </button>
 
-            <span className="font-mono font-black text-sm text-white px-3 py-1.5 rounded-xl bg-slate-900/90 border border-slate-700/80 flex-1 text-center tracking-wide">
+            <span className="font-mono font-black text-sm text-white px-3 py-1.5 rounded-xl bg-slate-900/90 border border-slate-700/80 flex-1 text-center tracking-wide whitespace-nowrap tabular-nums">
               {selectedYear} 年 {selectedMonth} 月
             </span>
 
@@ -889,7 +889,7 @@ export const FinancialReportView: React.FC<FinancialReportViewProps> = ({
 
             <button
               onClick={handleResetToCurrentMonth}
-              className="px-3 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs font-bold transition border border-slate-700 shrink-0 active:scale-95"
+              className="px-3 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs font-bold transition border border-slate-700 shrink-0 active:scale-95 whitespace-nowrap"
             >
               本月
             </button>
@@ -970,11 +970,11 @@ export const FinancialReportView: React.FC<FinancialReportViewProps> = ({
                 onClick={() => setIsDatePickerModalOpen(true)}
                 className="w-full flex items-center justify-between px-3 py-1.5 rounded-xl bg-slate-900/60 hover:bg-slate-900/90 border border-slate-800/80 hover:border-emerald-500/50 transition text-[11px] text-slate-400 active:scale-95 cursor-pointer"
               >
-                <span className="flex items-center gap-1.5">
-                  <Clock className="w-3.5 h-3.5 text-emerald-400" />
-                  <span>自訂統計區間 (點擊開啟日曆)</span>
+                <span className="flex items-center gap-1.5 min-w-0">
+                  <Clock className="w-3.5 h-3.5 text-emerald-400 shrink-0" />
+                  <span className="truncate">自訂統計區間 (點擊開啟日曆)</span>
                 </span>
-                <span className="font-mono font-bold text-emerald-400 bg-emerald-950 px-2 py-0.5 rounded-md border border-emerald-800/80">
+                <span className="font-mono font-bold text-emerald-400 bg-emerald-950 px-2 py-0.5 rounded-md border border-emerald-800/80 whitespace-nowrap shrink-0 ml-2">
                   共 {financialMetrics.totalDays} 天
                 </span>
               </button>
@@ -995,15 +995,15 @@ export const FinancialReportView: React.FC<FinancialReportViewProps> = ({
             <div className="space-y-3 relative z-10">
               {/* 頂部標籤與狀態 */}
               <div className="flex items-center justify-between gap-2">
-                <div className="flex items-center gap-1.5">
-                  <span className="text-[9px] font-black uppercase px-2 py-0.5 rounded-md bg-emerald-950 text-emerald-400 border border-emerald-800">
+                <div className="flex items-center gap-1.5 min-w-0">
+                  <span className="text-[9px] font-black uppercase px-2 py-0.5 rounded-md bg-emerald-950 text-emerald-400 border border-emerald-800 whitespace-nowrap shrink-0">
                     BUDGET AUDIT
                   </span>
-                  <span className="text-xs text-slate-400 font-bold">預算合理性與夠用度診斷</span>
+                  <span className="text-xs text-slate-400 font-bold truncate">預算合理性與夠用度診斷</span>
                 </div>
 
                 <span
-                  className={`px-2.5 py-0.5 rounded-xl text-xs font-bold border ${financialMetrics.adequacyStatus.bg} ${financialMetrics.adequacyStatus.border} ${financialMetrics.adequacyStatus.color} shadow-sm shrink-0`}
+                  className={`px-2.5 py-0.5 rounded-xl text-xs font-bold border ${financialMetrics.adequacyStatus.bg} ${financialMetrics.adequacyStatus.border} ${financialMetrics.adequacyStatus.color} shadow-sm shrink-0 whitespace-nowrap`}
                 >
                   {financialMetrics.adequacyStatus.label}
                 </span>
@@ -1012,10 +1012,10 @@ export const FinancialReportView: React.FC<FinancialReportViewProps> = ({
               {/* 主要金額與總預算展示 */}
               <div className="flex flex-col sm:flex-row sm:items-baseline justify-between gap-1">
                 <div className="flex items-baseline gap-2 flex-wrap">
-                  <span className="text-2xl sm:text-3xl font-black font-mono text-white tracking-tight">
+                  <span className="text-xl min-[400px]:text-2xl sm:text-3xl font-black font-mono text-white tracking-tight tabular-nums whitespace-nowrap">
                     NT$ {financialMetrics.totalExpense.toLocaleString()}
                   </span>
-                  <span className="text-xs text-slate-400 font-medium font-mono">
+                  <span className="text-xs text-slate-400 font-medium font-mono tabular-nums whitespace-nowrap">
                     / 總預算 NT$ {financialMetrics.allocatedBudget.toLocaleString()}
                   </span>
                 </div>
@@ -1046,7 +1046,7 @@ export const FinancialReportView: React.FC<FinancialReportViewProps> = ({
               <div className="p-3 rounded-2xl bg-slate-900/90 border border-slate-800">
                 <p className="text-[10px] text-slate-400">剩餘總預算</p>
                 <p
-                  className={`text-sm sm:text-base font-black font-mono mt-0.5 ${financialMetrics.remainingBudget >= 0 ? 'text-emerald-400' : 'text-rose-400'
+                  className={`text-sm sm:text-base font-black font-mono tabular-nums whitespace-nowrap mt-0.5 ${financialMetrics.remainingBudget >= 0 ? 'text-emerald-400' : 'text-rose-400'
                     }`}
                 >
                   NT$ {financialMetrics.remainingBudget.toLocaleString()}
@@ -1058,7 +1058,7 @@ export const FinancialReportView: React.FC<FinancialReportViewProps> = ({
 
               <div className="p-3 rounded-2xl bg-slate-900/90 border border-slate-800">
                 <p className="text-[10px] text-slate-400">每日安全可用額度</p>
-                <p className="text-sm sm:text-base font-black font-mono text-amber-400 mt-0.5">
+                <p className="text-sm sm:text-base font-black font-mono tabular-nums whitespace-nowrap text-amber-400 mt-0.5">
                   NT$ {financialMetrics.safeDailyRemaining.toLocaleString()}
                 </p>
                 <p className="text-[9px] text-slate-500 mt-0.5">
@@ -1068,7 +1068,7 @@ export const FinancialReportView: React.FC<FinancialReportViewProps> = ({
 
               <div className="p-3 rounded-2xl bg-slate-900/90 border border-slate-800">
                 <p className="text-[10px] text-slate-400">目前日均消耗</p>
-                <p className="text-sm sm:text-base font-black font-mono text-slate-200 mt-0.5">
+                <p className="text-sm sm:text-base font-black font-mono tabular-nums whitespace-nowrap text-slate-200 mt-0.5">
                   NT$ {financialMetrics.dailyAvg.toLocaleString()}
                 </p>
                 <p className="text-[9px] text-slate-500 mt-0.5">
@@ -1079,7 +1079,7 @@ export const FinancialReportView: React.FC<FinancialReportViewProps> = ({
               <div className="p-3 rounded-2xl bg-slate-900/90 border border-slate-800">
                 <p className="text-[10px] text-slate-400">期末預估總花費</p>
                 <p
-                  className={`text-sm sm:text-base font-black font-mono mt-0.5 ${financialMetrics.projectedTotal > financialMetrics.allocatedBudget
+                  className={`text-sm sm:text-base font-black font-mono tabular-nums whitespace-nowrap mt-0.5 ${financialMetrics.projectedTotal > financialMetrics.allocatedBudget
                     ? 'text-rose-400'
                     : 'text-emerald-400'
                     }`}
@@ -1098,7 +1098,7 @@ export const FinancialReportView: React.FC<FinancialReportViewProps> = ({
             <div className="p-3.5 rounded-2xl bg-slate-900/80 border border-slate-800/90 space-y-2.5">
               <div>
                 <div className="flex justify-between text-xs mb-1">
-                  <span className="text-slate-300 font-medium">總預算已消耗比例：</span>
+                  <span className="text-slate-300 font-medium whitespace-nowrap">總預算已消耗比例：</span>
                   <span
                     className={`font-mono font-black ${financialMetrics.usagePercent > 100
                       ? 'text-rose-400'
@@ -1125,8 +1125,8 @@ export const FinancialReportView: React.FC<FinancialReportViewProps> = ({
 
               <div>
                 <div className="flex justify-between text-xs mb-1">
-                  <span className="text-slate-300 font-medium">週期時間已過比例：</span>
-                  <span className="font-mono font-bold text-blue-400">
+                  <span className="text-slate-300 font-medium whitespace-nowrap">週期時間已過比例：</span>
+                  <span className="font-mono font-bold text-blue-400 whitespace-nowrap tabular-nums">
                     {financialMetrics.timeElapsedPercent}% ({financialMetrics.daysPassed} / {financialMetrics.totalDays} 天)
                   </span>
                 </div>
@@ -1143,18 +1143,18 @@ export const FinancialReportView: React.FC<FinancialReportViewProps> = ({
           {/* 2. 🏷️ 各標籤預算進度表 (手機版排版微調) */}
           <div className="glass-panel rounded-3xl p-4 sm:p-5 shadow-sm space-y-3.5 border border-slate-800">
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2.5 pb-2 border-b border-slate-800/80">
-              <div className="flex items-center gap-2">
-                <div className="p-2 rounded-2xl bg-teal-950/80 border border-teal-800 text-teal-400">
+              <div className="flex items-center gap-2 min-w-0">
+                <div className="p-2 shrink-0 rounded-2xl bg-teal-950/80 border border-teal-800 text-teal-400">
                   <Target className="w-4 h-4" />
                 </div>
-                <div>
+                <div className="min-w-0">
                   <div className="flex items-center gap-2">
-                    <h3 className="text-sm font-extrabold text-white">各標籤預算進度表</h3>
-                    <span className="text-[10px] font-mono px-2 py-0.5 rounded-md bg-slate-800 text-slate-300 border border-slate-700">
+                    <h3 className="text-sm font-extrabold text-white whitespace-nowrap">各標籤預算進度表</h3>
+                    <span className="text-[10px] font-mono px-2 py-0.5 rounded-md bg-slate-800 text-slate-300 border border-slate-700 whitespace-nowrap shrink-0">
                       共 {financialMetrics.tagProgressList.length} 個標籤
                     </span>
                   </div>
-                  <p className="text-[11px] text-slate-400">
+                  <p className="text-[11px] text-slate-400 truncate">
                     實際花費 vs 標籤預算分配 ‧ 掌握各類別超支風險
                   </p>
                 </div>
@@ -1164,7 +1164,7 @@ export const FinancialReportView: React.FC<FinancialReportViewProps> = ({
               <div className="flex items-center gap-1 p-1 rounded-2xl bg-slate-900 border border-slate-800 text-xs overflow-x-auto no-scrollbar">
                 <button
                   onClick={() => setTagFilterTab('all')}
-                  className={`px-2.5 py-1 rounded-xl font-bold transition flex-shrink-0 ${tagFilterTab === 'all'
+                  className={`px-2.5 py-1 rounded-xl font-bold whitespace-nowrap transition flex-shrink-0 ${tagFilterTab === 'all'
                     ? 'bg-emerald-600 text-white shadow-sm'
                     : 'text-slate-400 hover:text-slate-200'
                     }`}
@@ -1173,7 +1173,7 @@ export const FinancialReportView: React.FC<FinancialReportViewProps> = ({
                 </button>
                 <button
                   onClick={() => setTagFilterTab('budgeted')}
-                  className={`px-2.5 py-1 rounded-xl font-bold transition flex-shrink-0 ${tagFilterTab === 'budgeted'
+                  className={`px-2.5 py-1 rounded-xl font-bold whitespace-nowrap transition flex-shrink-0 ${tagFilterTab === 'budgeted'
                     ? 'bg-emerald-600 text-white shadow-sm'
                     : 'text-slate-400 hover:text-slate-200'
                     }`}
@@ -1182,7 +1182,7 @@ export const FinancialReportView: React.FC<FinancialReportViewProps> = ({
                 </button>
                 <button
                   onClick={() => setTagFilterTab('alert')}
-                  className={`px-2.5 py-1 rounded-xl font-bold transition flex items-center gap-1 flex-shrink-0 ${tagFilterTab === 'alert'
+                  className={`px-2.5 py-1 rounded-xl font-bold whitespace-nowrap transition flex items-center gap-1 flex-shrink-0 ${tagFilterTab === 'alert'
                     ? 'bg-rose-600 text-white shadow-sm'
                     : 'text-rose-400 hover:text-rose-300'
                     }`}
@@ -1206,12 +1206,12 @@ export const FinancialReportView: React.FC<FinancialReportViewProps> = ({
               <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2.5 p-3 rounded-2xl bg-slate-900/90 border border-slate-800 text-xs">
                 <div className="flex items-center gap-2 flex-wrap">
                   {financialMetrics.isSettled ? (
-                    <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-xl bg-emerald-950 text-emerald-300 border border-emerald-700 font-bold text-[11px] shadow-sm">
+                    <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-xl bg-emerald-950 text-emerald-300 border border-emerald-700 font-bold text-[11px] shadow-sm whitespace-nowrap shrink-0">
                       <CheckCircle2 className="w-3.5 h-3.5 text-emerald-400" />
                       <span>已結算封存 ({periodInfo.label})</span>
                     </span>
                   ) : (
-                    <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-xl bg-slate-800 text-slate-300 border border-slate-700 font-medium text-[11px]">
+                    <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-xl bg-slate-800 text-slate-300 border border-slate-700 font-medium text-[11px] whitespace-nowrap shrink-0">
                       <Clock className="w-3.5 h-3.5 text-amber-400" />
                       <span>尚未結算</span>
                     </span>
@@ -1226,7 +1226,7 @@ export const FinancialReportView: React.FC<FinancialReportViewProps> = ({
                 <button
                   type="button"
                   onClick={handleSettleCurrentMonth}
-                  className={`px-3 py-1.5 rounded-xl font-bold transition active:scale-95 flex items-center justify-center gap-1.5 text-xs shrink-0 ${
+                  className={`px-3 py-1.5 rounded-xl font-bold transition active:scale-95 flex items-center justify-center gap-1.5 text-xs shrink-0 whitespace-nowrap self-start sm:self-auto ${
                     financialMetrics.isSettled
                       ? 'bg-slate-800 hover:bg-slate-700 text-slate-300 border border-slate-700'
                       : 'bg-emerald-600 hover:bg-emerald-500 text-white shadow-sm shadow-emerald-900/30'
@@ -1270,32 +1270,32 @@ export const FinancialReportView: React.FC<FinancialReportViewProps> = ({
                             className="w-2.5 h-2.5 rounded-full shrink-0"
                             style={{ backgroundColor: tag.color }}
                           />
-                          <span className="font-bold text-slate-100 text-xs sm:text-sm">#{tag.name}</span>
+                          <span className="font-bold text-slate-100 text-xs sm:text-sm break-all">#{tag.name}</span>
 
                           {/* 狀態標籤 */}
                           {hasBudget ? (
                             isOver ? (
-                              <span className="text-[9px] font-black px-1.5 py-0.5 rounded-md bg-rose-950 text-rose-400 border border-rose-800 flex items-center gap-0.5">
+                              <span className="text-[9px] font-black px-1.5 py-0.5 rounded-md bg-rose-950 text-rose-400 border border-rose-800 flex items-center gap-0.5 whitespace-nowrap shrink-0">
                                 <AlertTriangle className="w-2.5 h-2.5" /> 超支 {usagePct - 100}%
                               </span>
                             ) : isWarn ? (
-                              <span className="text-[9px] font-black px-1.5 py-0.5 rounded-md bg-amber-950 text-amber-400 border border-amber-800">
+                              <span className="text-[9px] font-black px-1.5 py-0.5 rounded-md bg-amber-950 text-amber-400 border border-amber-800 whitespace-nowrap shrink-0">
                                 消耗達 {usagePct}%
                               </span>
                             ) : (
-                              <span className="text-[9px] font-bold px-1.5 py-0.5 rounded-md bg-emerald-950 text-emerald-400 border border-emerald-800">
+                              <span className="text-[9px] font-bold px-1.5 py-0.5 rounded-md bg-emerald-950 text-emerald-400 border border-emerald-800 whitespace-nowrap shrink-0">
                                 進度 {usagePct}%
                               </span>
                             )
                           ) : (
-                            <span className="text-[9px] text-slate-500 px-1.5 py-0.5 rounded bg-slate-800 border border-slate-700">
+                            <span className="text-[9px] text-slate-500 px-1.5 py-0.5 rounded bg-slate-800 border border-slate-700 whitespace-nowrap shrink-0">
                               未設預算
                             </span>
                           )}
                         </div>
 
                         {/* 實際花費 vs 標籤預算 */}
-                        <div className="font-mono text-xs flex items-center gap-1.5 ml-auto">
+                        <div className="font-mono text-xs flex items-center gap-1.5 ml-auto whitespace-nowrap tabular-nums">
                           <span className="font-black text-white">
                             NT$ {tag.amount.toLocaleString()}
                           </span>
@@ -1353,20 +1353,20 @@ export const FinancialReportView: React.FC<FinancialReportViewProps> = ({
 
           {/* 3. 📈 平滑支出走勢曲線 (SVG Expense Trend Curve) */}
           <div className="glass-panel rounded-3xl p-4 sm:p-5 shadow-xl border border-slate-800 space-y-3 relative overflow-hidden">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-2">
-                <div className="p-2 rounded-2xl bg-emerald-950/80 border border-emerald-800 text-emerald-400">
+            <div className="flex items-center justify-between gap-2">
+              <div className="flex items-center gap-2 min-w-0">
+                <div className="p-2 shrink-0 rounded-2xl bg-emerald-950/80 border border-emerald-800 text-emerald-400">
                   <TrendingUp className="w-4 h-4" />
                 </div>
-                <div>
-                  <h3 className="text-sm font-extrabold text-white">支出每日走勢曲線</h3>
-                  <p className="text-[11px] text-slate-400">
+                <div className="min-w-0">
+                  <h3 className="text-sm font-extrabold text-white whitespace-nowrap">支出每日走勢曲線</h3>
+                  <p className="text-[11px] text-slate-400 truncate tabular-nums">
                     最高單日：NT$ {financialMetrics.maxSingleDayExpense.toLocaleString()}
                   </p>
                 </div>
               </div>
 
-              <div className="flex items-center gap-2 text-xs font-mono text-slate-400">
+              <div className="flex items-center gap-2 text-xs font-mono text-slate-400 shrink-0 whitespace-nowrap">
                 <span>共 {financialMetrics.txCount} 筆交易</span>
               </div>
             </div>
@@ -1541,15 +1541,15 @@ export const FinancialReportView: React.FC<FinancialReportViewProps> = ({
               </div>
 
               <div className="w-full max-w-sm p-4 rounded-2xl bg-slate-950/70 border border-slate-800 text-left space-y-3">
-                <div className="flex items-center justify-between text-xs font-semibold text-slate-300">
-                  <span className="flex items-center gap-1.5">
+                <div className="flex items-center justify-between gap-2 text-xs font-semibold text-slate-300">
+                  <span className="flex items-center gap-1.5 whitespace-nowrap">
                     <Key className="w-3.5 h-3.5 text-emerald-400" /> 輸入 Gemini API Key
                   </span>
                   <a
                     href="https://aistudio.google.com/app/apikey"
                     target="_blank"
                     rel="noreferrer"
-                    className="text-[11px] text-emerald-400 hover:underline flex items-center gap-0.5"
+                    className="text-[11px] text-emerald-400 hover:underline flex items-center gap-0.5 whitespace-nowrap shrink-0"
                   >
                     免費取得 Key <ExternalLink className="w-3 h-3" />
                   </a>
@@ -1592,22 +1592,22 @@ export const FinancialReportView: React.FC<FinancialReportViewProps> = ({
                       {/* 內嵌視覺化圖表簡報卡 */}
                       {m.visualCard && (
                         <div className="p-3.5 rounded-2xl bg-slate-950/90 border border-slate-700/80 shadow-lg space-y-2.5 text-xs text-slate-200 animate-in fade-in zoom-in-95">
-                          <div className="flex items-center justify-between pb-2 border-b border-slate-800">
-                            <span className="font-bold text-white flex items-center gap-1.5">
-                              <BarChart3 className="w-3.5 h-3.5 text-emerald-400" />
+                          <div className="flex items-center justify-between gap-2 pb-2 border-b border-slate-800">
+                            <span className="font-bold text-white flex items-center gap-1.5 min-w-0">
+                              <BarChart3 className="w-3.5 h-3.5 text-emerald-400 shrink-0" />
                               {m.visualCard.title}
                             </span>
                             <span
-                              className={`px-1.5 py-0.5 rounded text-[10px] font-bold border ${m.visualCard.healthStatus.bg} ${m.visualCard.healthStatus.color}`}
+                              className={`px-1.5 py-0.5 rounded text-[10px] font-bold border whitespace-nowrap shrink-0 ${m.visualCard.healthStatus.bg} ${m.visualCard.healthStatus.color}`}
                             >
                               {m.visualCard.healthStatus.label}
                             </span>
                           </div>
 
                           <div className="space-y-1.5">
-                            <div className="flex justify-between text-[11px]">
-                              <span className="text-slate-400">總預算消耗進度</span>
-                              <span className="font-mono font-bold text-emerald-400">
+                            <div className="flex justify-between flex-wrap gap-x-2 text-[11px]">
+                              <span className="text-slate-400 whitespace-nowrap">總預算消耗進度</span>
+                              <span className="font-mono font-bold text-emerald-400 tabular-nums">
                                 NT$ {m.visualCard.totalExpense.toLocaleString()} / NT${' '}
                                 {m.visualCard.monthlyBudget.toLocaleString()} ({m.visualCard.usagePercent}%)
                               </span>
@@ -1634,9 +1634,9 @@ export const FinancialReportView: React.FC<FinancialReportViewProps> = ({
                                 >
                                   <div className="flex justify-between font-medium">
                                     <span className="text-slate-300 truncate">#{tag.name}</span>
-                                    <span className="font-mono text-emerald-400 font-bold">{tag.percent}%</span>
+                                    <span className="font-mono text-emerald-400 font-bold whitespace-nowrap shrink-0">{tag.percent}%</span>
                                   </div>
-                                  <p className="font-mono text-[10px] text-slate-400 mt-0.5">
+                                  <p className="font-mono text-[10px] text-slate-400 mt-0.5 whitespace-nowrap tabular-nums">
                                     NT$ {tag.amount.toLocaleString()}
                                   </p>
                                 </div>
@@ -1679,7 +1679,7 @@ export const FinancialReportView: React.FC<FinancialReportViewProps> = ({
 
               {/* 快速問題推薦 */}
               <div className="px-4 py-2 bg-slate-950/70 border-t border-slate-800 flex items-center gap-1.5 overflow-x-auto text-[11px] no-scrollbar">
-                <span className="text-slate-400 font-bold flex-shrink-0 flex items-center gap-0.5">
+                <span className="text-slate-400 font-bold flex-shrink-0 whitespace-nowrap flex items-center gap-0.5">
                   <Sparkles className="w-3 h-3 text-emerald-400" /> 推薦：
                 </span>
                 {QUICK_QUESTIONS.map((q, idx) => (
@@ -1687,7 +1687,7 @@ export const FinancialReportView: React.FC<FinancialReportViewProps> = ({
                     key={idx}
                     disabled={isLoading}
                     onClick={() => handleSend(q.query)}
-                    className="px-2.5 py-1 rounded-full bg-slate-800/90 border border-slate-700 text-slate-300 hover:border-emerald-500 hover:text-emerald-400 flex-shrink-0 transition active:scale-95 disabled:opacity-40"
+                    className="px-2.5 py-1 rounded-full bg-slate-800/90 border border-slate-700 text-slate-300 hover:border-emerald-500 hover:text-emerald-400 flex-shrink-0 whitespace-nowrap transition active:scale-95 disabled:opacity-40"
                   >
                     {q.label}
                   </button>
@@ -1708,12 +1708,12 @@ export const FinancialReportView: React.FC<FinancialReportViewProps> = ({
                     value={inputValue}
                     onChange={(e) => setInputValue(e.target.value)}
                     placeholder={`提問關於【${financialMetrics.periodLabel}】的預算、收支或節約問題...`}
-                    className="flex-1 px-4 py-2.5 text-xs sm:text-sm rounded-2xl border border-slate-700 bg-slate-900 text-slate-100 placeholder:text-slate-500 focus:outline-none focus:ring-2 focus:ring-emerald-500"
+                    className="flex-1 min-w-0 px-4 py-2.5 text-xs sm:text-sm rounded-2xl border border-slate-700 bg-slate-900 text-slate-100 placeholder:text-slate-500 focus:outline-none focus:ring-2 focus:ring-emerald-500"
                   />
                   <button
                     type="submit"
                     disabled={isLoading || !inputValue.trim()}
-                    className="p-2.5 rounded-2xl bg-emerald-600 hover:bg-emerald-500 text-white disabled:opacity-40 transition shadow-md shadow-emerald-500/20"
+                    className="p-2.5 rounded-2xl bg-emerald-600 hover:bg-emerald-500 text-white disabled:opacity-40 transition shadow-md shadow-emerald-500/20 shrink-0"
                   >
                     <Send className="w-4 h-4" />
                   </button>

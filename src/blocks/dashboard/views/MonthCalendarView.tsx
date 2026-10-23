@@ -307,11 +307,11 @@ export const MonthCalendarView: React.FC<MonthCalendarViewProps> = ({
   return (
     <div className="space-y-3.5 animate-in fade-in duration-200">
       {/* 月份導航控制列 (點擊月份直接展開月曆) */}
-      <div className="flex items-center justify-between gap-2.5 bg-slate-900/90 border border-slate-800 p-3 rounded-2xl shadow-sm">
-        <div className="flex items-center gap-1.5">
+      <div className="flex items-center justify-between gap-2 sm:gap-2.5 bg-slate-900/90 border border-slate-800 p-2.5 sm:p-3 rounded-2xl shadow-sm">
+        <div className="flex items-center gap-1 sm:gap-1.5 min-w-0">
           <button
             onClick={handlePrevMonth}
-            className="p-1.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 transition active:scale-95"
+            className="p-1.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 transition active:scale-95 shrink-0"
             title="上一月份"
           >
             <ChevronLeft className="w-4 h-4" />
@@ -319,31 +319,31 @@ export const MonthCalendarView: React.FC<MonthCalendarViewProps> = ({
           <button
             type="button"
             onClick={() => setIsMonthModalOpen(true)}
-            className="px-3 py-1.5 text-xs font-bold rounded-xl bg-slate-800/90 hover:bg-slate-700 text-slate-200 hover:text-emerald-300 transition active:scale-95 flex items-center gap-1.5 border border-slate-700/60 shadow-sm"
+            className="px-2.5 sm:px-3 py-1.5 text-xs font-bold whitespace-nowrap min-w-0 rounded-xl bg-slate-800/90 hover:bg-slate-700 text-slate-200 hover:text-emerald-300 transition active:scale-95 flex items-center gap-1.5 border border-slate-700/60 shadow-sm"
             title="點擊展開月曆"
           >
-            <CalendarDays className="w-3.5 h-3.5 text-emerald-400" />
-            <span>{periodTitle}</span>
+            <CalendarDays className="w-3.5 h-3.5 text-emerald-400 shrink-0" />
+            <span className="truncate">{periodTitle}</span>
             {selectedDates.length > 0 && (
-              <span className="px-1.5 py-0.2 rounded-full bg-emerald-500 text-slate-950 text-[10px] font-black">
+              <span className="px-1.5 py-0.2 rounded-full bg-emerald-500 text-slate-950 text-[10px] font-black whitespace-nowrap shrink-0">
                 {selectedDates.length}日
               </span>
             )}
           </button>
           <button
             onClick={handleNextMonth}
-            className="p-1.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 transition active:scale-95"
+            className="p-1.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 transition active:scale-95 shrink-0"
             title="下一月份"
           >
             <ChevronRight className="w-4 h-4" />
           </button>
         </div>
 
-        <div className="text-right">
+        <div className="text-right shrink-0 whitespace-nowrap">
           <p className="text-xs font-black text-slate-200">
             {monthTransactions.length} 筆
           </p>
-          <p className="text-[10px] text-slate-400">
+          <p className="text-[10px] text-slate-400 tabular-nums">
             總計 NT$ {totalMonthAmount.toLocaleString()}
           </p>
         </div>
@@ -351,11 +351,11 @@ export const MonthCalendarView: React.FC<MonthCalendarViewProps> = ({
 
       {/* 篩選標籤提示 (若有選取特定幾天) */}
       {selectedDates.length > 0 && (
-        <div className="flex items-center justify-between px-3 py-2 rounded-xl bg-emerald-950/60 border border-emerald-800/60 text-emerald-300 text-xs">
-          <span>已選取 {selectedDates.length} 天的明細清單</span>
+        <div className="flex items-center justify-between gap-2 px-3 py-2 rounded-xl bg-emerald-950/60 border border-emerald-800/60 text-emerald-300 text-xs">
+          <span className="min-w-0 truncate">已選取 {selectedDates.length} 天的明細清單</span>
           <button
             onClick={() => setSelectedSubDates([])}
-            className="underline text-[11px] hover:text-white transition"
+            className="underline text-[11px] hover:text-white transition whitespace-nowrap shrink-0"
           >
             看全部 (看全月)
           </button>
@@ -370,15 +370,15 @@ export const MonthCalendarView: React.FC<MonthCalendarViewProps> = ({
             onClick={(e) => e.stopPropagation()}
           >
             <div className="flex items-center justify-between border-b border-slate-800 pb-3">
-              <div className="flex items-center gap-2">
-                <CalendarDays className="w-4 h-4 text-emerald-400" />
-                <h3 className="font-bold text-sm text-white">
+              <div className="flex items-center gap-2 min-w-0">
+                <CalendarDays className="w-4 h-4 text-emerald-400 shrink-0" />
+                <h3 className="font-bold text-sm text-white truncate min-w-0">
                   {periodTitle} 月曆分佈
                 </h3>
               </div>
               <button
                 onClick={() => setIsMonthModalOpen(false)}
-                className="p-1 rounded-xl text-slate-400 hover:text-white hover:bg-slate-800 transition"
+                className="p-1 rounded-xl text-slate-400 hover:text-white hover:bg-slate-800 transition shrink-0"
               >
                 <X className="w-4 h-4" />
               </button>
@@ -387,11 +387,11 @@ export const MonthCalendarView: React.FC<MonthCalendarViewProps> = ({
             {/* 月曆快速篩選按鈕列 */}
             <div className="flex flex-wrap items-center justify-between gap-2 text-xs">
               <span className="text-[11px] text-slate-400">點選或拖曳框選 (不選即為全部)：</span>
-              <div className="flex items-center gap-1.5">
+              <div className="flex items-center gap-1.5 flex-wrap">
                 <button
                   type="button"
                   onClick={handleSelectAllPeriodDays}
-                  className={`px-2 py-0.5 rounded-lg text-[10px] font-bold transition border ${
+                  className={`px-2 py-0.5 rounded-lg text-[10px] font-bold whitespace-nowrap shrink-0 transition border ${
                     selectedDates.length === 0
                       ? 'bg-emerald-600 border-emerald-500 text-white'
                       : 'bg-slate-800 border-slate-700 text-slate-300 hover:text-emerald-400'
@@ -402,7 +402,7 @@ export const MonthCalendarView: React.FC<MonthCalendarViewProps> = ({
                 <button
                   type="button"
                   onClick={handleSelectActiveDaysOnly}
-                  className="px-2 py-0.5 rounded-lg text-[10px] font-bold bg-slate-800 border border-slate-700 text-slate-300 hover:text-emerald-400 transition"
+                  className="px-2 py-0.5 rounded-lg text-[10px] font-bold whitespace-nowrap shrink-0 bg-slate-800 border border-slate-700 text-slate-300 hover:text-emerald-400 transition"
                 >
                   只選有支出
                 </button>
@@ -410,7 +410,7 @@ export const MonthCalendarView: React.FC<MonthCalendarViewProps> = ({
                   <button
                     type="button"
                     onClick={() => setSelectedSubDates([])}
-                    className="px-2 py-0.5 text-[10px] text-slate-400 hover:text-rose-400 underline transition"
+                    className="px-2 py-0.5 text-[10px] text-slate-400 hover:text-rose-400 underline transition whitespace-nowrap shrink-0"
                   >
                     重設全部
                   </button>
@@ -524,7 +524,7 @@ export const MonthCalendarView: React.FC<MonthCalendarViewProps> = ({
                 <button
                   type="button"
                   onClick={() => setEditingNoteDateStr(selectedDates[0])}
-                  className="text-[10px] font-bold text-emerald-400 hover:text-emerald-300 px-2.5 py-1 rounded-xl bg-emerald-950/50 hover:bg-emerald-900/50 border border-emerald-800/60 transition flex-shrink-0 active:scale-95"
+                  className="text-[10px] font-bold text-emerald-400 hover:text-emerald-300 px-2.5 py-1 rounded-xl bg-emerald-950/50 hover:bg-emerald-900/50 border border-emerald-800/60 transition flex-shrink-0 whitespace-nowrap active:scale-95"
                 >
                   {currentDateNotes[selectedDates[0]] ? '編輯備忘' : '+ 記備忘'}
                 </button>
@@ -532,13 +532,13 @@ export const MonthCalendarView: React.FC<MonthCalendarViewProps> = ({
             )}
 
             {/* Modal 底部 */}
-            <div className="flex items-center justify-between pt-3 border-t border-slate-800 text-xs">
-              <div className="text-slate-400">
+            <div className="flex items-center justify-between gap-2 pt-3 border-t border-slate-800 text-xs">
+              <div className="text-slate-400 min-w-0">
                 {selectedDates.length > 0
                   ? `已選取 ${selectedDates.length} 天`
                   : '檢視全部 (當月)'}
                 ：
-                <strong className="text-emerald-400 font-mono font-bold text-sm ml-1">
+                <strong className="text-emerald-400 font-mono font-bold text-sm ml-1 tabular-nums whitespace-nowrap">
                   NT${' '}
                   {(selectedDates.length > 0
                     ? periodDays
@@ -551,7 +551,7 @@ export const MonthCalendarView: React.FC<MonthCalendarViewProps> = ({
               <button
                 type="button"
                 onClick={() => setIsMonthModalOpen(false)}
-                className="px-4 py-1.5 rounded-xl bg-emerald-600 text-white font-bold text-xs hover:bg-emerald-700 shadow-md transition"
+                className="px-4 py-1.5 whitespace-nowrap shrink-0 rounded-xl bg-emerald-600 text-white font-bold text-xs hover:bg-emerald-700 shadow-md transition"
               >
                 完成
               </button>

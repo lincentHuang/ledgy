@@ -145,17 +145,17 @@ const TransactionItemRow: React.FC<TransactionItemRowProps> = ({
           : 'bg-slate-900/60 hover:bg-slate-800/80 border-slate-800/80 hover:border-slate-700 active:scale-[0.99]'
       }`}
     >
-      <div className="flex items-center gap-2 min-w-0">
+      <div className="flex items-center gap-1.5 sm:gap-2 min-w-0 flex-1 mr-2">
         <h4 className="font-bold text-xs sm:text-sm text-slate-100 truncate">
           {tx.title}
         </h4>
         {showTagBadge && (
-          <span className="inline-flex items-center px-1.5 py-0.5 rounded-md text-[10px] font-semibold bg-emerald-950/70 text-emerald-400 border border-emerald-800/60 flex-shrink-0">
+          <span className="inline-flex items-center px-1.5 py-0.5 rounded-md text-[10px] font-semibold bg-emerald-950/70 text-emerald-400 border border-emerald-800/60 flex-shrink-0 whitespace-nowrap max-w-[90px] truncate">
             {tx.tags?.[0]?.startsWith('#') ? tx.tags[0] : `#${tx.tags?.[0] || '未歸類'}`}
           </span>
         )}
       </div>
-      <span className="text-xs sm:text-sm font-black font-mono text-emerald-400">
+      <span className="text-xs sm:text-sm font-black font-mono text-emerald-400 tabular-nums whitespace-nowrap shrink-0">
         -NT$ {tx.amount.toLocaleString()}
       </span>
     </div>
@@ -199,20 +199,20 @@ export const TransactionGroupedList: React.FC<TransactionGroupedListProps> = ({
       return (
         <div className="space-y-3">
           <div className="glass-panel rounded-3xl p-3.5 sm:p-4 space-y-3 transition shadow-sm">
-            <div className="flex items-center justify-between border-b border-white/5 pb-2">
-              <div className="flex items-center gap-2">
-                <span className="font-mono text-xs font-bold text-slate-300 flex items-center gap-1.5">
+            <div className="flex items-center justify-between gap-2 border-b border-white/5 pb-2">
+              <div className="flex items-center gap-1.5 sm:gap-2 min-w-0">
+                <span className="font-mono text-xs font-bold text-slate-300 flex items-center gap-1.5 whitespace-nowrap shrink-0">
                   <Calendar className="w-3.5 h-3.5 text-emerald-400" />
                   {singleDate}
                 </span>
-                <span className="text-[10px] text-slate-500 font-bold bg-slate-800/80 px-1.5 py-0.5 rounded-md">
+                <span className="text-[10px] text-slate-500 font-bold bg-slate-800/80 px-1.5 py-0.5 rounded-md whitespace-nowrap shrink-0">
                   0 筆
                 </span>
                 {!singleDateNote && (
                   <button
                     type="button"
                     onClick={() => setEditingDateNoteStr(singleDate)}
-                    className="text-[10px] font-semibold text-emerald-400 hover:text-emerald-300 hover:bg-emerald-950/60 border border-emerald-800/50 px-2 py-0.5 rounded-md transition flex items-center gap-1 shadow-sm active:scale-95"
+                    className="text-[10px] font-semibold text-emerald-400 hover:text-emerald-300 hover:bg-emerald-950/60 border border-emerald-800/50 px-2 py-0.5 rounded-md transition flex items-center gap-1 shadow-sm active:scale-95 whitespace-nowrap shrink-0"
                     title="記錄那天是做什麼的"
                   >
                     <StickyNote className="w-3 h-3 text-emerald-400" />
@@ -220,7 +220,7 @@ export const TransactionGroupedList: React.FC<TransactionGroupedListProps> = ({
                   </button>
                 )}
               </div>
-              <span className="font-mono text-xs font-black text-slate-400">
+              <span className="font-mono text-xs font-black text-slate-400 tabular-nums whitespace-nowrap shrink-0">
                 小計 NT$ 0
               </span>
             </div>
@@ -234,10 +234,10 @@ export const TransactionGroupedList: React.FC<TransactionGroupedListProps> = ({
               >
                 <div className="flex items-center gap-2 min-w-0">
                   <StickyNote className="w-3.5 h-3.5 text-amber-400 flex-shrink-0" />
-                  <span className="font-bold text-[11px] text-emerald-200 flex-shrink-0">那天做什麼：</span>
+                  <span className="font-bold text-[11px] text-emerald-200 flex-shrink-0 whitespace-nowrap">那天做什麼：</span>
                   <span className="truncate text-slate-200 font-medium">{singleDateNote}</span>
                 </div>
-                <div className="flex items-center gap-1 text-[11px] text-emerald-400 opacity-70 group-hover:opacity-100 transition flex-shrink-0">
+                <div className="flex items-center gap-1 text-[11px] text-emerald-400 opacity-70 group-hover:opacity-100 transition flex-shrink-0 whitespace-nowrap">
                   <Edit2 className="w-3 h-3" />
                   <span>編輯</span>
                 </div>
@@ -246,10 +246,10 @@ export const TransactionGroupedList: React.FC<TransactionGroupedListProps> = ({
               <button
                 type="button"
                 onClick={() => setEditingDateNoteStr(singleDate)}
-                className="w-full py-2.5 px-3 rounded-xl border border-dashed border-slate-800 hover:border-emerald-500/40 bg-slate-900/30 hover:bg-emerald-950/20 text-slate-400 hover:text-emerald-300 text-xs flex items-center justify-center gap-1.5 transition active:scale-95"
+                className="w-full py-2.5 px-3 rounded-xl border border-dashed border-slate-800 hover:border-emerald-500/40 bg-slate-900/30 hover:bg-emerald-950/20 text-slate-400 hover:text-emerald-300 text-xs flex items-center justify-center gap-1.5 transition active:scale-95 min-w-0"
               >
                 <StickyNote className="w-3.5 h-3.5 text-emerald-400" />
-                <span>點此記錄這天是做什麼的 (行程/活動備忘)</span>
+                <span className="truncate">點此記錄這天是做什麼的 (行程/活動備忘)</span>
               </button>
             )}
 
@@ -259,7 +259,7 @@ export const TransactionGroupedList: React.FC<TransactionGroupedListProps> = ({
                 <button
                   type="button"
                   onClick={onOpenQuickInput}
-                  className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold transition shadow-sm active:scale-95"
+                  className="inline-flex items-center gap-1.5 whitespace-nowrap px-3.5 py-1.5 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold transition shadow-sm active:scale-95"
                 >
                   + 新增支出
                 </button>
@@ -290,7 +290,7 @@ export const TransactionGroupedList: React.FC<TransactionGroupedListProps> = ({
           <button
             type="button"
             onClick={onOpenQuickInput}
-            className="mt-2 inline-flex items-center gap-1.5 px-4 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold transition shadow-sm"
+            className="mt-2 inline-flex items-center gap-1.5 whitespace-nowrap px-4 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold transition shadow-sm"
           >
             + 新增第一筆支出
           </button>
@@ -312,20 +312,20 @@ export const TransactionGroupedList: React.FC<TransactionGroupedListProps> = ({
             className="glass-panel rounded-3xl p-3.5 sm:p-4 space-y-2.5 transition shadow-sm"
           >
             {/* 日期標題與當日小計 */}
-            <div className="flex items-center justify-between border-b border-white/5 pb-2">
-              <div className="flex items-center gap-2">
-                <span className="font-mono text-xs font-bold text-slate-300 flex items-center gap-1.5">
+            <div className="flex items-center justify-between gap-2 border-b border-white/5 pb-2">
+              <div className="flex items-center gap-1.5 sm:gap-2 min-w-0">
+                <span className="font-mono text-xs font-bold text-slate-300 flex items-center gap-1.5 whitespace-nowrap shrink-0">
                   <Calendar className="w-3.5 h-3.5 text-emerald-400" />
                   {dateStr}
                 </span>
-                <span className="text-[10px] text-slate-500 font-bold bg-slate-800/80 px-1.5 py-0.5 rounded-md">
+                <span className="text-[10px] text-slate-500 font-bold bg-slate-800/80 px-1.5 py-0.5 rounded-md whitespace-nowrap shrink-0">
                   {dayTransactions.length} 筆
                 </span>
                 {!dateNote && (
                   <button
                     type="button"
                     onClick={() => setEditingDateNoteStr(dateStr)}
-                    className="text-[10px] font-semibold text-slate-400 hover:text-emerald-300 hover:bg-slate-800/80 px-1.5 py-0.5 rounded-md transition flex items-center gap-1 active:scale-95"
+                    className="text-[10px] font-semibold text-slate-400 hover:text-emerald-300 hover:bg-slate-800/80 px-1.5 py-0.5 rounded-md transition flex items-center gap-1 active:scale-95 whitespace-nowrap shrink-0"
                     title="記錄那天是做什麼的"
                   >
                     <StickyNote className="w-3 h-3 text-emerald-500/80" />
@@ -333,7 +333,7 @@ export const TransactionGroupedList: React.FC<TransactionGroupedListProps> = ({
                   </button>
                 )}
               </div>
-              <span className="font-mono text-xs font-black text-slate-200">
+              <span className="font-mono text-xs font-black text-slate-200 tabular-nums whitespace-nowrap shrink-0">
                 小計 NT$ {dayTotal.toLocaleString()}
               </span>
             </div>
@@ -347,10 +347,10 @@ export const TransactionGroupedList: React.FC<TransactionGroupedListProps> = ({
               >
                 <div className="flex items-center gap-2 min-w-0">
                   <StickyNote className="w-3.5 h-3.5 text-amber-400 flex-shrink-0" />
-                  <span className="font-bold text-[11px] text-emerald-200 flex-shrink-0">那天做什麼：</span>
+                  <span className="font-bold text-[11px] text-emerald-200 flex-shrink-0 whitespace-nowrap">那天做什麼：</span>
                   <span className="truncate text-slate-200 font-medium">{dateNote}</span>
                 </div>
-                <div className="flex items-center gap-1 text-[11px] text-emerald-400 opacity-60 group-hover:opacity-100 transition flex-shrink-0">
+                <div className="flex items-center gap-1 text-[11px] text-emerald-400 opacity-60 group-hover:opacity-100 transition flex-shrink-0 whitespace-nowrap">
                   <Edit2 className="w-3 h-3" />
                   <span>編輯</span>
                 </div>

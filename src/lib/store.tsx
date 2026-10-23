@@ -21,7 +21,9 @@ import {
   autoCategorizeInvoice,
   KNOWN_SELLER_GUIS,
   calculateHouseholdBalances,
+  FixedCost,
 } from '@app/shared';
+import { getMonthKey, getFixedCostDueDate, listDueFixedCosts } from './shared/fixedCosts';
 import { AuthService, AuthUser } from './authService';
 import { CloudApiClient } from './cloudApiClient';
 import { Platform } from './platform';
@@ -239,6 +241,15 @@ interface AppContextType {
   currentDateNotes: Record<string, string>;
   setDateNote: (dateStr: string, note: string) => void;
   deleteDateNote: (dateStr: string) => void;
+
+  // 💸 每月固定成本 (到期提醒 + 確認後自動入帳)
+  allFixedCosts: FixedCost[];
+  dueFixedCosts: FixedCost[];
+  addFixedCost: (data: Omit<FixedCost, 'id' | 'createdAt' | 'updatedAt' | 'paidMonths'>) => void;
+  updateFixedCost: (cost: FixedCost, changes: Partial<Omit<FixedCost, 'id' | 'createdAt'>>) => void;
+  deleteFixedCost: (cost: FixedCost) => void;
+  confirmFixedCostPaid: (cost: FixedCost, amountOverride?: number) => Transaction;
+  skipFixedCostThisMonth: (cost: FixedCost) => void;
 
   // 檢視與篩選模式 (列表: 歷史總紀錄, 週: 本週收支, 月: 本月收支, 標籤與搜尋)
   viewMode: 'list' | 'week' | 'month';
@@ -921,6 +932,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     const updatedList = households.map((h) => (h.id === targetH.id ? updated : h));
     saveHouseholdsList(updatedList);
     CloudApiClient.saveHousehold(updated);
+    FirestoreService.saveHousehold(updated);
   };
 
   const removeGroupMember = (memberUserId: string, targetHouseholdId?: string) => {
@@ -1415,6 +1427,119 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
 
   const deleteDateNote = (dateStr: string) => {
     setDateNote(dateStr, '');
+  };
+
+  // 💸 每月固定成本：個人項目存在 user.fixedCosts，群組項目存在 household.fixedCosts (成員共見，任一人確認即入帳)
+  const allFixedCosts: FixedCost[] = [
+    ...(user.fixedCosts || []).map((c) => ({ ...c, ledgerType: 'personal' as const, householdId: undefined })),
+    ...households.flatMap((h) =>
+      (h.fixedCosts || []).map((c) => ({ ...c, ledgerType: 'household' as const, householdId: h.id }))
+    ),
+  ];
+  const dueFixedCosts = listDueFixedCosts(allFixedCosts);
+
+  const getFixedCostList = (ledgerType: FixedCost['ledgerType'], householdId?: string): FixedCost[] => {
+    if (ledgerType === 'household') {
+      return households.find((h) => h.id === householdId)?.fixedCosts || [];
+    }
+    return user.fixedCosts || [];
+  };
+
+  const saveFixedCostList = (ledgerType: FixedCost['ledgerType'], householdId: string | undefined, list: FixedCost[]) => {
+    if (ledgerType === 'household') {
+      if (householdId) updateHousehold({ fixedCosts: list }, householdId);
+    } else {
+      updateUserProfile({ fixedCosts: list });
+    }
+  };
+
+  const addFixedCost = (data: Omit<FixedCost, 'id' | 'createdAt' | 'updatedAt' | 'paidMonths'>) => {
+    const now = Date.now();
+    const ledgerType = data.ledgerType === 'household' && data.householdId ? 'household' : 'personal';
+    const householdId = ledgerType === 'household' ? data.householdId : undefined;
+    const newCost: FixedCost = {
+      ...data,
+      ledgerType,
+      householdId,
+      id: `fc_${now}_${Math.random().toString(36).substring(2, 6)}`,
+      paidMonths: {},
+      createdAt: now,
+      updatedAt: now,
+    };
+    saveFixedCostList(ledgerType, householdId, [...getFixedCostList(ledgerType, householdId), newCost]);
+  };
+
+  const updateFixedCost = (cost: FixedCost, changes: Partial<Omit<FixedCost, 'id' | 'createdAt'>>) => {
+    const updated: FixedCost = { ...cost, ...changes, updatedAt: Date.now() };
+    const movedLedger =
+      updated.ledgerType !== cost.ledgerType || (updated.ledgerType === 'household' && updated.householdId !== cost.householdId);
+
+    if (movedLedger) {
+      // 換帳本：從原帳本移除，加入新帳本
+      saveFixedCostList(
+        cost.ledgerType,
+        cost.householdId,
+        getFixedCostList(cost.ledgerType, cost.householdId).filter((c) => c.id !== cost.id)
+      );
+      const targetHId = updated.ledgerType === 'household' ? updated.householdId : undefined;
+      saveFixedCostList(updated.ledgerType, targetHId, [
+        ...getFixedCostList(updated.ledgerType, targetHId),
+        { ...updated, householdId: targetHId },
+      ]);
+      return;
+    }
+
+    saveFixedCostList(
+      cost.ledgerType,
+      cost.householdId,
+      getFixedCostList(cost.ledgerType, cost.householdId).map((c) => (c.id === cost.id ? updated : c))
+    );
+  };
+
+  const deleteFixedCost = (cost: FixedCost) => {
+    saveFixedCostList(
+      cost.ledgerType,
+      cost.householdId,
+      getFixedCostList(cost.ledgerType, cost.householdId).filter((c) => c.id !== cost.id)
+    );
+  };
+
+  const markFixedCostMonth = (cost: FixedCost, value: string) => {
+    const monthKey = getMonthKey();
+    saveFixedCostList(
+      cost.ledgerType,
+      cost.householdId,
+      getFixedCostList(cost.ledgerType, cost.householdId).map((c) =>
+        c.id === cost.id
+          ? { ...c, paidMonths: { ...(c.paidMonths || {}), [monthKey]: value }, updatedAt: Date.now() }
+          : c
+      )
+    );
+  };
+
+  const confirmFixedCostPaid = (cost: FixedCost, amountOverride?: number) => {
+    const catId = cost.categoryId || 'housing';
+    const catObj = DEFAULT_CATEGORIES.find((c) => c.id === catId);
+    const tx = addTransaction({
+      userId: user.uid || 'user_guest',
+      householdId: cost.ledgerType === 'household' ? cost.householdId : undefined,
+      title: cost.title,
+      amount: Number(amountOverride ?? cost.amount) || 0,
+      type: 'expense',
+      ledgerType: cost.ledgerType,
+      categoryId: catId,
+      categoryName: catObj ? catObj.name : catId,
+      paymentMethod: cost.paymentMethod || user.defaultPaymentMethod || '現金',
+      date: getFixedCostDueDate(cost),
+      note: '每月固定成本',
+      tags: cost.tag ? [cost.tag] : ['未歸類'],
+    });
+    markFixedCostMonth(cost, tx.id);
+    return tx;
+  };
+
+  const skipFixedCostThisMonth = (cost: FixedCost) => {
+    markFixedCostMonth(cost, 'skipped');
   };
 
   const loginWithUser = (authUser: AuthUser) => {
@@ -2119,6 +2244,13 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         currentDateNotes,
         setDateNote,
         deleteDateNote,
+        allFixedCosts,
+        dueFixedCosts,
+        addFixedCost,
+        updateFixedCost,
+        deleteFixedCost,
+        confirmFixedCostPaid,
+        skipFixedCostThisMonth,
         viewMode,
         setViewMode,
         weekOffset,
