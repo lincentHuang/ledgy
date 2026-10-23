@@ -21,6 +21,10 @@ import {
 } from 'lucide-react';
 import { Button } from '@/components';
 import { useSpeechRecognition } from '../hooks/useSpeechRecognition';
+import { useMicLevel } from '../hooks/useMicLevel';
+import { Capacitor } from '@capacitor/core';
+
+const NO_INTERIM_KEY = 'ledgy_speech_no_interim_v1';
 import { useVoiceExpenseParser } from '../hooks/useVoiceExpenseParser';
 
 export interface VoiceInputModalProps {
@@ -73,6 +77,9 @@ export const VoiceInputModal: React.FC<VoiceInputModalProps> = ({
 
   const {
     isListening,
+    audioPhase,
+    noInterimResults,
+    emptyEndCount,
     transcript,
     setTranscript,
     errorMessage: speechError,
@@ -102,6 +109,68 @@ export const VoiceInputModal: React.FC<VoiceInputModalProps> = ({
     },
     [getLatestTranscript, transcript, parseVoice, resetTranscript, stopListening]
   );
+
+  // 🎚️ 錄音按鈕跟著音量即時跳動 (網頁版；等語音服務先取得麥克風後才開啟，避免互搶)
+  const micVisualRef = React.useRef<HTMLDivElement>(null);
+  const isNative = Capacitor.isNativePlatform();
+  const [meterReady, setMeterReady] = useState(false);
+  useEffect(() => {
+    if (!isListening) {
+      setMeterReady(false);
+      return;
+    }
+    if (audioPhase !== 'idle') {
+      setMeterReady(true);
+      return;
+    }
+    const t = setTimeout(() => setMeterReady(true), 600);
+    return () => clearTimeout(t);
+  }, [isListening, audioPhase]);
+
+  const { levelRef, isActive: isMeterActive, disablePermanently: disableMeter } = useMicLevel({
+    enabled: isOpen && mode === 'voice' && !isNative && isListening && meterReady,
+    targetRef: micVisualRef,
+  });
+
+  // 偵測互搶：音量計明明聽到說話，語音服務卻整段沒辨識到字 ➔ 此裝置停用音量計 (語音服務會自動重新收音)
+  const loudMsRef = React.useRef(0);
+  useEffect(() => {
+    if (!isMeterActive) return;
+    const timer = setInterval(() => {
+      if (levelRef.current > 0.3) loudMsRef.current += 200;
+    }, 200);
+    return () => clearInterval(timer);
+  }, [isMeterActive, levelRef]);
+  useEffect(() => {
+    if (emptyEndCount === 0) return;
+    if (isMeterActive && loudMsRef.current >= 1000) {
+      disableMeter();
+    }
+    loudMsRef.current = 0;
+  }, [emptyEndCount, isMeterActive, disableMeter]);
+
+  // 語音服務回報「無法取得麥克風音訊」且音量計正在用麥克風 ➔ 停用音量計並自動重新收音
+  const meterUsedRef = React.useRef(false);
+  if (isMeterActive) meterUsedRef.current = true;
+  useEffect(() => {
+    if (speechError.includes('麥克風音訊') && meterUsedRef.current) {
+      meterUsedRef.current = false;
+      disableMeter();
+      resetTranscript();
+      startListening();
+    }
+  }, [speechError, disableMeter, resetTranscript, startListening]);
+
+  // 裝置語音服務不支援即時逐字時，記住並提示切換 Google 語音服務
+  const [showNoInterimTip, setShowNoInterimTip] = useState(false);
+  useEffect(() => {
+    try {
+      if (noInterimResults) localStorage.setItem(NO_INTERIM_KEY, '1');
+      setShowNoInterimTip(noInterimResults || localStorage.getItem(NO_INTERIM_KEY) === '1');
+    } catch {
+      setShowNoInterimTip(noInterimResults);
+    }
+  }, [noInterimResults, isOpen]);
 
   // 🛡️ 雙重保險防呆 Watchdog：在語音模式下，若已辨識出文字且錄音已停止，但因任何系統非同步邊界條件未進入解析時，
   // 延遲 750ms 自動觸發結算進下一步，徹底根除「辨識完停在原地」的卡住問題
@@ -356,35 +425,72 @@ export const VoiceInputModal: React.FC<VoiceInputModalProps> = ({
               {mode === 'voice' ? (
                 /* 🎙️ 語音模式 (Voice Mode - 純粹輕量麥克風) */
                 <>
-                  {/* 核心麥克風按鈕與簡約 CSS 發光光環 */}
-                  <div className="relative my-8 flex items-center justify-center">
+                  {/* 核心麥克風按鈕：跟著音量 (--mic-level) 與收音階段即時反應 */}
+                  <div
+                    ref={micVisualRef}
+                    className="relative my-8 flex items-center justify-center"
+                    style={{ ['--mic-level' as any]: 0 }}
+                  >
                     {isListening && (
                       <>
-                        <div className="absolute w-32 h-32 rounded-full bg-emerald-500/15 animate-ping pointer-events-none" />
-                        <div className="absolute w-28 h-28 rounded-full bg-teal-400/20 animate-pulse pointer-events-none" />
+                        {/* 音量光暈：說越大聲擴散越大 */}
+                        <div
+                          className="absolute w-28 h-28 rounded-full bg-emerald-400/30 pointer-events-none transition-transform duration-75 ease-out"
+                          style={{
+                            transform: 'scale(calc(1 + var(--mic-level, 0) * 0.9))',
+                            opacity: 'calc(0.25 + var(--mic-level, 0) * 0.75)',
+                          }}
+                        />
+                        {/* 收音階段光環 (無音量計時的備援回饋) */}
+                        <div
+                          className={`absolute rounded-full pointer-events-none ${
+                            audioPhase === 'speech'
+                              ? 'w-36 h-36 bg-emerald-400/25 animate-ping'
+                              : audioPhase === 'sound'
+                              ? 'w-32 h-32 bg-teal-400/20 animate-ping'
+                              : 'w-28 h-28 bg-emerald-500/10 animate-pulse'
+                          }`}
+                        />
                       </>
                     )}
 
                     {/* 麥克風核心按鈕 */}
-                    <button
-                      type="button"
-                      onClick={handleToggleListening}
-                      className={`relative z-10 w-24 h-24 sm:w-28 sm:h-28 rounded-full flex items-center justify-center shadow-2xl transition-all duration-150 active:scale-90 ${isListening
-                        ? 'bg-gradient-to-tr from-emerald-600 via-teal-500 to-cyan-500 text-white shadow-emerald-600/50 ring-8 ring-emerald-500/25 scale-105'
-                        : 'bg-slate-800 hover:bg-slate-700 text-slate-300 shadow-slate-900/60 ring-8 ring-slate-800/40'
-                        }`}
-                      title={isListening ? '點擊結束錄音並開始辨識' : '點擊開始錄音'}
+                    <div
+                      className="relative z-10 transition-transform duration-75 ease-out"
+                      style={{ transform: isListening ? 'scale(calc(1 + var(--mic-level, 0) * 0.18))' : undefined }}
                     >
-                      <Mic className="w-10 h-10 sm:w-12 sm:h-12" />
-                    </button>
+                      <button
+                        type="button"
+                        onClick={handleToggleListening}
+                        className={`relative w-24 h-24 sm:w-28 sm:h-28 rounded-full flex items-center justify-center shadow-2xl transition-all duration-150 active:scale-90 ${isListening
+                          ? `bg-gradient-to-tr from-emerald-600 via-teal-500 to-cyan-500 text-white shadow-emerald-600/50 ring-8 ${
+                              audioPhase === 'speech' ? 'ring-emerald-300/50' : 'ring-emerald-500/25'
+                            }`
+                          : 'bg-slate-800 hover:bg-slate-700 text-slate-300 shadow-slate-900/60 ring-8 ring-slate-800/40'
+                          }`}
+                        title={isListening ? '點擊結束錄音並開始辨識' : '點擊開始錄音'}
+                      >
+                        <Mic className="w-10 h-10 sm:w-12 sm:h-12" />
+                      </button>
+                    </div>
                   </div>
 
                   {/* 即時語音狀態指示 */}
                   <div className="flex flex-col items-center justify-center">
                     {isListening ? (
                       <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-emerald-950/80 border border-emerald-500/40 text-emerald-300 font-medium text-xs shadow-lg shadow-emerald-950/40 animate-pulse">
-                        <span className="w-2 h-2 rounded-full bg-emerald-400 shrink-0" />
-                        <span>聆聽中，請說出消費內容...</span>
+                        <span
+                          className={`w-2 h-2 rounded-full shrink-0 ${
+                            audioPhase === 'speech' ? 'bg-emerald-300 animate-ping' : 'bg-emerald-400'
+                          }`}
+                        />
+                        <span className="whitespace-nowrap">
+                          {audioPhase === 'speech'
+                            ? '正在聽你說...'
+                            : audioPhase === 'sound'
+                            ? '收到聲音...'
+                            : '聆聽中，請說出消費內容...'}
+                        </span>
                       </div>
                     ) : isParsing ? (
                       <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-teal-950/80 border border-teal-500/50 text-teal-300 font-bold text-xs shadow-lg">
@@ -436,9 +542,20 @@ export const VoiceInputModal: React.FC<VoiceInputModalProps> = ({
                         )}
                       </>
                     ) : (
-                      <p className="text-xs text-slate-400/80 font-medium">
-                        {isListening ? '請開口說話，文字將即時逐字出現' : ''}
-                      </p>
+                      <div className="flex flex-col items-center gap-2">
+                        <p className="text-xs text-slate-400/80 font-medium">
+                          {isListening
+                            ? showNoInterimTip
+                              ? '說完後文字會一次出現'
+                              : '請開口說話，文字將即時逐字出現'
+                            : ''}
+                        </p>
+                        {isListening && showNoInterimTip && (
+                          <p className="max-w-xs text-[11px] leading-relaxed text-amber-300/90 bg-amber-950/40 border border-amber-700/40 rounded-xl px-3 py-2">
+                            你的手機語音服務不支援「邊說邊出字」。可到手機「設定 › 一般管理 › 語言與輸入 › 語音辨識／預設語音服務」改為 Google，就能即時顯示。
+                          </p>
+                        )}
+                      </div>
                     )}
                   </div>
                 </>

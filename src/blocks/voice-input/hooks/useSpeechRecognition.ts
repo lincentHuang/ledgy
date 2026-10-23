@@ -29,6 +29,9 @@ const warmupNativePermission = () => {
 const isMobileBrowser = () =>
   typeof navigator !== 'undefined' && /Android|iPhone|iPad|iPod|Mobile/i.test(navigator.userAgent);
 
+// 收音階段：麥克風開啟 → 偵測到聲音 → 偵測到說話 (用於讓按鈕即時反應，確認真的在聽)
+export type SpeechAudioPhase = 'idle' | 'audio' | 'sound' | 'speech';
+
 interface UseSpeechRecognitionOptions {
   onResult?: (transcript: string) => void;
   onEnd?: (finalTranscript: string) => void;
@@ -44,6 +47,12 @@ export function useSpeechRecognition({
   const [transcript, setTranscript] = useState('');
   const [interimText, setInterimText] = useState('');
   const [errorMessage, setErrorMessage] = useState('');
+  const [audioPhase, setAudioPhase] = useState<SpeechAudioPhase>('idle');
+  // 手機語音服務若只在說完才給整句 (不支援逐字)，標記起來以提示使用者切換 Google 語音服務
+  const [noInterimResults, setNoInterimResults] = useState(false);
+  const hadInterimRef = useRef<boolean>(false);
+  // 一次收音結束卻沒有任何文字的次數 (用於偵測麥克風被其他功能佔用)
+  const [emptyEndCount, setEmptyEndCount] = useState(0);
 
   const recognitionRef = useRef<any>(null);
   const transcriptRef = useRef<string>('');
@@ -91,6 +100,7 @@ export function useSpeechRecognition({
     isListeningRef.current = false;
     nativeSessionActiveRef.current = false;
     setIsListening(false);
+    setAudioPhase('idle');
 
     if (Capacitor.isNativePlatform()) {
       CapSpeechRecognition.stop().catch(() => {});
@@ -112,6 +122,7 @@ export function useSpeechRecognition({
     isListeningRef.current = false;
     nativeSessionActiveRef.current = false;
     setIsListening(false);
+    setAudioPhase('idle');
 
     const finalVal = transcriptRef.current.trim();
     if (finalVal && !hasEndedRef.current) {
@@ -160,6 +171,12 @@ export function useSpeechRecognition({
       setTranscript(text);
       setInterimText(text);
       onResultRef.current?.(text);
+      if (!nativeStoppedRef.current) {
+        hadInterimRef.current = true;
+        setAudioPhase('speech');
+      } else if (!hadInterimRef.current && text.trim()) {
+        setNoInterimResults(true);
+      }
 
       clearSilenceTimer();
       if (!text.trim()) return;
@@ -182,6 +199,7 @@ export function useSpeechRecognition({
         nativeStoppedRef.current = false;
         isListeningRef.current = true;
         setIsListening(true);
+        setAudioPhase('audio');
         return;
       }
 
@@ -232,6 +250,8 @@ export function useSpeechRecognition({
     userStoppedRef.current = false;
     hasEndedRef.current = false;
     nativeStoppedRef.current = false;
+    hadInterimRef.current = false;
+    setAudioPhase('idle');
     clearSilenceTimer();
 
     // 📱 1. 若為 Capacitor 原生行動裝置 (Android/iOS)
@@ -340,6 +360,13 @@ export function useSpeechRecognition({
         setErrorMessage('');
       };
 
+      // 瀏覽器回報的收音階段事件 (不需另開麥克風，各平台都安全)
+      recognition.onaudiostart = () => setAudioPhase((p) => (p === 'idle' ? 'audio' : p));
+      recognition.onsoundstart = () => setAudioPhase((p) => (p === 'speech' ? p : 'sound'));
+      recognition.onspeechstart = () => setAudioPhase('speech');
+      recognition.onspeechend = () => setAudioPhase('audio');
+      recognition.onsoundend = () => setAudioPhase('audio');
+
       recognition.onresult = (event: any) => {
         let finalResult = '';
         let currentInterim = '';
@@ -354,6 +381,12 @@ export function useSpeechRecognition({
         }
 
         const fullCurrent = finalResult + currentInterim;
+        if (currentInterim.trim()) {
+          hadInterimRef.current = true;
+        } else if (finalResult.trim() && !hadInterimRef.current) {
+          // 沒有任何逐字結果就直接拿到整句：此裝置語音服務不支援即時逐字
+          setNoInterimResults(true);
+        }
         transcriptRef.current = fullCurrent;
         setTranscript(fullCurrent);
         setInterimText(currentInterim);
@@ -411,6 +444,7 @@ export function useSpeechRecognition({
           finishRecognition(finalVal);
           return;
         }
+        if (!userStoppedRef.current) setEmptyEndCount((n) => n + 1);
 
         // 若使用者尚未主動按停止，但瀏覽器自動斷開 (手機單句模式的靜音逾時或 Safari auto-cutoff)，重啟以保持監聽
         if (isListeningRef.current && !userStoppedRef.current && recognitionRef.current === recognition) {
@@ -421,6 +455,7 @@ export function useSpeechRecognition({
         }
         isListeningRef.current = false;
         setIsListening(false);
+        setAudioPhase('idle');
       };
 
       recognitionRef.current = recognition;
@@ -470,6 +505,9 @@ export function useSpeechRecognition({
 
   return {
     isListening,
+    audioPhase,
+    noInterimResults,
+    emptyEndCount,
     transcript,
     interimText,
     setTranscript,
