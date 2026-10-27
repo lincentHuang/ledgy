@@ -12,3 +12,4 @@
 - 2026-10-28：移除 Next.js /api 路由與本機 JSON 資料層，資料一律走 Firestore；群組邀請／加入審核／刪除改寫進 FirestoreService（交易保護），新增 memberIds、pendingInviteeEmails 查詢欄位並自動補傳舊群組；修正即時監聽覆蓋群組明細（firestoreService.ts、store.tsx、types/family.ts；刪除 src/app/api、serverDb.ts、cloudApiClient.ts）
 - 2026-10-28：收緊 Firestore 安全規則（本人限定 users、群組限 memberIds 成員、邀請碼改由 inviteCodes 對照、加入申請改存 joinRequests 子集合），並修正送出加入申請時誤顯示錯誤樣式（firestore.rules、firestoreService.ts、store.tsx、FamilyView.tsx）
 - 2026-10-28：以 Firestore 模擬器跑 14 組規則情境（建立群組、Email 邀請與接受、邀請碼申請與審核、非成員讀寫被拒、舊群組相容、刪除群組），全數通過
+- 2026-10-28：Firestore 規則測試收進專案，新增 yarn test:rules（模擬器跑 14 組情境，全數通過）（tests/firestore.rules.test.mjs、package.json、firebase.json）
