@@ -128,6 +128,9 @@ export const FamilyView: React.FC<{ onOpenQuickInput: () => void }> = ({ onOpenQ
           setJoinCodeInput('');
           setJoinMessage(null);
         }, 1500);
+      } else if (res.success) {
+        // 已送出申請，等待組長審核
+        setJoinMessage({ type: 'success', text: res.message });
       } else {
         setJoinMessage({ type: 'error', text: res.message || '邀請碼無效或過期' });
       }

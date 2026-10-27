@@ -10,3 +10,4 @@
 - 2026-10-27：新增智帳君吉祥物動畫元件，語音記帳收音時戴耳機聆聽＋音波隨音量跳動、AI 解析與手動打字時拿鉛筆做筆記（src/components/LedgyMascot.tsx、globals.css、VoiceInputModal.tsx）
 - 2026-10-27：發佈 6308018（手機版排版優化＋新 logo＋吉祥物動畫）至正式環境 https://ledgy-be1e6.web.app
 - 2026-10-28：移除 Next.js /api 路由與本機 JSON 資料層，資料一律走 Firestore；群組邀請／加入審核／刪除改寫進 FirestoreService（交易保護），新增 memberIds、pendingInviteeEmails 查詢欄位並自動補傳舊群組；修正即時監聽覆蓋群組明細（firestoreService.ts、store.tsx、types/family.ts；刪除 src/app/api、serverDb.ts、cloudApiClient.ts）
+- 2026-10-28：收緊 Firestore 安全規則（本人限定 users、群組限 memberIds 成員、邀請碼改由 inviteCodes 對照、加入申請改存 joinRequests 子集合），並修正送出加入申請時誤顯示錯誤樣式（firestore.rules、firestoreService.ts、store.tsx、FamilyView.tsx）

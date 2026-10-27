@@ -49,17 +49,21 @@ const cleanForFirestore = <T extends Record<string, any>>(obj: T): Partial<T> =>
 };
 
 /**
- * 補上供 Firestore 查詢用的衍生欄位：
- * - memberIds：查詢「我所屬的群組」(array-contains)
+ * 轉成寫入 households/{id} 的文件內容：
+ * - memberIds：查詢「我所屬的群組」(array-contains)，也是安全規則的成員判定依據
  * - pendingInviteeEmails：查詢「寄給我的待回覆邀請」(array-contains)
+ * - pendingJoinRequests 不寫入主文件，改存在 joinRequests 子集合 (非成員無法寫主文件)
  */
-const withQueryFields = (household: Household): Household => ({
-  ...household,
-  memberIds: Array.from(new Set([household.ownerId, ...household.members.map((m) => m.userId)])),
-  pendingInviteeEmails: (household.pendingInvitations || [])
-    .filter((inv) => inv.status === 'pending')
-    .map((inv) => inv.inviteeEmail.toLowerCase()),
-});
+const toHouseholdDoc = (household: Household) => {
+  const { pendingJoinRequests: _requests, ...rest } = household;
+  return cleanForFirestore({
+    ...rest,
+    memberIds: Array.from(new Set([household.ownerId, ...household.members.map((m) => m.userId)])),
+    pendingInviteeEmails: (household.pendingInvitations || [])
+      .filter((inv) => inv.status === 'pending')
+      .map((inv) => inv.inviteeEmail.toLowerCase()),
+  });
+};
 
 export class FirestoreService {
   /**
@@ -163,19 +167,42 @@ export class FirestoreService {
   }
 
   /**
-   * 5. 儲存家庭資料：households/{householdId}
+   * 5. 儲存家庭資料：households/{householdId}，並同步邀請碼對照 inviteCodes/{code}
    */
   public static async saveHousehold(household: Household): Promise<boolean> {
     const { db, isConfigured } = getFirebaseServices();
     if (!db || !isConfigured) return false;
 
     try {
-      const ref = doc(db, 'households', household.id);
-      await setDoc(ref, cleanForFirestore(withQueryFields(household)), { merge: true });
+      const batch = writeBatch(db);
+      batch.set(doc(db, 'households', household.id), toHouseholdDoc(household), { merge: true });
+      if (household.inviteCode) {
+        batch.set(doc(db, 'inviteCodes', household.inviteCode.toUpperCase()), {
+          householdId: household.id,
+          householdName: household.name,
+        });
+      }
+      await batch.commit();
       return true;
     } catch (e) {
       console.error('Firestore saveHousehold error:', e);
       return false;
+    }
+  }
+
+  /**
+   * 5.0 讀取群組的待審核加入申請 (僅成員有權限讀取)
+   */
+  private static async withJoinRequests(house: Household): Promise<Household> {
+    const { db } = getFirebaseServices();
+    if (!db) return house;
+    try {
+      const snap = await getDocs(collection(db, 'households', house.id, 'joinRequests'));
+      const requests: GroupJoinRequest[] = [];
+      snap.forEach((d) => requests.push(d.data() as GroupJoinRequest));
+      return { ...house, pendingJoinRequests: requests.sort((a, b) => a.createdAt - b.createdAt) };
+    } catch {
+      return { ...house, pendingJoinRequests: [] };
     }
   }
 
@@ -188,7 +215,7 @@ export class FirestoreService {
 
     try {
       const snap = await getDoc(doc(db, 'households', householdId));
-      return snap.exists() ? (snap.data() as Household) : null;
+      return snap.exists() ? this.withJoinRequests(snap.data() as Household) : null;
     } catch (e) {
       console.error('Firestore getHousehold error:', e);
       return null;
@@ -211,7 +238,8 @@ export class FirestoreService {
       const map = new Map<string, Household>();
       memberSnap.forEach((d) => map.set(d.id, d.data() as Household));
       ownerSnap.forEach((d) => map.set(d.id, d.data() as Household));
-      return Array.from(map.values()).sort((a, b) => (b.createdAt || 0) - (a.createdAt || 0));
+      const list = await Promise.all(Array.from(map.values()).map((h) => this.withJoinRequests(h)));
+      return list.sort((a, b) => (b.createdAt || 0) - (a.createdAt || 0));
     } catch (e) {
       console.error('Firestore getHouseholdsByUser error:', e);
       return null;
@@ -226,6 +254,15 @@ export class FirestoreService {
     if (!db || !isConfigured) return false;
 
     try {
+      // 先刪邀請碼與加入申請 (規則需在群組文件仍存在時判定成員身分)
+      const houseSnap = await getDoc(doc(db, 'households', householdId));
+      const inviteCode = houseSnap.exists() ? (houseSnap.data() as Household).inviteCode : undefined;
+      const reqSnap = await getDocs(collection(db, 'households', householdId, 'joinRequests'));
+      const pre = writeBatch(db);
+      reqSnap.forEach((d) => pre.delete(d.ref));
+      if (inviteCode) pre.delete(doc(db, 'inviteCodes', inviteCode.toUpperCase()));
+      await pre.commit();
+
       const txSnap = await getDocs(collection(db, 'households', householdId, 'transactions'));
       const refs = [...txSnap.docs.map((d) => d.ref), doc(db, 'households', householdId)];
       // writeBatch 單批上限 500 筆
@@ -246,24 +283,27 @@ export class FirestoreService {
    */
   private static async mutateHousehold(
     householdId: string,
-    mutate: (house: Household) => GroupActionResult & { changed?: boolean }
+    mutate: (house: Household) => GroupActionResult
   ): Promise<GroupActionResult> {
     const { db, isConfigured } = getFirebaseServices();
     if (!db || !isConfigured) return { success: false, message: '尚未連線至雲端資料庫' };
 
     try {
-      return await runTransaction(db, async (t) => {
+      const result = await runTransaction(db, async (t): Promise<GroupActionResult> => {
         const ref = doc(db, 'households', householdId);
         const snap = await t.get(ref);
         if (!snap.exists()) return { success: false, message: '找不到指定的群組' };
 
         const house = snap.data() as Household;
-        const { changed = true, ...result } = mutate(house);
-        if (result.success && changed) {
-          t.set(ref, cleanForFirestore(withQueryFields(house)));
+        const result = mutate(house);
+        if (result.success) {
+          t.set(ref, toHouseholdDoc(house));
         }
         return result;
       });
+      // 主文件不含加入申請，回傳前補上，避免畫面上的待審核清單被清空
+      if (result.household) result.household = await this.withJoinRequests(result.household);
+      return result;
     } catch (e: any) {
       console.error('Firestore mutateHousehold error:', e);
       return { success: false, message: `操作失敗：${e?.message || '請稍後再試'}` };
@@ -380,39 +420,25 @@ export class FirestoreService {
     if (!db || !isConfigured) return { success: false, message: '尚未連線至雲端資料庫' };
 
     const code = inviteCode.trim().toUpperCase();
-    let householdId: string | null = null;
     try {
-      const snap = await getDocs(query(collection(db, 'households'), where('inviteCode', '==', code)));
-      householdId = snap.empty ? null : snap.docs[0].id;
-    } catch (e) {
-      console.error('Firestore submitJoinRequest lookup error:', e);
-      return { success: false, message: '查詢邀請碼失敗，請稍後再試。' };
-    }
-    if (!householdId) {
-      return { success: false, message: '找不到此邀請碼對應的群組，請確認代碼是否正確。' };
-    }
-
-    return this.mutateHousehold(householdId, (house) => {
-      if (house.members.some((m) => m.userId === applicant.uid)) {
-        return { success: false, message: `您已經是「${house.name}」的成員囉！` };
+      // 非成員讀不到群組文件，只能透過 inviteCodes/{code} 對照取得群組 ID
+      const codeSnap = await getDoc(doc(db, 'inviteCodes', code));
+      if (!codeSnap.exists()) {
+        return { success: false, message: '找不到此邀請碼對應的群組，請確認代碼是否正確。' };
       }
-      if (!house.pendingJoinRequests) house.pendingJoinRequests = [];
-      const existing = house.pendingJoinRequests.find(
-        (r) => r.applicantUserId === applicant.uid && r.status === 'pending'
-      );
-      if (existing) {
-        return {
-          success: true,
-          changed: false,
-          message: `您已送出加入「${house.name}」的申請，請等待組長審核！`,
-          household: house,
-        };
+      const { householdId, householdName } = codeSnap.data() as { householdId: string; householdName: string };
+
+      // 申請文件 ID 即申請者 uid，每人每群組最多一筆
+      const reqRef = doc(db, 'households', householdId, 'joinRequests', applicant.uid);
+      const existing = await getDoc(reqRef);
+      if (existing.exists()) {
+        return { success: true, message: `您已送出加入「${householdName}」的申請，請等待組長審核！` };
       }
 
       const request: GroupJoinRequest = {
-        id: `req_${Date.now()}_${Math.random().toString(36).substring(2, 6)}`,
-        householdId: house.id,
-        householdName: house.name,
+        id: applicant.uid,
+        householdId,
+        householdName,
         applicantUserId: applicant.uid,
         applicantName: applicant.displayName || '訪客',
         applicantEmail: applicant.email,
@@ -420,13 +446,12 @@ export class FirestoreService {
         status: 'pending',
         createdAt: Date.now(),
       };
-      house.pendingJoinRequests.push(request);
-      return {
-        success: true,
-        message: `已送出加入「${house.name}」申請！請等待群組組長審核同意。`,
-        household: house,
-      };
-    });
+      await setDoc(reqRef, cleanForFirestore(request));
+      return { success: true, message: `已送出加入「${householdName}」申請！請等待群組組長審核同意。` };
+    } catch (e: any) {
+      console.error('Firestore submitJoinRequest error:', e);
+      return { success: false, message: '送出申請失敗，請稍後再試。' };
+    }
   }
 
   /**
@@ -437,15 +462,25 @@ export class FirestoreService {
     requestId: string,
     action: 'approve' | 'reject'
   ): Promise<GroupActionResult> {
-    return this.mutateHousehold(householdId, (house) => {
-      const reqIndex = (house.pendingJoinRequests || []).findIndex((r) => r.id === requestId);
-      if (reqIndex < 0) return { success: false, message: '找不到該筆申請' };
+    const { db, isConfigured } = getFirebaseServices();
+    if (!db || !isConfigured) return { success: false, message: '尚未連線至雲端資料庫' };
 
-      const joinReq = house.pendingJoinRequests![reqIndex];
-      house.pendingJoinRequests!.splice(reqIndex, 1);
-      house.updatedAt = Date.now();
+    try {
+      const result = await runTransaction(db, async (t): Promise<GroupActionResult> => {
+        const houseRef = doc(db, 'households', householdId);
+        const reqRef = doc(db, 'households', householdId, 'joinRequests', requestId);
+        const [houseSnap, reqSnap] = [await t.get(houseRef), await t.get(reqRef)];
+        if (!houseSnap.exists()) return { success: false, message: '找不到指定的群組' };
+        if (!reqSnap.exists()) return { success: false, message: '找不到該筆申請' };
 
-      if (action === 'approve') {
+        const house = houseSnap.data() as Household;
+        const joinReq = reqSnap.data() as GroupJoinRequest;
+        t.delete(reqRef);
+
+        if (action === 'reject') {
+          return { success: true, message: `已拒絕「${joinReq.applicantName}」的加入申請。`, household: house };
+        }
+
         if (!house.members.some((m) => m.userId === joinReq.applicantUserId)) {
           house.members.push({
             userId: joinReq.applicantUserId,
@@ -456,10 +491,16 @@ export class FirestoreService {
             joinedAt: Date.now(),
           });
         }
+        house.updatedAt = Date.now();
+        t.set(houseRef, toHouseholdDoc(house));
         return { success: true, message: `已同意「${joinReq.applicantName}」加入群組！`, household: house };
-      }
-      return { success: true, message: `已拒絕「${joinReq.applicantName}」的加入申請。`, household: house };
-    });
+      });
+      if (result.household) result.household = await this.withJoinRequests(result.household);
+      return result;
+    } catch (e: any) {
+      console.error('Firestore respondToJoinRequest error:', e);
+      return { success: false, message: `審核失敗：${e?.message || '請稍後再試'}` };
+    }
   }
 
   /**

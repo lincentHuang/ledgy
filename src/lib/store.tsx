@@ -846,6 +846,8 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   ): Promise<{ success: boolean; message: string; household?: Household }> => {
     const cleanCode = inviteCode.trim().toUpperCase();
     if (!cleanCode) return { success: false, message: '請輸入 6 位群組邀請碼' };
+    const joined = households.find((h) => h.inviteCode === cleanCode);
+    if (joined) return { success: false, message: `您已經是「${joined.name}」的成員囉！` };
 
     const res = await FirestoreService.submitJoinRequest(cleanCode, user);
     if (res.success) {
