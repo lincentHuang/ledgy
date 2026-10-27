@@ -141,7 +141,7 @@ export const FamilyView: React.FC<{ onOpenQuickInput: () => void }> = ({ onOpenQ
   return (
     <div className="space-y-6 animate-in fade-in duration-200">
       {/* 1. 頂部標題與核心動作橫幅 */}
-      <div className="glass-panel rounded-3xl p-5 sm:p-6 relative overflow-hidden shadow-sm">
+      <div className="glass-panel rounded-3xl p-4 sm:p-6 relative overflow-hidden shadow-sm">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
           <div className="space-y-1">
             <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-emerald-950/80 border border-emerald-800 text-emerald-400 text-xs font-bold">
@@ -156,7 +156,7 @@ export const FamilyView: React.FC<{ onOpenQuickInput: () => void }> = ({ onOpenQ
             </p>
           </div>
 
-          <div className="flex items-center gap-2 sm:gap-2.5">
+          <div className="flex flex-wrap items-center gap-2 sm:gap-2.5">
             <button
               onClick={() => setShowJoinModal(true)}
               className="whitespace-nowrap shrink-0 px-3 sm:px-3.5 py-2.5 rounded-2xl bg-slate-800/90 hover:bg-slate-800 text-slate-200 hover:text-white font-bold text-xs border border-slate-700 transition flex items-center gap-1.5 shadow-sm active:scale-95"
@@ -204,7 +204,7 @@ export const FamilyView: React.FC<{ onOpenQuickInput: () => void }> = ({ onOpenQ
                   <Wallet className="w-5 h-5" />
                 </div>
                 <div className="min-w-0">
-                  <div className="flex items-center gap-2">
+                  <div className="flex flex-wrap items-center gap-x-2 gap-y-1">
                     <h3 className="font-extrabold text-base text-white whitespace-nowrap">個人私帳</h3>
                     <span className="text-[10px] whitespace-nowrap shrink-0 px-2 py-0.5 rounded-full bg-emerald-950 text-emerald-300 border border-emerald-800 font-semibold">
                       🔒 個人專屬
@@ -222,9 +222,9 @@ export const FamilyView: React.FC<{ onOpenQuickInput: () => void }> = ({ onOpenQ
               )}
             </div>
 
-            <div className="mt-4 pt-3 border-t border-slate-800/80 flex items-center justify-between text-xs">
-              <span className="text-slate-400 whitespace-nowrap">本月支出累計</span>
-              <span className="font-mono text-base font-black text-white tabular-nums whitespace-nowrap">
+            <div className="mt-4 pt-3 border-t border-slate-800/80 flex items-center justify-between gap-2 text-xs">
+              <span className="text-slate-400 whitespace-nowrap shrink-0">本月支出累計</span>
+              <span className="font-mono text-base font-black text-white tabular-nums truncate min-w-0">
                 NT$ {personalTotal.toLocaleString()}
               </span>
             </div>
@@ -256,8 +256,8 @@ export const FamilyView: React.FC<{ onOpenQuickInput: () => void }> = ({ onOpenQ
                       <Users className="w-5 h-5" />
                     </div>
                     <div className="min-w-0">
-                      <div className="flex items-center gap-2">
-                        <h3 className="font-extrabold text-base text-white truncate min-w-0">{h.name}</h3>
+                      <div className="flex flex-wrap items-center gap-x-2 gap-y-1">
+                        <h3 className="font-extrabold text-base text-white truncate min-w-0 max-w-full">{h.name}</h3>
                         <span className="text-[10px] px-2 py-0.5 rounded-full bg-purple-950 text-purple-300 border border-purple-800 font-semibold shrink-0 whitespace-nowrap flex items-center gap-1">
                           <Users className="w-2.5 h-2.5" />
                           {h.members.length} 人共用
@@ -309,9 +309,9 @@ export const FamilyView: React.FC<{ onOpenQuickInput: () => void }> = ({ onOpenQ
                 </div>
 
                 <div className="mt-4 pt-3 border-t border-slate-800/80 space-y-1.5">
-                  <div className="flex items-center justify-between text-xs">
-                    <span className="text-slate-400 whitespace-nowrap">本月支出 ({pct}%)</span>
-                    <span className="font-mono text-base font-black text-white tabular-nums whitespace-nowrap">
+                  <div className="flex items-center justify-between gap-2 text-xs">
+                    <span className="text-slate-400 whitespace-nowrap shrink-0">本月支出 ({pct}%)</span>
+                    <span className="font-mono text-base font-black text-white tabular-nums truncate min-w-0">
                       NT$ {monthlyExp.toLocaleString()}
                     </span>
                   </div>
@@ -333,9 +333,9 @@ export const FamilyView: React.FC<{ onOpenQuickInput: () => void }> = ({ onOpenQ
       {/* 3. 當前選中帳本之共用與邀請管理 (若當前為共享帳本) */}
       {activeLedger === 'household' && household && (
         <div className="space-y-4">
-          <div className="glass-panel rounded-3xl p-5 sm:p-6 space-y-5">
+          <div className="glass-panel rounded-3xl p-4 sm:p-6 space-y-5">
             {/* 帳本資訊與修改名稱 */}
-            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-4 border-b border-slate-800">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-4 border-b border-slate-800 min-w-0">
               <div className="flex items-center gap-3 min-w-0">
                 <div className="w-10 h-10 shrink-0 rounded-2xl bg-purple-950 border border-purple-800 text-purple-300 flex items-center justify-center font-black">
                   <Users className="w-5 h-5" />
@@ -370,7 +370,7 @@ export const FamilyView: React.FC<{ onOpenQuickInput: () => void }> = ({ onOpenQ
                       </button>
                     </div>
                   ) : (
-                    <div className="flex items-center gap-2">
+                    <div className="flex items-center gap-2 min-w-0">
                       <h2 className="text-lg font-black text-white truncate min-w-0">{household.name}</h2>
                       <button
                         onClick={() => {
@@ -412,7 +412,7 @@ export const FamilyView: React.FC<{ onOpenQuickInput: () => void }> = ({ onOpenQ
               </div>
 
               <div className="flex items-center gap-2 flex-wrap">
-                <div className="font-mono text-base sm:text-lg font-black tracking-widest text-purple-300 px-3.5 py-1.5 rounded-xl bg-slate-900 border border-purple-600/80 shadow-inner">
+                <div className="font-mono text-base sm:text-lg font-black tracking-widest text-purple-300 break-all px-3.5 py-1.5 rounded-xl bg-slate-900 border border-purple-600/80 shadow-inner">
                   {household.inviteCode}
                 </div>
                 <button
@@ -443,15 +443,15 @@ export const FamilyView: React.FC<{ onOpenQuickInput: () => void }> = ({ onOpenQ
                       key={m.userId}
                       className="p-3 rounded-2xl bg-slate-900/80 border border-slate-800 flex items-center justify-between text-xs"
                     >
-                      <div className="flex items-center gap-2.5">
-                        <div className="w-8 h-8 rounded-full bg-purple-950 border border-purple-800 text-purple-300 flex items-center justify-center font-bold text-xs">
+                      <div className="flex items-center gap-2.5 min-w-0">
+                        <div className="w-8 h-8 shrink-0 rounded-full bg-purple-950 border border-purple-800 text-purple-300 flex items-center justify-center font-bold text-xs">
                           {m.displayName?.[0] || 'U'}
                         </div>
-                        <div>
-                          <div className="flex items-center gap-1.5">
-                            <span className="font-bold text-white">{m.displayName}</span>
+                        <div className="min-w-0">
+                          <div className="flex items-center gap-1.5 min-w-0">
+                            <span className="font-bold text-white truncate">{m.displayName}</span>
                             {isSelf && (
-                              <span className="text-[9px] px-1.5 py-0.2 rounded bg-emerald-950 text-emerald-400 border border-emerald-800 font-semibold">
+                              <span className="text-[9px] px-1.5 py-0.2 shrink-0 whitespace-nowrap rounded bg-emerald-950 text-emerald-400 border border-emerald-800 font-semibold">
                                 您
                               </span>
                             )}
@@ -552,8 +552,8 @@ export const FamilyView: React.FC<{ onOpenQuickInput: () => void }> = ({ onOpenQ
 
       {/* 4. 建立新帳本 Modal */}
       {showCreateModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm animate-in fade-in">
-          <div className="w-full max-w-md rounded-3xl glass-modal border border-slate-800 p-6 space-y-4 text-slate-100 shadow-2xl">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-black/80 backdrop-blur-sm animate-in fade-in">
+          <div className="w-full max-w-md rounded-3xl glass-modal border border-slate-800 p-4 sm:p-6 space-y-4 text-slate-100 shadow-2xl max-h-[calc(var(--app-height,100dvh)-1.5rem)] overflow-y-auto">
             <div className="flex items-center justify-between pb-3 border-b border-slate-800">
               <div className="flex items-center gap-2 min-w-0">
                 <div className="p-2 shrink-0 rounded-xl bg-emerald-950 border border-emerald-800 text-emerald-400">
@@ -620,7 +620,7 @@ export const FamilyView: React.FC<{ onOpenQuickInput: () => void }> = ({ onOpenQ
                 />
               </div>
 
-              <div className="pt-2 flex items-center justify-end gap-2.5">
+              <div className="pt-2 flex flex-wrap items-center justify-end gap-2.5 pb-safe">
                 <button
                   type="button"
                   onClick={() => setShowCreateModal(false)}
@@ -642,8 +642,8 @@ export const FamilyView: React.FC<{ onOpenQuickInput: () => void }> = ({ onOpenQ
 
       {/* 5. 輸入邀請碼加入帳本 Modal */}
       {showJoinModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm animate-in fade-in">
-          <div className="w-full max-w-md rounded-3xl glass-modal border border-slate-800 p-6 space-y-4 text-slate-100 shadow-2xl">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-black/80 backdrop-blur-sm animate-in fade-in">
+          <div className="w-full max-w-md rounded-3xl glass-modal border border-slate-800 p-4 sm:p-6 space-y-4 text-slate-100 shadow-2xl max-h-[calc(var(--app-height,100dvh)-1.5rem)] overflow-y-auto">
             <div className="flex items-center justify-between pb-3 border-b border-slate-800">
               <div className="flex items-center gap-2 min-w-0">
                 <div className="p-2 shrink-0 rounded-xl bg-purple-950 border border-purple-800 text-purple-400">
@@ -675,7 +675,7 @@ export const FamilyView: React.FC<{ onOpenQuickInput: () => void }> = ({ onOpenQ
                   value={joinCodeInput}
                   onChange={(e) => setJoinCodeInput(e.target.value.toUpperCase())}
                   placeholder="例如：LEDG-8X92"
-                  className="w-full px-3.5 py-3 rounded-2xl bg-slate-900 border border-slate-800 text-white placeholder-slate-500 text-center font-mono font-black tracking-widest text-lg outline-none focus:border-purple-500 uppercase"
+                  className="w-full px-3.5 py-3 rounded-2xl bg-slate-900 border border-slate-800 text-white placeholder-slate-500 text-center font-mono font-black tracking-widest text-base sm:text-lg outline-none focus:border-purple-500 uppercase"
                 />
               </div>
 
@@ -691,7 +691,7 @@ export const FamilyView: React.FC<{ onOpenQuickInput: () => void }> = ({ onOpenQ
                 </div>
               )}
 
-              <div className="pt-2 flex items-center justify-end gap-2.5">
+              <div className="pt-2 flex flex-wrap items-center justify-end gap-2.5 pb-safe">
                 <button
                   type="button"
                   onClick={() => {

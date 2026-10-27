@@ -84,7 +84,7 @@ export const WelcomeView: React.FC = () => {
   return (
     <main className="min-h-screen bg-slate-950 text-slate-100 flex flex-col justify-center items-center px-4 py-6 sm:py-10 relative overflow-hidden selection:bg-emerald-500 selection:text-white">
       {/* 背景柔和氛圍光暈 */}
-      <div className="absolute top-1/4 left-1/2 -translate-x-1/2 -translate-y-1/2 w-96 h-96 bg-emerald-600/15 rounded-full blur-3xl pointer-events-none" />
+      <div className="absolute top-1/4 left-1/2 -translate-x-1/2 -translate-y-1/2 w-72 h-72 sm:w-96 sm:h-96 bg-emerald-600/15 rounded-full blur-3xl pointer-events-none" />
       <div className="absolute bottom-10 right-10 w-72 h-72 bg-teal-600/10 rounded-full blur-3xl pointer-events-none" />
 
       <div className="w-full max-w-4xl grid grid-cols-1 lg:grid-cols-12 gap-8 items-center z-10">
@@ -159,14 +159,14 @@ export const WelcomeView: React.FC = () => {
             <p className="text-xs text-slate-400">台灣在地化 • 智慧發票載具記帳</p>
           </div>
 
-          <div className="rounded-3xl bg-slate-900/90 border border-slate-800 p-6 sm:p-7 shadow-2xl backdrop-blur-xl space-y-4 text-left">
+          <div className="rounded-3xl bg-slate-900/90 border border-slate-800 p-4 sm:p-7 shadow-2xl backdrop-blur-xl space-y-4 text-left">
             {/* 頂部引導提示 */}
-            <div className="flex items-center justify-between">
-              <span className="text-xs font-bold text-slate-300">會員帳號登入</span>
+            <div className="flex items-center justify-between gap-2">
+              <span className="text-xs font-bold text-slate-300 min-w-0 truncate">會員帳號登入</span>
               <button
                 type="button"
                 onClick={() => setIsWizardMode(true)}
-                className="text-xs font-extrabold text-emerald-400 hover:text-emerald-300 transition flex items-center gap-1"
+                className="text-xs font-extrabold text-emerald-400 hover:text-emerald-300 transition flex items-center gap-1 shrink-0"
               >
                 <span>免費註冊新帳號</span>
                 <ChevronRight className="w-3.5 h-3.5" />
@@ -177,7 +177,7 @@ export const WelcomeView: React.FC = () => {
             {errorMsg && (
               <div className="p-3 rounded-xl bg-rose-950/60 border border-rose-800/80 text-rose-300 text-xs flex items-center gap-2">
                 <AlertCircle className="w-4 h-4 flex-shrink-0" />
-                <span>{errorMsg}</span>
+                <span className="min-w-0 break-words">{errorMsg}</span>
               </div>
             )}
 
@@ -279,13 +279,13 @@ export const WelcomeView: React.FC = () => {
               <button
                 type="button"
                 onClick={() => setIsWizardMode(true)}
-                className="w-full py-3 px-4 rounded-2xl bg-gradient-to-r from-emerald-950/80 to-teal-950/80 hover:from-emerald-900/90 hover:to-teal-900/90 border border-emerald-700/60 text-emerald-300 text-xs font-extrabold flex items-center justify-between transition shadow-md group"
+                className="w-full py-3 px-4 rounded-2xl bg-gradient-to-r from-emerald-950/80 to-teal-950/80 hover:from-emerald-900/90 hover:to-teal-900/90 border border-emerald-700/60 text-emerald-300 text-xs font-extrabold flex items-center justify-between gap-2 transition shadow-md group"
               >
-                <div className="flex items-center gap-2">
-                  <div className="w-6 h-6 rounded-lg bg-emerald-500/20 flex items-center justify-center text-emerald-400">
+                <div className="flex items-center gap-2 min-w-0">
+                  <div className="w-6 h-6 shrink-0 rounded-lg bg-emerald-500/20 flex items-center justify-center text-emerald-400">
                     <Sparkles className="w-3.5 h-3.5" />
                   </div>
-                  <span>首次使用？啟動 4 步驟新手設定精靈</span>
+                  <span className="min-w-0 text-left">首次使用？啟動 4 步驟新手設定精靈</span>
                 </div>
                 <ChevronRight className="w-4 h-4 group-hover:translate-x-0.5 transition-transform text-emerald-400" />
               </button>

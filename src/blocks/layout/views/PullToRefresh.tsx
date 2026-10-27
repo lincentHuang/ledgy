@@ -89,7 +89,7 @@ export const PullToRefresh: React.FC<PullToRefreshProps> = ({
       onTouchStart={handleTouchStart}
       onTouchMove={handleTouchMove}
       onTouchEnd={handleTouchEnd}
-      className={`relative overflow-y-auto overscroll-contain ${className}`}
+      className={`relative overflow-y-auto overflow-x-hidden overscroll-contain ${className}`}
     >
       {/* 下拉更新動態指示器 (Pull-to-refresh Indicator) */}
       <div

@@ -57,8 +57,8 @@ export const UserProfileModal: React.FC<UserProfileModalProps> = ({
   const provider = authUser.provider || 'google';
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/75 backdrop-blur-sm animate-in fade-in duration-200">
-      <div className="relative w-full max-w-sm max-h-[var(--app-height,90vh)] rounded-3xl bg-slate-900 text-slate-100 shadow-2xl border border-slate-800 p-6 overflow-y-auto space-y-4">
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-black/75 backdrop-blur-sm animate-in fade-in duration-200">
+      <div className="relative w-full max-w-sm max-h-[calc(var(--app-height,100dvh)-1.5rem)] rounded-3xl bg-slate-900 text-slate-100 shadow-2xl border border-slate-800 p-4 sm:p-6 overflow-y-auto space-y-4">
         {/* Header */}
         <div className="flex items-center justify-between pb-3 border-b border-slate-800">
           <div className="flex items-center gap-2">
@@ -74,24 +74,24 @@ export const UserProfileModal: React.FC<UserProfileModalProps> = ({
         </div>
 
         {/* 使用者名片 */}
-        <div className="flex items-center gap-3.5 p-4 rounded-2xl bg-gradient-to-r from-emerald-500/10 to-teal-500/10 border border-emerald-500/20">
+        <div className="flex items-center gap-3 sm:gap-3.5 p-3 sm:p-4 rounded-2xl bg-gradient-to-r from-emerald-500/10 to-teal-500/10 border border-emerald-500/20">
           {user.photoURL ? (
             <img
               src={user.photoURL}
               alt={user.displayName}
-              className="w-14 h-14 rounded-full object-cover border-2 border-emerald-500 shadow-md"
+              className="w-14 h-14 shrink-0 rounded-full object-cover border-2 border-emerald-500 shadow-md"
             />
           ) : (
-            <div className="w-14 h-14 rounded-full bg-emerald-600 text-white flex items-center justify-center text-xl font-bold shadow-md">
+            <div className="w-14 h-14 shrink-0 rounded-full bg-emerald-600 text-white flex items-center justify-center text-xl font-bold shadow-md">
               {user.displayName.substring(0, 1)}
             </div>
           )}
-          <div className="min-w-0">
+          <div className="min-w-0 flex-1">
             <h3 className="font-bold text-base text-slate-100 truncate">
               {user.displayName}
             </h3>
             <p className="text-xs text-slate-400 truncate">{user.email}</p>
-            <div className="flex items-center gap-1.5 mt-1">
+            <div className="flex flex-wrap items-center gap-1.5 mt-1">
               <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-emerald-950 text-emerald-300 uppercase border border-emerald-800">
                 {provider} SSO
               </span>
@@ -159,22 +159,22 @@ export const UserProfileModal: React.FC<UserProfileModalProps> = ({
           </div>
         ) : (
           <div className="space-y-2.5 text-xs text-slate-300">
-            <div className="flex items-center justify-between p-2.5 rounded-xl bg-slate-800/60 border border-slate-700/60">
-              <span className="text-slate-400 flex items-center gap-1.5">
+            <div className="flex items-center justify-between gap-2 p-2.5 rounded-xl bg-slate-800/60 border border-slate-700/60">
+              <span className="text-slate-400 flex items-center gap-1.5 shrink-0">
                 <Barcode className="w-3.5 h-3.5 text-emerald-400" />
                 預設載具條碼
               </span>
-              <span className="font-mono font-bold text-slate-100 tracking-wider">
+              <span className="font-mono font-bold text-slate-100 tracking-wider min-w-0 truncate">
                 {user.defaultCarrierCode || '未設定'}
               </span>
             </div>
 
-            <div className="flex items-center justify-between p-2.5 rounded-xl bg-slate-800/60 border border-slate-700/60">
-              <span className="text-slate-400 flex items-center gap-1.5">
+            <div className="flex items-center justify-between gap-2 p-2.5 rounded-xl bg-slate-800/60 border border-slate-700/60">
+              <span className="text-slate-400 flex items-center gap-1.5 shrink-0">
                 <CreditCard className="w-3.5 h-3.5 text-teal-400" />
                 每月預算上限
               </span>
-              <span className="font-bold text-slate-100">
+              <span className="font-bold text-slate-100 min-w-0 truncate">
                 NT$ {user.monthlyBudget?.toLocaleString() || '35,000'}
               </span>
             </div>

@@ -208,15 +208,15 @@ export const FixedCostsView: React.FC<FixedCostsViewProps> = ({ onBack }) => {
 
       {/* 摘要 */}
       <div className="grid grid-cols-2 gap-2.5">
-        <div className="glass-panel rounded-2xl p-3">
+        <div className="glass-panel rounded-2xl p-3 min-w-0">
           <p className="text-[11px] text-slate-400 whitespace-nowrap">每月固定支出</p>
-          <p className="text-lg font-bold text-white tabular-nums whitespace-nowrap">
+          <p className="text-base sm:text-lg font-bold text-white tabular-nums truncate">
             NT$ {monthlyTotal.toLocaleString()}
           </p>
         </div>
-        <div className="glass-panel rounded-2xl p-3">
+        <div className="glass-panel rounded-2xl p-3 min-w-0">
           <p className="text-[11px] text-slate-400 whitespace-nowrap">本月已繳</p>
-          <p className="text-lg font-bold text-emerald-400 tabular-nums whitespace-nowrap">
+          <p className="text-base sm:text-lg font-bold text-emerald-400 tabular-nums truncate">
             {paidCount} / {activeCount} 筆
           </p>
         </div>
@@ -224,7 +224,7 @@ export const FixedCostsView: React.FC<FixedCostsViewProps> = ({ onBack }) => {
 
       {/* 列表 */}
       {groups.length === 0 ? (
-        <div className="glass-panel rounded-3xl p-8 text-center space-y-3">
+        <div className="glass-panel rounded-3xl p-5 sm:p-8 text-center space-y-3">
           <CalendarClock className="w-10 h-10 text-emerald-400 mx-auto" />
           <p className="text-sm font-bold text-slate-200">還沒有固定成本</p>
           <p className="text-xs text-slate-400">例如房租、電信費、Netflix、保險，設定每月幾號扣款即可自動提醒。</p>
@@ -253,7 +253,7 @@ export const FixedCostsView: React.FC<FixedCostsViewProps> = ({ onBack }) => {
                 return (
                   <li
                     key={cost.id}
-                    className={`glass-panel rounded-2xl p-3 flex items-center gap-2.5 ${cost.active ? '' : 'opacity-50'}`}
+                    className={`glass-panel rounded-2xl p-2.5 sm:p-3 flex items-center gap-2 sm:gap-2.5 ${cost.active ? '' : 'opacity-50'}`}
                   >
                     <div className="w-11 shrink-0 rounded-xl bg-slate-900 border border-slate-800 py-1 text-center">
                       <p className="text-[9px] text-slate-500 leading-none">每月</p>
@@ -262,8 +262,8 @@ export const FixedCostsView: React.FC<FixedCostsViewProps> = ({ onBack }) => {
                     </div>
 
                     <div className="flex-1 min-w-0">
-                      <div className="flex items-center gap-1.5 min-w-0">
-                        <p className="text-sm font-bold text-white truncate">{cost.title}</p>
+                      <div className="flex flex-wrap items-center gap-x-1.5 gap-y-0.5 min-w-0">
+                        <p className="text-sm font-bold text-white truncate max-w-full">{cost.title}</p>
                         {status ? (
                           <span
                             className={`text-[10px] px-1.5 py-0.5 rounded-full border font-bold whitespace-nowrap shrink-0 ${STATUS_STYLE[status].className}`}
@@ -283,7 +283,7 @@ export const FixedCostsView: React.FC<FixedCostsViewProps> = ({ onBack }) => {
                       </p>
                     </div>
 
-                    <div className="flex items-center gap-1 shrink-0">
+                    <div className="flex items-center gap-0.5 sm:gap-1 shrink-0">
                       {status === 'due' && (
                         <>
                           <button
@@ -292,7 +292,7 @@ export const FixedCostsView: React.FC<FixedCostsViewProps> = ({ onBack }) => {
                               confirmFixedCostPaid(cost);
                               Platform.haptic('success');
                             }}
-                            className="p-2 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white active:scale-95 transition"
+                            className="p-1.5 sm:p-2 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white active:scale-95 transition"
                             title="已繳費，記一筆"
                             aria-label="已繳費，記一筆"
                           >
@@ -301,7 +301,7 @@ export const FixedCostsView: React.FC<FixedCostsViewProps> = ({ onBack }) => {
                           <button
                             type="button"
                             onClick={() => skipFixedCostThisMonth(cost)}
-                            className="p-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 active:scale-95 transition"
+                            className="p-1.5 sm:p-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 active:scale-95 transition"
                             title="本月略過"
                             aria-label="本月略過"
                           >
@@ -312,7 +312,7 @@ export const FixedCostsView: React.FC<FixedCostsViewProps> = ({ onBack }) => {
                       <button
                         type="button"
                         onClick={() => openEdit(cost)}
-                        className="p-2 rounded-xl hover:bg-slate-800 text-slate-400 hover:text-white active:scale-95 transition"
+                        className="p-1.5 sm:p-2 rounded-xl hover:bg-slate-800 text-slate-400 hover:text-white active:scale-95 transition"
                         title="編輯"
                         aria-label="編輯"
                       >
@@ -321,7 +321,7 @@ export const FixedCostsView: React.FC<FixedCostsViewProps> = ({ onBack }) => {
                       <button
                         type="button"
                         onClick={() => setPendingDelete(cost)}
-                        className="p-2 rounded-xl hover:bg-rose-950 text-slate-500 hover:text-rose-400 active:scale-95 transition"
+                        className="p-1.5 sm:p-2 rounded-xl hover:bg-rose-950 text-slate-500 hover:text-rose-400 active:scale-95 transition"
                         title="刪除"
                         aria-label="刪除"
                       >

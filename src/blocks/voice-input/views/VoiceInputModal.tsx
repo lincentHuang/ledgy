@@ -332,7 +332,7 @@ export const VoiceInputModal: React.FC<VoiceInputModalProps> = ({
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-0 sm:p-4 bg-black/80 backdrop-blur-md animate-in fade-in duration-200 overflow-hidden">
       {/* 電腦版置中卡片 + 手機版全螢幕自適應容器 */}
-      <div className="relative w-full h-[var(--app-height,100dvh)] sm:h-auto sm:max-h-[88vh] sm:max-w-lg rounded-none sm:rounded-3xl bg-slate-950/95 text-slate-100 shadow-2xl border-0 sm:border sm:border-slate-800/80 flex flex-col justify-between overflow-hidden backdrop-blur-2xl pt-safe">
+      <div className="relative w-full h-[var(--app-height,100dvh)] sm:h-auto sm:max-h-[88vh] sm:max-w-lg rounded-none sm:rounded-3xl bg-slate-950/95 text-slate-100 shadow-2xl border-0 sm:border sm:border-slate-800/80 flex flex-col justify-between overflow-hidden backdrop-blur-2xl">
 
         {/* 背景純淨質感柔和漸層光暈 (無 Canvas 負擔) */}
         <div className="absolute inset-0 overflow-hidden pointer-events-none z-0">
@@ -341,7 +341,7 @@ export const VoiceInputModal: React.FC<VoiceInputModalProps> = ({
         </div>
 
         {/* 1. 頂部簡潔標題列 (Fixed Header - 支援 Android & iOS 狀態列安全區) */}
-        <header className="shrink-0 z-20 w-full px-5 pt-[calc(1rem+env(safe-area-inset-top,0px))] pb-4 sm:pt-4 sm:pb-4 pl-[max(1.25rem,calc(0.75rem+env(safe-area-inset-left,0px)))] pr-[max(1.25rem,calc(0.75rem+env(safe-area-inset-right,0px)))] sm:px-5 flex items-center justify-between border-b border-slate-800/60 bg-slate-950/80 backdrop-blur-md">
+        <header className="shrink-0 z-20 w-full px-4 pt-[calc(1rem+env(safe-area-inset-top,0px))] pb-3 sm:pt-4 sm:pb-4 pl-[max(1rem,calc(0.5rem+env(safe-area-inset-left,0px)))] pr-[max(1rem,calc(0.5rem+env(safe-area-inset-right,0px)))] sm:px-5 gap-2 flex items-center justify-between border-b border-slate-800/60 bg-slate-950/80 backdrop-blur-md">
           <div className="flex items-center gap-2 min-w-0">
             <div className="p-1.5 rounded-xl bg-emerald-500/20 border border-emerald-500/30 text-emerald-400 shadow-md shadow-emerald-950/40 shrink-0">
               <Sparkles className="w-4 h-4 animate-pulse" />
@@ -352,7 +352,7 @@ export const VoiceInputModal: React.FC<VoiceInputModalProps> = ({
               </h1>
               {/* 目前入帳帳本 (跟隨頂部切換的帳本) */}
               <span
-                className={`text-[10px] font-bold truncate max-w-[120px] sm:max-w-[200px] leading-tight ${
+                className={`text-[10px] font-bold truncate max-w-[100px] min-[360px]:max-w-[120px] sm:max-w-[200px] leading-tight ${
                   activeLedger === 'household' && household ? 'text-purple-300' : 'text-emerald-300'
                 }`}
               >
@@ -361,13 +361,13 @@ export const VoiceInputModal: React.FC<VoiceInputModalProps> = ({
             </div>
           </div>
 
-          <div className="flex items-center gap-2 shrink-0">
+          <div className="flex items-center gap-1.5 sm:gap-2 shrink-0">
             {/* 模式切換小按鈕 */}
             <div className="flex items-center bg-slate-900 border border-slate-700/80 rounded-xl p-0.5 text-xs font-bold">
               <button
                 type="button"
                 onClick={handleSwitchToVoice}
-                className={`flex items-center gap-1 px-2.5 py-1 rounded-lg transition whitespace-nowrap ${mode === 'voice'
+                className={`flex items-center gap-1 px-2 sm:px-2.5 py-1 rounded-lg transition whitespace-nowrap ${mode === 'voice'
                   ? 'bg-emerald-600 text-white shadow-sm'
                   : 'text-slate-400 hover:text-slate-200'
                   }`}
@@ -378,7 +378,7 @@ export const VoiceInputModal: React.FC<VoiceInputModalProps> = ({
               <button
                 type="button"
                 onClick={handleSwitchToManual}
-                className={`flex items-center gap-1 px-2.5 py-1 rounded-lg transition whitespace-nowrap ${mode === 'manual'
+                className={`flex items-center gap-1 px-2 sm:px-2.5 py-1 rounded-lg transition whitespace-nowrap ${mode === 'manual'
                   ? 'bg-emerald-600 text-white shadow-sm'
                   : 'text-slate-400 hover:text-slate-200'
                   }`}
@@ -392,7 +392,7 @@ export const VoiceInputModal: React.FC<VoiceInputModalProps> = ({
             <button
               type="button"
               onClick={onClose}
-              className="p-2 rounded-xl bg-slate-900/80 hover:bg-slate-800 border border-slate-800 text-slate-400 hover:text-white transition active:scale-95 shadow-md"
+              className="p-1.5 sm:p-2 rounded-xl bg-slate-900/80 hover:bg-slate-800 border border-slate-800 text-slate-400 hover:text-white transition active:scale-95 shadow-md"
               aria-label="關閉"
             >
               <X className="w-5 h-5" />
@@ -505,7 +505,7 @@ export const VoiceInputModal: React.FC<VoiceInputModalProps> = ({
 
                         {/* 🌟 當有辨識文字時，顯示快捷「立即解析」與「重錄」按鈕，給予使用者百分之百的主控權 */}
                         {!isParsing && (
-                          <div className="flex items-center gap-2 animate-in fade-in duration-200">
+                          <div className="flex flex-wrap items-center justify-center gap-2 animate-in fade-in duration-200">
                             <button
                               type="button"
                               onClick={() => handleProcessVoiceText(transcript)}
@@ -550,7 +550,7 @@ export const VoiceInputModal: React.FC<VoiceInputModalProps> = ({
                       value={manualInputText}
                       onChange={(e) => setManualInputText(e.target.value)}
                       placeholder="輸入如「排骨便當 120 珍奶 60 LINE Pay」..."
-                      className="w-full bg-slate-900/90 border border-slate-700/80 rounded-2xl px-4 py-3.5 pr-24 text-sm text-white placeholder-slate-500 outline-none focus:ring-2 focus:ring-emerald-500/50 shadow-inner font-medium"
+                      className="w-full bg-slate-900/90 border border-slate-700/80 rounded-2xl px-4 py-3.5 pr-24 text-[16px] sm:text-sm text-white placeholder-slate-500 outline-none focus:ring-2 focus:ring-emerald-500/50 shadow-inner font-medium"
                       autoFocus
                     />
                     <button
@@ -571,7 +571,7 @@ export const VoiceInputModal: React.FC<VoiceInputModalProps> = ({
 
               {/* 錯誤提示 */}
               {errorMessage && (
-                <div className="mt-3 text-xs text-rose-300 bg-rose-950/70 px-3.5 py-1.5 rounded-xl border border-rose-700/80 max-w-md shadow-lg">
+                <div className="mt-3 text-xs text-rose-300 bg-rose-950/70 px-3.5 py-1.5 rounded-xl border border-rose-700/80 w-full max-w-md break-words shadow-lg">
                   {errorMessage}
                 </div>
               )}
@@ -594,14 +594,14 @@ export const VoiceInputModal: React.FC<VoiceInputModalProps> = ({
                         }
                         parseVoice('排骨便當 120 元 珍奶 60 元');
                       }}
-                      className="text-xs bg-slate-900/80 hover:bg-slate-800/90 border border-slate-700/70 text-emerald-300 font-medium px-4 py-2 rounded-2xl transition active:scale-95 shadow-md flex items-center gap-1.5"
+                      className="text-xs bg-slate-900/80 hover:bg-slate-800/90 border border-slate-700/70 text-emerald-300 font-medium px-4 py-2 rounded-2xl transition active:scale-95 shadow-md flex items-center gap-1.5 max-w-full text-left"
                     >
                       <span>⚡「排骨便當 120 元 珍奶 60 元」</span>
                     </button>
                   </div>
 
                   {/* 切換手動/直接手填按鈕 */}
-                  <div className="flex items-center gap-2 mt-1">
+                  <div className="flex flex-wrap items-center justify-center gap-2 mt-1">
                     {mode === 'voice' ? (
                       <button
                         type="button"
@@ -641,9 +641,9 @@ export const VoiceInputModal: React.FC<VoiceInputModalProps> = ({
             /* 🌟 共用結構化確認列表 (手機版價格自動換至下一行，流暢滾動、不破版) */
             <div className="w-full space-y-3 pb-2 animate-in fade-in zoom-in-95 duration-200">
               {/* 標頭資訊：拆分數量與合計金額 + 加一筆按鈕 */}
-              <div className="flex items-center justify-between px-4 py-2 bg-emerald-950/70 border border-emerald-600/50 rounded-2xl text-xs sm:text-sm shadow-lg backdrop-blur-md">
-                <div className="flex items-center gap-2 text-emerald-300 font-bold">
-                  <Layers className="w-4 h-4 text-emerald-400" />
+              <div className="flex flex-wrap items-center justify-between gap-x-3 gap-y-1.5 px-3 sm:px-4 py-2 bg-emerald-950/70 border border-emerald-600/50 rounded-2xl text-xs sm:text-sm shadow-lg backdrop-blur-md">
+                <div className="flex items-center gap-2 text-emerald-300 font-bold min-w-0">
+                  <Layers className="w-4 h-4 text-emerald-400 shrink-0" />
                   <span>
                     {parsedResults.length > 1
                       ? `已自動拆分為 ${parsedResults.length} 筆記帳`
@@ -729,7 +729,7 @@ export const VoiceInputModal: React.FC<VoiceInputModalProps> = ({
 
                     {/* 付款方式與歸屬標籤 */}
                     <div className="grid grid-cols-2 gap-2.5">
-                      <div>
+                      <div className="min-w-0">
                         <label className="text-[10px] font-bold text-slate-400 flex items-center gap-1 mb-0.5">
                           <CreditCard className="w-3 h-3 text-teal-400 shrink-0" />
                           <span>付款方式</span>
@@ -747,7 +747,7 @@ export const VoiceInputModal: React.FC<VoiceInputModalProps> = ({
                         </select>
                       </div>
 
-                      <div>
+                      <div className="min-w-0">
                         <label className="text-[10px] font-bold text-slate-400 flex items-center gap-1 mb-0.5">
                           <Tag className="w-3 h-3 text-emerald-400 shrink-0" />
                           <span>歸屬標籤</span>
@@ -807,7 +807,7 @@ export const VoiceInputModal: React.FC<VoiceInputModalProps> = ({
                     <select
                       value={selectedHouseholdId}
                       onChange={(e) => setSelectedHouseholdId(e.target.value)}
-                      className="flex-1 bg-slate-900 border border-purple-600/60 rounded-lg px-2 py-1 text-xs text-white outline-none focus:ring-1 focus:ring-purple-400 font-bold"
+                      className="flex-1 min-w-0 bg-slate-900 border border-purple-600/60 rounded-lg px-2 py-1 text-xs text-white outline-none focus:ring-1 focus:ring-purple-400 font-bold"
                     >
                       {households.map((h) => (
                         <option key={h.id} value={h.id}>

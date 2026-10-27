@@ -44,17 +44,17 @@ export const DeleteLedgerModal: React.FC<DeleteLedgerModalProps> = ({
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-md animate-in fade-in duration-200">
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-black/80 backdrop-blur-md animate-in fade-in duration-200">
       <div className="fixed inset-0" onClick={onClose} />
 
-      <div className="relative w-full max-w-md rounded-3xl glass-modal text-slate-100 shadow-2xl p-5 sm:p-6 my-auto z-10 border border-rose-500/20 animate-in fade-in zoom-in-95 duration-200 space-y-4">
+      <div className="relative w-full max-w-md rounded-3xl glass-modal text-slate-100 shadow-2xl p-4 sm:p-6 my-auto z-10 max-h-[calc(var(--app-height,100dvh)-1.5rem)] overflow-y-auto border border-rose-500/20 animate-in fade-in zoom-in-95 duration-200 space-y-4">
         {/* Header */}
         <div className="flex items-center justify-between pb-3 border-b border-white/10">
-          <div className="flex items-center gap-2.5">
+          <div className="flex items-center gap-2.5 min-w-0">
             <div className="w-10 h-10 rounded-2xl bg-rose-950/80 border border-rose-800/80 text-rose-400 flex items-center justify-center font-bold shrink-0">
               {isOwner ? <Trash2 className="w-5 h-5" /> : <LogOut className="w-5 h-5" />}
             </div>
-            <div>
+            <div className="min-w-0">
               <h3 className="font-black text-base text-white">
                 {isOwner ? '解散並刪除帳本' : '退出共用帳本'}
               </h3>
@@ -73,10 +73,10 @@ export const DeleteLedgerModal: React.FC<DeleteLedgerModalProps> = ({
 
         {/* 帳本資訊卡片 */}
         <div className="p-3.5 rounded-2xl bg-slate-900/90 border border-slate-800 space-y-2.5">
-          <div className="flex items-center justify-between">
-            <span className="text-xs text-slate-400 font-medium">目標帳本名稱</span>
-            <span className="text-sm font-bold text-white flex items-center gap-1.5">
-              <span>{household.name}</span>
+          <div className="flex items-center justify-between gap-2">
+            <span className="text-xs text-slate-400 font-medium shrink-0">目標帳本名稱</span>
+            <span className="text-sm font-bold text-white flex items-center gap-1.5 min-w-0">
+              <span className="truncate">{household.name}</span>
             </span>
           </div>
 
@@ -112,7 +112,7 @@ export const DeleteLedgerModal: React.FC<DeleteLedgerModalProps> = ({
         </div>
 
         {/* Action Buttons */}
-        <div className="pt-2 flex items-center justify-end gap-2.5">
+        <div className="pt-2 flex flex-wrap items-center justify-end gap-2.5 pb-safe">
           <button
             type="button"
             disabled={isProcessing}

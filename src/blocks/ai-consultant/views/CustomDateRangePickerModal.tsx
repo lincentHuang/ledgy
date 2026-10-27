@@ -205,14 +205,14 @@ export const CustomDateRangePickerModal: React.FC<CustomDateRangePickerModalProp
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-black/80 backdrop-blur-md animate-in fade-in duration-150">
-      <div className="w-full max-w-sm glass-panel p-4 sm:p-5 rounded-3xl bg-slate-950/95 border border-slate-700/90 shadow-2xl space-y-4 text-slate-100 animate-in zoom-in-95 duration-150">
+      <div className="w-full max-w-sm max-h-[calc(var(--app-height,100dvh)-1.5rem)] overflow-y-auto glass-panel p-3 sm:p-5 rounded-3xl bg-slate-950/95 border border-slate-700/90 shadow-2xl space-y-4 text-slate-100 animate-in zoom-in-95 duration-150">
         {/* 頂部標題列 */}
         <div className="flex items-center justify-between pb-3 border-b border-slate-800">
-          <div className="flex items-center gap-2">
-            <div className="w-8 h-8 rounded-2xl bg-emerald-950/80 border border-emerald-800 flex items-center justify-center text-emerald-400">
+          <div className="flex items-center gap-2 min-w-0">
+            <div className="w-8 h-8 rounded-2xl bg-emerald-950/80 border border-emerald-800 flex items-center justify-center text-emerald-400 shrink-0">
               <CalendarIcon className="w-4 h-4" />
             </div>
-            <div>
+            <div className="min-w-0">
               <h3 className="text-sm font-black text-white">選擇日期區間</h3>
               <p className="text-[11px] text-slate-400">自訂財務分析與報表週期</p>
             </div>
@@ -262,8 +262,8 @@ export const CustomDateRangePickerModal: React.FC<CustomDateRangePickerModalProp
 
         {/* 區間預覽與狀態提示 */}
         <div className="p-3 rounded-2xl bg-slate-900/90 border border-slate-800 space-y-1.5 text-xs">
-          <div className="flex items-center justify-between font-mono">
-            <div className="flex items-center gap-1.5">
+          <div className="flex flex-wrap items-center justify-between gap-x-2 gap-y-1 font-mono">
+            <div className="flex flex-wrap items-center gap-1.5">
               <span className={`px-2 py-0.5 rounded-md font-bold text-[11px] ${step === 0 ? 'bg-emerald-600 text-white' : 'bg-emerald-950 text-emerald-400 border border-emerald-800'}`}>
                 起 {tempStart}
               </span>
@@ -315,7 +315,7 @@ export const CustomDateRangePickerModal: React.FC<CustomDateRangePickerModalProp
         {/* 日曆網格 */}
         <div className="space-y-1">
           {/* 星期標頭 */}
-          <div className="grid grid-cols-7 text-center text-[11px] font-bold text-slate-400 pb-1">
+          <div className="grid grid-cols-7 text-center text-[10px] sm:text-[11px] font-bold text-slate-400 pb-1">
             <span className="text-rose-400">日</span>
             <span>一</span>
             <span>二</span>
@@ -326,7 +326,7 @@ export const CustomDateRangePickerModal: React.FC<CustomDateRangePickerModalProp
           </div>
 
           {/* 日期單元格 */}
-          <div className="grid grid-cols-7 gap-y-1 text-xs">
+          <div className="grid grid-cols-7 gap-y-1 text-[11px] sm:text-xs">
             {calendarDays.map((d, idx) => {
               const isStart = d.dateStr === tempStart;
               const isEnd = d.dateStr === tempEnd;
@@ -353,7 +353,7 @@ export const CustomDateRangePickerModal: React.FC<CustomDateRangePickerModalProp
                   key={idx}
                   type="button"
                   onClick={() => handleDayClick(d.dateStr)}
-                  className={`h-9 flex flex-col items-center justify-center relative transition-all active:scale-90 ${cellStyle}`}
+                  className={`h-9 min-w-0 flex flex-col items-center justify-center relative transition-all active:scale-90 ${cellStyle}`}
                 >
                   <span className="font-mono">{d.day}</span>
                   {isToday && !isStart && !isEnd && (
@@ -366,7 +366,7 @@ export const CustomDateRangePickerModal: React.FC<CustomDateRangePickerModalProp
         </div>
 
         {/* 底部操作按鈕 */}
-        <div className="flex items-center gap-2 pt-2 border-t border-slate-800">
+        <div className="flex items-center gap-2 pt-2 border-t border-slate-800 pb-safe">
           <button
             onClick={onClose}
             className="flex-1 py-2.5 rounded-2xl bg-slate-900 hover:bg-slate-800 text-slate-300 text-xs font-bold transition border border-slate-800"
@@ -378,10 +378,10 @@ export const CustomDateRangePickerModal: React.FC<CustomDateRangePickerModalProp
               onConfirm(tempStart, tempEnd);
               onClose();
             }}
-            className="flex-1 py-2.5 rounded-2xl bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-white text-xs font-bold transition flex items-center justify-center gap-1.5 shadow-lg shadow-emerald-600/25 active:scale-95"
+            className="flex-1 min-w-0 py-2.5 rounded-2xl bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-white text-xs font-bold transition flex items-center justify-center gap-1.5 shadow-lg shadow-emerald-600/25 active:scale-95"
           >
             <Check className="w-4 h-4" />
-            <span>套用區間 ({totalDays} 天)</span>
+            <span className="truncate">套用區間 ({totalDays} 天)</span>
           </button>
         </div>
       </div>

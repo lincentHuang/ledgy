@@ -96,7 +96,7 @@ export const DateNoteModal: React.FC<DateNoteModalProps> = ({
       onClick={onClose}
     >
       <div
-        className="relative w-full max-w-md rounded-3xl glass-modal border border-emerald-500/30 bg-slate-900/95 shadow-2xl p-4 sm:p-5 space-y-4 text-slate-100 animate-in zoom-in-95 duration-200"
+        className="relative w-full max-w-md max-h-[calc(var(--app-height,100dvh)-1.5rem)] overflow-y-auto rounded-3xl glass-modal border border-emerald-500/30 bg-slate-900/95 shadow-2xl p-4 sm:p-5 space-y-4 text-slate-100 animate-in zoom-in-95 duration-200"
         onClick={(e) => e.stopPropagation()}
       >
         {/* 標題列 */}
@@ -126,7 +126,7 @@ export const DateNoteModal: React.FC<DateNoteModalProps> = ({
 
         {/* 說明與快速情境推薦 */}
         <div className="space-y-2">
-          <div className="flex items-center justify-between gap-2">
+          <div className="flex flex-wrap items-center justify-between gap-x-2 gap-y-0.5">
             <label className="text-xs font-bold text-slate-300 flex items-center gap-1.5 whitespace-nowrap">
               <Sparkles className="w-3.5 h-3.5 text-amber-400" />
               <span>那天是做什麼的？</span>
@@ -166,7 +166,7 @@ export const DateNoteModal: React.FC<DateNoteModalProps> = ({
         </div>
 
         {/* 操作按鈕列 */}
-        <div className="flex items-center justify-between pt-2 border-t border-slate-800/80 gap-2">
+        <div className="flex flex-wrap items-center justify-between pt-2 border-t border-slate-800/80 gap-2">
           <div>
             {hasExistingNote && (
               <button

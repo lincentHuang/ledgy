@@ -45,11 +45,11 @@ export const TagPill: React.FC<TagPillProps> = ({
       type="button"
       onClick={onClick}
       data-active={active ? 'true' : 'false'}
-      className={`inline-flex items-center gap-1 rounded-xl border flex-shrink-0 font-medium select-none transition-all duration-200 active:scale-95 ${
+      className={`inline-flex items-center gap-1 max-w-full rounded-xl border flex-shrink-0 font-medium select-none transition-all duration-200 active:scale-95 ${
         active ? activeClasses : inactiveClasses
       } ${sizeClasses} ${className}`}
     >
-      <span>{displayTag}</span>
+      <span className="min-w-0 truncate">{displayTag}</span>
       {count !== undefined && (
         <span
           className={`text-[9px] font-mono px-1 rounded-md ${

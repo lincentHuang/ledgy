@@ -67,14 +67,14 @@ export const InvoiceListView: React.FC<{ onOpenScanner: () => void; onOpenBarcod
   return (
     <div className="space-y-4">
       {/* 頂部中獎與操作橫幅 */}
-      <div className="glass-panel rounded-3xl p-5 relative overflow-hidden shadow-sm">
+      <div className="glass-panel rounded-3xl p-4 sm:p-5 relative overflow-hidden shadow-sm">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-          <div>
+          <div className="min-w-0">
             <div className="flex items-center gap-2">
-              <span className="p-1.5 rounded-xl bg-amber-100 dark:bg-amber-950 text-amber-600 dark:text-amber-400">
+              <span className="p-1.5 shrink-0 rounded-xl bg-amber-100 dark:bg-amber-950 text-amber-600 dark:text-amber-400">
                 <Trophy className="w-5 h-5" />
               </span>
-              <h2 className="text-base font-bold text-slate-900 dark:text-slate-100">
+              <h2 className="text-sm sm:text-base font-bold text-slate-900 dark:text-slate-100 min-w-0">
                 統一發票自動對獎與財政部同步專區
               </h2>
             </div>
@@ -127,13 +127,13 @@ export const InvoiceListView: React.FC<{ onOpenScanner: () => void; onOpenBarcod
         {/* 財政部同步狀態通知 Banner */}
         {syncStatusMsg && (
           <div className="mt-3 p-3 rounded-2xl bg-emerald-950/70 border border-emerald-800 text-emerald-300 text-xs flex items-center justify-between animate-in fade-in">
-            <div className="flex items-center gap-2">
+            <div className="flex items-center gap-2 min-w-0">
               <CheckCircle2 className="w-4 h-4 text-emerald-400 flex-shrink-0" />
-              <span>{syncStatusMsg}</span>
+              <span className="min-w-0 break-words">{syncStatusMsg}</span>
             </div>
             <button
               onClick={() => setSyncStatusMsg(null)}
-              className="text-slate-400 hover:text-slate-200 text-xs ml-2"
+              className="text-slate-400 hover:text-slate-200 text-xs ml-2 shrink-0"
             >
               ✕
             </button>
@@ -168,7 +168,7 @@ export const InvoiceListView: React.FC<{ onOpenScanner: () => void; onOpenBarcod
                 <span className="text-[10px] text-blue-700 dark:text-blue-300 font-bold">
                   頭獎 (20 萬元)
                 </span>
-                <p className="font-mono text-xs font-bold text-blue-900 dark:text-blue-100 tracking-wider mt-0.5">
+                <p className="font-mono text-xs font-bold text-blue-900 dark:text-blue-100 tracking-wider mt-0.5 break-all">
                   {RECENT_LOTTERY_PERIODS[0].firstPrizes.join(' / ')}
                 </p>
               </div>
@@ -180,7 +180,7 @@ export const InvoiceListView: React.FC<{ onOpenScanner: () => void; onOpenBarcod
       {/* 發票列表清單 */}
       <div className="space-y-3">
         {filteredInvoices.length === 0 ? (
-          <div className="glass-panel rounded-3xl p-10 text-center space-y-3">
+          <div className="glass-panel rounded-3xl p-6 sm:p-10 text-center space-y-3">
             <div className="w-12 h-12 rounded-2xl bg-emerald-950/80 border border-emerald-800 text-emerald-400 flex items-center justify-center mx-auto">
               <CloudDownload className="w-6 h-6" />
             </div>
@@ -202,11 +202,11 @@ export const InvoiceListView: React.FC<{ onOpenScanner: () => void; onOpenBarcod
             <div
               key={inv.id}
               onClick={() => setSelectedInvoice(inv)}
-              className="glass-panel p-4 rounded-3xl hover:bg-slate-50 dark:hover:bg-slate-800/60 transition cursor-pointer flex items-center justify-between gap-3 group shadow-sm"
+              className="glass-panel p-3 sm:p-4 rounded-3xl hover:bg-slate-50 dark:hover:bg-slate-800/60 transition cursor-pointer flex items-center justify-between gap-2 sm:gap-3 group shadow-sm"
             >
-              <div className="flex items-center gap-3">
+              <div className="flex items-center gap-2.5 sm:gap-3 min-w-0 flex-1">
                 <div
-                  className={`w-11 h-11 rounded-2xl flex items-center justify-center font-bold text-sm ${
+                  className={`w-11 h-11 shrink-0 rounded-2xl flex items-center justify-center font-bold text-sm ${
                     inv.lotteryResult?.isWon
                       ? 'bg-gradient-to-tr from-amber-500 to-rose-500 text-white shadow-md shadow-amber-500/30 animate-pulse'
                       : 'bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300'
@@ -214,8 +214,8 @@ export const InvoiceListView: React.FC<{ onOpenScanner: () => void; onOpenBarcod
                 >
                   {inv.lotteryResult?.isWon ? <Trophy className="w-5 h-5" /> : <Receipt className="w-5 h-5" />}
                 </div>
-                <div>
-                  <div className="flex items-center gap-2">
+                <div className="min-w-0 flex-1">
+                  <div className="flex flex-wrap items-center gap-x-2 gap-y-1">
                     <span className="font-mono font-black text-sm text-slate-900 dark:text-slate-100 tracking-wider">
                       {inv.invoiceNumber}
                     </span>
@@ -230,17 +230,17 @@ export const InvoiceListView: React.FC<{ onOpenScanner: () => void; onOpenBarcod
                       </span>
                     )}
                   </div>
-                  <p className="text-xs text-slate-600 dark:text-slate-400 mt-0.5 font-medium">
+                  <p className="text-xs text-slate-600 dark:text-slate-400 mt-0.5 font-medium truncate">
                     {inv.sellerName || `統一編號 ${inv.sellerGUI}`}
                   </p>
-                  <p className="text-[10px] text-slate-400">
+                  <p className="text-[10px] text-slate-400 truncate">
                     {inv.date} • {inv.items?.length || 0} 個品項購物清單 (已 AI 分類)
                   </p>
                 </div>
               </div>
 
-              <div className="text-right">
-                <span className="font-mono text-base font-black text-slate-900 dark:text-slate-100">
+              <div className="text-right shrink-0">
+                <span className="font-mono text-sm sm:text-base font-black text-slate-900 dark:text-slate-100">
                   NT$ {inv.totalAmount.toLocaleString()}
                 </span>
                 <span className="block text-[10px] text-emerald-600 dark:text-emerald-400 font-semibold">
@@ -254,30 +254,30 @@ export const InvoiceListView: React.FC<{ onOpenScanner: () => void; onOpenBarcod
 
       {/* 發票明細彈窗 */}
       {selectedInvoice && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/75 backdrop-blur-sm animate-in fade-in">
-          <div className="w-full max-w-sm rounded-3xl bg-white dark:bg-slate-900 text-slate-900 dark:text-slate-100 p-6 shadow-2xl space-y-4">
-            <div className="flex justify-between items-start">
-              <div>
-                <span className="font-mono text-base font-black">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-black/75 backdrop-blur-sm animate-in fade-in">
+          <div className="w-full max-w-sm max-h-[calc(var(--app-height,100dvh)-1.5rem)] overflow-y-auto rounded-3xl bg-white dark:bg-slate-900 text-slate-900 dark:text-slate-100 p-4 sm:p-6 shadow-2xl space-y-4">
+            <div className="flex justify-between items-start gap-2">
+              <div className="min-w-0">
+                <span className="font-mono text-base font-black break-all">
                   {selectedInvoice.invoiceNumber}
                 </span>
                 <p className="text-xs text-slate-500">{selectedInvoice.date}</p>
               </div>
               <button
                 onClick={() => setSelectedInvoice(null)}
-                className="p-1.5 rounded-full hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-400"
+                className="p-1.5 shrink-0 rounded-full hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-400"
               >
                 ✕
               </button>
             </div>
 
             <div className="p-3 rounded-2xl bg-slate-50 dark:bg-slate-800 text-xs space-y-1">
-              <p className="font-bold text-slate-800 dark:text-slate-200">
+              <p className="font-bold text-slate-800 dark:text-slate-200 break-words">
                 {selectedInvoice.sellerName}
               </p>
               <p className="text-slate-500">賣方統編：{selectedInvoice.sellerGUI}</p>
               <p className="text-slate-500">隨機碼：{selectedInvoice.randomCode}</p>
-              <p className="text-slate-500">歸屬載具：{selectedInvoice.carrierCode || '/AB1234+'}</p>
+              <p className="text-slate-500 break-all">歸屬載具：{selectedInvoice.carrierCode || '/AB1234+'}</p>
             </div>
 
             {/* 品項清單 */}
@@ -288,11 +288,11 @@ export const InvoiceListView: React.FC<{ onOpenScanner: () => void; onOpenBarcod
               </p>
               {selectedInvoice.items && selectedInvoice.items.length > 0 ? (
                 selectedInvoice.items.map((it, idx) => (
-                  <div key={idx} className="p-2 rounded-xl bg-slate-800/80 border border-slate-700/60 flex justify-between items-center">
-                    <div className="space-y-0.5">
-                      <div className="flex items-center gap-1.5">
-                        <span className="font-bold text-slate-100">{it.name}</span>
-                        <span className="text-slate-400 text-[10px]">x{it.quantity}</span>
+                  <div key={idx} className="p-2 rounded-xl bg-slate-800/80 border border-slate-700/60 flex justify-between items-center gap-2">
+                    <div className="space-y-0.5 min-w-0">
+                      <div className="flex items-center gap-1.5 min-w-0">
+                        <span className="font-bold text-slate-100 truncate min-w-0">{it.name}</span>
+                        <span className="text-slate-400 text-[10px] shrink-0">x{it.quantity}</span>
                       </div>
                       <div className="flex items-center gap-1">
                         <span className="text-[9px] px-1.5 py-0.2 rounded bg-emerald-950 border border-emerald-800 text-emerald-400 font-medium">
@@ -300,7 +300,7 @@ export const InvoiceListView: React.FC<{ onOpenScanner: () => void; onOpenBarcod
                         </span>
                       </div>
                     </div>
-                    <span className="font-mono font-bold text-slate-100">NT$ {it.amount}</span>
+                    <span className="font-mono font-bold text-slate-100 shrink-0">NT$ {it.amount}</span>
                   </div>
                 ))
               ) : (

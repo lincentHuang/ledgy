@@ -250,7 +250,7 @@ export const InvoiceScannerModal: React.FC<InvoiceScannerModalProps> = ({ isOpen
       <div className="fixed inset-0" onClick={handleModalClose} />
 
       {/* 彈窗主體 (手機端為 Bottom-Sheet，電腦端為置中卡片) */}
-      <div className="relative w-full sm:max-w-md max-h-[92dvh] rounded-t-[32px] sm:rounded-3xl bg-slate-900 text-slate-100 shadow-2xl border-t sm:border border-slate-800 p-5 sm:p-6 overflow-hidden flex flex-col z-10 animate-in slide-in-from-bottom-6 sm:slide-in-from-bottom-0 sm:zoom-in-95 duration-200 pb-8 sm:pb-6">
+      <div className="relative w-full sm:max-w-md max-h-[calc(var(--app-height,100dvh)*0.92)] rounded-t-[32px] sm:rounded-3xl bg-slate-900 text-slate-100 shadow-2xl border-t sm:border border-slate-800 p-5 sm:p-6 overflow-hidden flex flex-col z-10 animate-in slide-in-from-bottom-6 sm:slide-in-from-bottom-0 sm:zoom-in-95 duration-200 pb-8 sm:pb-6">
         {/* 背景光暈效果 */}
         <div className="absolute top-0 right-0 w-64 h-32 bg-emerald-500/10 rounded-full blur-3xl pointer-events-none" />
 
@@ -258,21 +258,21 @@ export const InvoiceScannerModal: React.FC<InvoiceScannerModalProps> = ({ isOpen
         <div className="w-12 h-1.5 rounded-full bg-slate-700/80 mx-auto mb-3 sm:hidden shrink-0" />
 
         {/* Header */}
-        <div className="flex items-center justify-between pb-3 border-b border-slate-800 shrink-0">
-          <div className="flex items-center gap-2.5">
+        <div className="flex items-center justify-between gap-2 pb-3 border-b border-slate-800 shrink-0">
+          <div className="flex items-center gap-2.5 min-w-0">
             <div className="w-9 h-9 rounded-xl bg-emerald-950/80 border border-emerald-800 text-emerald-400 flex items-center justify-center font-bold shrink-0">
               <ScanLine className="w-4 h-4" />
             </div>
-            <div>
-              <h2 className="text-base font-extrabold text-white">台灣電子發票掃描</h2>
-              <p className="text-[11px] text-slate-400">
+            <div className="min-w-0">
+              <h2 className="text-base font-extrabold text-white truncate">台灣電子發票掃描</h2>
+              <p className="text-[11px] text-slate-400 leading-snug">
                 對準發票左側 QR Code · AI 自動逐項分類與對獎
               </p>
             </div>
           </div>
           <button
             onClick={handleModalClose}
-            className="p-1.5 rounded-full hover:bg-slate-800 text-slate-400 hover:text-slate-200 transition"
+            className="p-1.5 shrink-0 rounded-full hover:bg-slate-800 text-slate-400 hover:text-slate-200 transition"
             aria-label="關閉"
           >
             <X className="w-5 h-5" />
@@ -342,11 +342,11 @@ export const InvoiceScannerModal: React.FC<InvoiceScannerModalProps> = ({ isOpen
                     <ShoppingBag className="w-4 h-4" />
                   </div>
                   <div className="min-w-0">
-                    <div className="flex items-center gap-1.5">
-                      <span className="font-bold text-xs text-slate-100 group-hover:text-emerald-300 transition">
+                    <div className="flex items-center gap-1.5 min-w-0">
+                      <span className="font-bold text-xs text-slate-100 group-hover:text-emerald-300 transition truncate">
                         全聯超市採買發票
                       </span>
-                      <span className="text-[10px] px-1.5 py-0.2 rounded bg-slate-700 text-slate-300 font-mono">
+                      <span className="text-[10px] px-1.5 py-0.2 rounded bg-slate-700 text-slate-300 font-mono shrink-0 hidden min-[360px]:inline">
                         PX88991234
                       </span>
                     </div>
@@ -369,12 +369,12 @@ export const InvoiceScannerModal: React.FC<InvoiceScannerModalProps> = ({ isOpen
           <div className="my-2 space-y-3.5 overflow-y-auto pr-0.5 flex-1 animate-in zoom-in-95 duration-200">
             {/* 中獎提示 */}
             {scannedResult.lotteryResult?.isWon ? (
-              <div className="p-3.5 rounded-2xl bg-gradient-to-r from-amber-500 to-rose-500 text-white shadow-lg shadow-amber-500/25 flex items-start gap-3">
+              <div className="p-3 sm:p-3.5 rounded-2xl bg-gradient-to-r from-amber-500 to-rose-500 text-white shadow-lg shadow-amber-500/25 flex items-start gap-3">
                 <div className="p-2 bg-white/20 rounded-xl backdrop-blur shrink-0">
                   <Trophy className="w-6 h-6 text-yellow-200 animate-bounce" />
                 </div>
-                <div>
-                  <div className="flex items-center gap-2">
+                <div className="min-w-0">
+                  <div className="flex flex-wrap items-center gap-x-2 gap-y-1">
                     <span className="text-[10px] font-black uppercase bg-white text-rose-600 px-2 py-0.5 rounded-full">
                       中獎啦！
                     </span>
@@ -383,7 +383,7 @@ export const InvoiceScannerModal: React.FC<InvoiceScannerModalProps> = ({ isOpen
                       {scannedResult.lotteryResult.prizeAmount.toLocaleString()}
                     </span>
                   </div>
-                  <p className="text-xs text-amber-100 mt-0.5">
+                  <p className="text-xs text-amber-100 mt-0.5 break-words">
                     {scannedResult.lotteryResult.detail}
                   </p>
                 </div>
@@ -396,25 +396,25 @@ export const InvoiceScannerModal: React.FC<InvoiceScannerModalProps> = ({ isOpen
             )}
 
             {/* 發票主資訊卡 */}
-            <div className="p-4 rounded-2xl border border-slate-800 bg-slate-800/60 space-y-3">
-              <div className="flex items-center justify-between">
-                <span className="font-mono text-base font-black text-white">
+            <div className="p-3.5 sm:p-4 rounded-2xl border border-slate-800 bg-slate-800/60 space-y-3">
+              <div className="flex items-center justify-between gap-2">
+                <span className="font-mono text-base font-black text-white min-w-0 truncate">
                   {scannedResult.invoiceNumber}
                 </span>
-                <span className="text-xs text-slate-400 font-mono">{scannedResult.date}</span>
+                <span className="text-xs text-slate-400 font-mono shrink-0">{scannedResult.date}</span>
               </div>
-              <div className="text-xs text-slate-300 flex items-center justify-between">
-                <span className="font-bold text-slate-200">
+              <div className="text-xs text-slate-300 flex items-center justify-between gap-2">
+                <span className="font-bold text-slate-200 min-w-0 truncate">
                   {scannedResult.sellerName || `統一編號 ${scannedResult.sellerGUI}`}
                 </span>
-                <span className="text-[11px] text-slate-400 font-mono">隨機碼：{scannedResult.randomCode}</span>
+                <span className="text-[11px] text-slate-400 font-mono shrink-0">隨機碼：{scannedResult.randomCode}</span>
               </div>
 
               {/* 🌟 AI 單品智慧分類與購物清單 */}
               {scannedResult.items && scannedResult.items.length > 0 && (
                 <div className="pt-3 border-t border-slate-700/60 space-y-2">
                   <div className="flex items-center justify-between">
-                    <p className="text-[11px] font-bold text-emerald-400 flex items-center gap-1">
+                    <p className="text-[11px] font-bold text-emerald-400 flex items-center gap-1 min-w-0">
                       <Sparkles className="w-3.5 h-3.5" />
                       發票購物清單 ({scannedResult.items.length} 項品項 AI 自動分類)
                     </p>
@@ -424,11 +424,11 @@ export const InvoiceScannerModal: React.FC<InvoiceScannerModalProps> = ({ isOpen
                     {scannedResult.items.map((it, idx) => (
                       <div
                         key={idx}
-                        className="p-2 rounded-xl bg-slate-900/80 border border-slate-800 flex items-center justify-between text-xs"
+                        className="p-2 rounded-xl bg-slate-900/80 border border-slate-800 flex items-center justify-between gap-2 text-xs"
                       >
                         <div className="space-y-0.5 min-w-0 pr-2">
-                          <div className="flex items-center gap-1.5">
-                            <span className="font-bold text-slate-200 truncate">{it.name}</span>
+                          <div className="flex items-center gap-1.5 min-w-0">
+                            <span className="font-bold text-slate-200 truncate min-w-0">{it.name}</span>
                             <span className="text-[10px] text-slate-400 shrink-0">x{it.quantity}</span>
                           </div>
                           <div className="flex items-center gap-1">
@@ -450,7 +450,7 @@ export const InvoiceScannerModal: React.FC<InvoiceScannerModalProps> = ({ isOpen
                       <span className="text-slate-400 font-semibold text-[10px]">📊 標籤金額分佈：</span>
                       <div className="flex flex-wrap gap-2">
                         {categorySummary.map(([catId, info]) => (
-                          <span key={catId} className="bg-slate-800 px-2 py-0.5 rounded-md text-[10px]">
+                          <span key={catId} className="bg-slate-800 px-2 py-0.5 rounded-md text-[10px] break-words">
                             #{info.name}：<strong className="text-emerald-400 font-mono">NT$ {info.amount}</strong> ({info.count}品項)
                           </span>
                         ))}
@@ -473,14 +473,14 @@ export const InvoiceScannerModal: React.FC<InvoiceScannerModalProps> = ({ isOpen
             <div className="flex gap-2 pt-1">
               <button
                 onClick={() => setScannedResult(null)}
-                className="flex-1 py-3 rounded-2xl bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs font-bold transition flex items-center justify-center gap-1 active:scale-95"
+                className="flex-1 min-w-0 px-2 py-3 rounded-2xl bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs font-bold transition flex items-center justify-center gap-1 active:scale-95"
               >
                 <RotateCcw className="w-3.5 h-3.5" />
                 重新掃描
               </button>
               <button
                 onClick={handleConfirmAdd}
-                className="flex-[2] py-3 rounded-2xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold shadow-lg shadow-emerald-600/30 transition flex items-center justify-center gap-1.5 active:scale-95"
+                className="flex-[2] min-w-0 px-2 py-3 rounded-2xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold shadow-lg shadow-emerald-600/30 transition flex items-center justify-center gap-1.5 active:scale-95"
               >
                 <CheckCircle2 className="w-4 h-4" />
                 登錄發票並自動歸檔記帳

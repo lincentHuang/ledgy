@@ -313,8 +313,8 @@ export const OverviewCards: React.FC = () => {
               <ShieldAlert className="w-5 h-5" />
             </div>
             <div className="min-w-0">
-              <div className="flex items-center gap-2">
-                <span className="text-xs font-bold text-amber-300 whitespace-nowrap">
+              <div className="flex flex-wrap items-center gap-x-2 gap-y-0.5">
+                <span className="text-xs font-bold text-amber-300">
                   AI 疑似重複扣款偵測
                 </span>
                 <span className="text-[10px] px-1.5 py-0.5 rounded bg-amber-500/20 text-amber-400 border border-amber-500/40 font-mono tabular-nums whitespace-nowrap shrink-0">
@@ -405,14 +405,14 @@ export const OverviewCards: React.FC = () => {
       <div className="hidden sm:grid sm:grid-cols-3 gap-3">
         {/* 1. 總支出卡片 */}
         <Card variant="panel" padding="md" className="space-y-2">
-          <div className="flex justify-between items-start">
-            <span className="text-xs font-semibold text-slate-400 whitespace-nowrap">{getExpenseTitle()}</span>
-            <div className="p-2 rounded-2xl bg-rose-950/60 text-rose-400 border border-rose-900/50">
+          <div className="flex justify-between items-start gap-2">
+            <span className="text-xs font-semibold text-slate-400 min-w-0 truncate">{getExpenseTitle()}</span>
+            <div className="shrink-0 p-2 rounded-2xl bg-rose-950/60 text-rose-400 border border-rose-900/50">
               <TrendingDown className="w-4 h-4" />
             </div>
           </div>
           <div>
-            <span className="text-xl lg:text-2xl font-black tracking-tight text-slate-100 font-mono tabular-nums whitespace-nowrap">
+            <span className="text-lg md:text-xl lg:text-2xl font-black tracking-tight text-slate-100 font-mono tabular-nums whitespace-nowrap">
               NT$ {totalExpense.toLocaleString()}
             </span>
           </div>
@@ -420,13 +420,13 @@ export const OverviewCards: React.FC = () => {
           {/* 進度條 (週/月模式) 或 交易筆數 (列表模式) */}
           <div className="pt-1">
             {viewMode === 'list' ? (
-              <div className="flex justify-between items-center text-[10px] text-slate-400 font-medium">
+              <div className="flex justify-between items-center gap-2 text-[10px] text-slate-400 font-medium">
                 <span>累計已記錄 {targetTransactions.length} 筆交易項目</span>
                 <span className="text-emerald-400 font-bold">歷史全紀錄</span>
               </div>
             ) : (
               <div className="space-y-1">
-                <div className="flex justify-between text-[10px] text-slate-400 font-medium">
+                <div className="flex justify-between gap-2 text-[10px] text-slate-400 font-medium">
                   <span>
                     {effectiveBudget > 0 ? '預算消耗進度' : '未設定標籤預算'}
                   </span>
@@ -449,15 +449,15 @@ export const OverviewCards: React.FC = () => {
 
         {/* 2. 中間欄卡片：目標預算 / 歷史總預算 */}
         <Card variant="panel" padding="md" className="space-y-2">
-          <div className="flex justify-between items-start">
-            <span className="text-xs font-semibold text-slate-400 whitespace-nowrap">{getBudgetTitle()}</span>
-            <div className="p-2 rounded-2xl bg-emerald-950/60 text-emerald-400 border border-emerald-900/50">
+          <div className="flex justify-between items-start gap-2">
+            <span className="text-xs font-semibold text-slate-400 min-w-0 truncate">{getBudgetTitle()}</span>
+            <div className="shrink-0 p-2 rounded-2xl bg-emerald-950/60 text-emerald-400 border border-emerald-900/50">
               <DollarSign className="w-4 h-4" />
             </div>
           </div>
           <div>
             <span
-              className={`text-xl lg:text-2xl font-black tracking-tight font-mono tabular-nums whitespace-nowrap ${
+              className={`text-lg md:text-xl lg:text-2xl font-black tracking-tight font-mono tabular-nums whitespace-nowrap ${
                 effectiveBudget > 0 ? 'text-emerald-400' : 'text-slate-400'
               }`}
             >
@@ -494,9 +494,9 @@ export const OverviewCards: React.FC = () => {
 
         {/* 3. 右側欄卡片：歷史省下的錢 / 本週/月預算剩餘 */}
         <Card variant="panel" padding="md" className="space-y-2">
-          <div className="flex justify-between items-start">
-            <span className="text-xs font-semibold text-slate-400 whitespace-nowrap">{getSavedMoneyTitle()}</span>
-            <div className={`p-2 rounded-2xl border ${
+          <div className="flex justify-between items-start gap-2">
+            <span className="text-xs font-semibold text-slate-400 min-w-0 truncate">{getSavedMoneyTitle()}</span>
+            <div className={`shrink-0 p-2 rounded-2xl border ${
               savedMoney >= 0
                 ? 'bg-emerald-950/60 text-emerald-400 border-emerald-900/50'
                 : 'bg-rose-950/60 text-rose-400 border-rose-900/50'
@@ -506,7 +506,7 @@ export const OverviewCards: React.FC = () => {
           </div>
           <div>
             <span
-              className={`text-xl lg:text-2xl font-black tracking-tight font-mono tabular-nums whitespace-nowrap ${
+              className={`text-lg md:text-xl lg:text-2xl font-black tracking-tight font-mono tabular-nums whitespace-nowrap ${
                 effectiveBudget === 0 && viewMode !== 'list'
                   ? 'text-slate-400'
                   : savedMoney >= 0

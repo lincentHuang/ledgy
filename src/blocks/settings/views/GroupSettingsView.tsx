@@ -340,7 +340,7 @@ export const GroupSettingsView: React.FC<GroupSettingsViewProps> = ({
                 key={inv.id}
                 className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 p-3 rounded-2xl bg-slate-900/90 border border-purple-800/50 text-xs"
               >
-                <div>
+                <div className="min-w-0 break-words">
                   <p className="font-bold text-slate-100">
                     「{inv.householdName}」組長 <span className="text-purple-300">{inv.inviterName}</span> 邀請您加入群組
                   </p>
@@ -432,10 +432,10 @@ export const GroupSettingsView: React.FC<GroupSettingsViewProps> = ({
                       : 'bg-slate-900/80 text-slate-400 border-slate-800 hover:text-slate-200 hover:border-slate-700'
                   }`}
                 >
-                  <Users className="w-3.5 h-3.5 text-purple-400" />
-                  <span>{h.name}</span>
+                  <Users className="w-3.5 h-3.5 text-purple-400 shrink-0" />
+                  <span className="truncate max-w-[10rem]">{h.name}</span>
                   {reqCount > 0 && isLeader && (
-                    <span className="text-[10px] bg-rose-500 text-white px-1.5 py-0.2 rounded-full font-bold whitespace-nowrap">
+                    <span className="text-[10px] bg-rose-500 text-white px-1.5 py-0.2 rounded-full font-bold whitespace-nowrap shrink-0">
                       {reqCount} 審核
                     </span>
                   )}
@@ -452,7 +452,7 @@ export const GroupSettingsView: React.FC<GroupSettingsViewProps> = ({
 
       {/* 子分頁 A: ➕ 建立新群組 */}
       {selectedGroupSubTab === 'create' && (
-        <div className="glass-panel p-5 rounded-3xl space-y-3.5 shadow-sm animate-in fade-in">
+        <div className="glass-panel p-4 sm:p-5 rounded-3xl space-y-3.5 shadow-sm animate-in fade-in">
           <div className="flex items-center gap-2">
             <div className="p-2 shrink-0 rounded-2xl bg-purple-950 border border-purple-800 text-purple-400">
               <Plus className="w-4 h-4" />
@@ -510,7 +510,7 @@ export const GroupSettingsView: React.FC<GroupSettingsViewProps> = ({
 
       {/* 子分頁 B: 📥 輸入邀請碼申請加入群組 */}
       {selectedGroupSubTab === 'join' && (
-        <div className="glass-panel p-5 rounded-3xl space-y-3.5 shadow-sm animate-in fade-in">
+        <div className="glass-panel p-4 sm:p-5 rounded-3xl space-y-3.5 shadow-sm animate-in fade-in">
           <div className="flex items-center gap-2">
             <div className="p-2 shrink-0 rounded-2xl bg-purple-950 border border-purple-800 text-purple-400">
               <UserPlus className="w-4 h-4" />
@@ -783,10 +783,10 @@ export const GroupSettingsView: React.FC<GroupSettingsViewProps> = ({
               </div>
 
               {/* 成員列表與 Email 邀請專區 */}
-              <div className="glass-panel p-5 rounded-3xl space-y-4 shadow-sm">
+              <div className="glass-panel p-4 sm:p-5 rounded-3xl space-y-4 shadow-sm">
                 <div className="flex items-center justify-between gap-2 border-b border-slate-800 pb-3">
                   <div className="min-w-0">
-                    <h3 className="font-bold text-sm text-slate-200 whitespace-nowrap">
+                    <h3 className="font-bold text-sm text-slate-200 truncate">
                       正式成員名單 ({household.members.length} 人)
                     </h3>
                     <p className="text-xs text-slate-400 truncate">目前享有此群組公帳與分帳結算權限之成員</p>
@@ -885,7 +885,7 @@ export const GroupSettingsView: React.FC<GroupSettingsViewProps> = ({
                     return (
                       <div
                         key={m.userId}
-                        className="flex items-center justify-between p-3 rounded-2xl bg-slate-900/90 border border-slate-800 hover:border-slate-700 transition"
+                        className="flex items-center justify-between gap-2 p-3 rounded-2xl bg-slate-900/90 border border-slate-800 hover:border-slate-700 transition"
                       >
                         <div className="flex items-center gap-2.5 min-w-0">
                           <div className="w-8 h-8 rounded-full bg-purple-950 border border-purple-800 text-purple-300 flex items-center justify-center font-bold text-xs flex-shrink-0">
@@ -940,7 +940,7 @@ export const GroupSettingsView: React.FC<GroupSettingsViewProps> = ({
               </div>
 
               {/* 退出與解散群組 */}
-              <div className="pt-2 flex justify-between items-center gap-2">
+              <div className="pt-2 flex flex-wrap justify-between items-center gap-2">
                 {isLeader && (
                   <button
                     onClick={() => setShowDeleteModal(true)}
@@ -964,7 +964,7 @@ export const GroupSettingsView: React.FC<GroupSettingsViewProps> = ({
 
           {/* 2. 💳 群組專屬付款方式 */}
           {activeTab === 'payments' && (
-            <div className="glass-panel p-5 rounded-3xl space-y-4 shadow-sm">
+            <div className="glass-panel p-4 sm:p-5 rounded-3xl space-y-4 shadow-sm">
               <div>
                 <h3 className="font-bold text-sm text-white flex items-center gap-1.5 min-w-0">
                   <CreditCard className="w-4 h-4 text-purple-400 shrink-0" />
@@ -1003,7 +1003,7 @@ export const GroupSettingsView: React.FC<GroupSettingsViewProps> = ({
                 {groupPaymentMethods.map((pm) => (
                   <div
                     key={pm}
-                    className="flex items-center justify-between p-3 rounded-2xl bg-slate-900/80 border border-slate-800 hover:border-purple-700/50 transition text-xs"
+                    className="flex items-center justify-between gap-2 p-3 rounded-2xl bg-slate-900/80 border border-slate-800 hover:border-purple-700/50 transition text-xs"
                   >
                     {editingPaymentOld === pm ? (
                       <div className="flex-1 min-w-0 flex gap-2 mr-2">
@@ -1062,7 +1062,7 @@ export const GroupSettingsView: React.FC<GroupSettingsViewProps> = ({
 
           {/* 3. 🏷️ 群組專屬標籤分類庫 */}
           {activeTab === 'tags' && (
-            <div className="glass-panel p-5 rounded-3xl space-y-4 shadow-sm">
+            <div className="glass-panel p-4 sm:p-5 rounded-3xl space-y-4 shadow-sm">
               <div>
                 <h3 className="font-bold text-sm text-white flex items-center gap-1.5 min-w-0">
                   <Tag className="w-4 h-4 text-purple-400 shrink-0" />
@@ -1145,7 +1145,7 @@ export const GroupSettingsView: React.FC<GroupSettingsViewProps> = ({
                           setDraggedTagIndex(null);
                           setDragOverTagIndex(null);
                         }}
-                        className={`group flex items-center gap-1.5 px-3 py-1.5 rounded-xl border transition-all duration-150 select-none ${
+                        className={`group flex items-center gap-1.5 px-3 py-1.5 rounded-xl border transition-all duration-150 select-none max-w-full min-w-0 ${
                           isBeingDragged
                             ? 'opacity-40 scale-95 border-dashed border-purple-500 bg-purple-950/20'
                             : isDragOver
@@ -1156,7 +1156,7 @@ export const GroupSettingsView: React.FC<GroupSettingsViewProps> = ({
                         }`}
                       >
                         {isEditing ? (
-                          <div className="flex items-center gap-1.5">
+                          <div className="flex items-center gap-1.5 flex-wrap">
                             <Tag className="w-3.5 h-3.5 text-purple-400" />
                             <span className="text-xs text-slate-400 font-bold">#</span>
                             <input
@@ -1193,10 +1193,10 @@ export const GroupSettingsView: React.FC<GroupSettingsViewProps> = ({
                               <GripVertical className="w-3.5 h-3.5" />
                             </div>
 
-                            <Tag className="w-3.5 h-3.5 text-purple-400" />
-                            <span className="text-xs font-medium whitespace-nowrap">#{tagItem.name}</span>
+                            <Tag className="w-3.5 h-3.5 text-purple-400 shrink-0" />
+                            <span className="text-xs font-medium truncate min-w-0 max-w-[9rem]">#{tagItem.name}</span>
 
-                            <div className="flex items-center gap-0.5 ml-1 pl-1 border-l border-slate-800">
+                            <div className="flex items-center gap-0.5 ml-1 pl-1 border-l border-slate-800 shrink-0">
                               {/* 順序微調按鈕 */}
                               <button
                                 disabled={index === 0}
@@ -1252,7 +1252,7 @@ export const GroupSettingsView: React.FC<GroupSettingsViewProps> = ({
           {/* 4. 📊 公帳預算與資訊 */}
           {activeTab === 'budget' && (
             <div className="space-y-4">
-              <div className="glass-panel p-5 rounded-3xl space-y-4 shadow-sm">
+              <div className="glass-panel p-4 sm:p-5 rounded-3xl space-y-4 shadow-sm">
                 <div className="flex items-center justify-between gap-2 border-b border-slate-800 pb-3">
                   <div className="min-w-0">
                     <h3 className="font-bold text-sm text-white">群組資訊與每月公帳預算</h3>
@@ -1314,7 +1314,7 @@ export const GroupSettingsView: React.FC<GroupSettingsViewProps> = ({
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs">
                     <div className="p-3.5 rounded-2xl bg-slate-900/80 border border-slate-800 space-y-1">
                       <p className="text-[11px] text-slate-400">當前群組名稱</p>
-                      <p className="text-sm font-bold text-white">{household.name}</p>
+                      <p className="text-sm font-bold text-white break-words">{household.name}</p>
                     </div>
                     <div className="p-3.5 rounded-2xl bg-slate-900/80 border border-slate-800 space-y-1">
                       <p className="text-[11px] text-slate-400">每月公帳預算上限</p>
@@ -1333,7 +1333,7 @@ export const GroupSettingsView: React.FC<GroupSettingsViewProps> = ({
 
           {/* 5. 📥 匯出公帳 */}
           {activeTab === 'export' && (
-            <div className="glass-panel p-5 rounded-3xl space-y-4 shadow-sm">
+            <div className="glass-panel p-4 sm:p-5 rounded-3xl space-y-4 shadow-sm">
               <div>
                 <h3 className="font-bold text-sm text-white">匯出「{household.name}」公帳明細</h3>
                 <p className="text-xs text-slate-400 mt-0.5">

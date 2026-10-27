@@ -100,7 +100,7 @@ export const PwaInstallPrompt: React.FC = () => {
   if (!isVisible) return null;
 
   return (
-    <div className="fixed bottom-20 left-4 right-4 sm:left-auto sm:right-6 sm:max-w-sm z-40 animate-in slide-in-from-bottom-5 duration-300">
+    <div className="fixed bottom-[calc(5rem+env(safe-area-inset-bottom,0px))] left-3 right-3 sm:left-auto sm:right-6 sm:max-w-sm z-40 animate-in slide-in-from-bottom-5 duration-300">
       <div className="relative rounded-2xl bg-slate-900/95 border border-emerald-500/40 p-4 shadow-2xl backdrop-blur-xl text-slate-100 shadow-emerald-950/40">
         {/* 關閉按鈕 */}
         <button
@@ -116,7 +116,7 @@ export const PwaInstallPrompt: React.FC = () => {
             <Smartphone className="w-5 h-5" />
           </div>
 
-          <div className="flex-1 pr-4">
+          <div className="flex-1 min-w-0 pr-5">
             <h4 className="text-xs font-bold text-white flex items-center gap-1.5">
               <span>加到主畫面，體驗完整 App</span>
               <Sparkles className="w-3.5 h-3.5 text-emerald-400" />
@@ -130,7 +130,7 @@ export const PwaInstallPrompt: React.FC = () => {
         {/* iOS 操作指引展開區 */}
         {showIosGuide && (
           <div className="mt-3 pt-3 border-t border-slate-800 space-y-2 text-[11px] text-slate-300 animate-in fade-in">
-            <div className="flex items-center gap-2">
+            <div className="flex items-center gap-2 min-w-0">
               <span className="w-5 h-5 rounded-full bg-emerald-950 text-emerald-400 font-bold flex items-center justify-center text-xs shrink-0 border border-emerald-800">
                 1
               </span>
@@ -154,7 +154,7 @@ export const PwaInstallPrompt: React.FC = () => {
         )}
 
         {/* 底部操作按鈕 */}
-        <div className="mt-3 flex items-center justify-end gap-2">
+        <div className="mt-3 flex flex-wrap items-center justify-end gap-2">
           <button
             onClick={handleDismiss}
             className="px-3 py-1.5 rounded-xl text-[11px] font-medium text-slate-400 hover:text-slate-200 transition"

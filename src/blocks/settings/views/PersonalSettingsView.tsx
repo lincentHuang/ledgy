@@ -296,7 +296,7 @@ export const PersonalSettingsView: React.FC<PersonalSettingsViewProps> = ({
 
         {/* 1. 💳 個人付款方式 */}
         {activeTab === 'payments' && (
-          <div className="glass-panel p-5 rounded-3xl space-y-4 shadow-sm">
+          <div className="glass-panel p-4 sm:p-5 rounded-3xl space-y-4 shadow-sm">
             <div>
               <h3 className="font-bold text-sm text-white">個人專屬付款方式</h3>
               <p className="text-xs text-slate-400 mt-0.5">
@@ -332,7 +332,7 @@ export const PersonalSettingsView: React.FC<PersonalSettingsViewProps> = ({
               {paymentMethods.map((pm) => (
                 <div
                   key={pm}
-                  className="flex items-center justify-between p-3 rounded-2xl bg-slate-900/80 border border-slate-800 hover:border-slate-700 transition text-xs"
+                  className="flex items-center justify-between gap-2 p-3 rounded-2xl bg-slate-900/80 border border-slate-800 hover:border-slate-700 transition text-xs"
                 >
                   {editingPaymentOld === pm ? (
                     <div className="flex-1 min-w-0 flex gap-2 mr-2">
@@ -391,7 +391,7 @@ export const PersonalSettingsView: React.FC<PersonalSettingsViewProps> = ({
 
         {/* 2. 🏷️ 個人標籤庫 */}
         {activeTab === 'tags' && (
-          <div className="glass-panel p-5 rounded-3xl space-y-4 shadow-sm">
+          <div className="glass-panel p-4 sm:p-5 rounded-3xl space-y-4 shadow-sm">
             <div>
               <h3 className="font-bold text-sm text-white">個人私帳專屬標籤庫</h3>
               <p className="text-xs text-slate-400 mt-0.5">
@@ -471,7 +471,7 @@ export const PersonalSettingsView: React.FC<PersonalSettingsViewProps> = ({
                         setDraggedTagIndex(null);
                         setDragOverTagIndex(null);
                       }}
-                      className={`group flex items-center gap-1.5 px-3 py-1.5 rounded-xl border transition-all duration-150 select-none ${
+                      className={`group flex items-center gap-1.5 px-3 py-1.5 rounded-xl border transition-all duration-150 select-none max-w-full min-w-0 ${
                         isBeingDragged
                           ? 'opacity-40 scale-95 border-dashed border-emerald-500 bg-emerald-950/20'
                           : isDragOver
@@ -482,7 +482,7 @@ export const PersonalSettingsView: React.FC<PersonalSettingsViewProps> = ({
                       }`}
                     >
                       {isEditing ? (
-                        <div className="flex items-center gap-1.5">
+                        <div className="flex items-center gap-1.5 flex-wrap">
                           <Tag className="w-3.5 h-3.5 text-emerald-400" />
                           <span className="text-xs text-slate-400 font-bold">#</span>
                           <input
@@ -519,10 +519,10 @@ export const PersonalSettingsView: React.FC<PersonalSettingsViewProps> = ({
                             <GripVertical className="w-3.5 h-3.5" />
                           </div>
 
-                          <Tag className="w-3.5 h-3.5 text-emerald-400" />
-                          <span className="text-xs font-medium whitespace-nowrap">#{tagItem.name}</span>
+                          <Tag className="w-3.5 h-3.5 text-emerald-400 shrink-0" />
+                          <span className="text-xs font-medium truncate min-w-0 max-w-[9rem]">#{tagItem.name}</span>
 
-                          <div className="flex items-center gap-0.5 ml-1 pl-1 border-l border-slate-800">
+                          <div className="flex items-center gap-0.5 ml-1 pl-1 border-l border-slate-800 shrink-0">
                             {/* 順序微調按鈕 */}
                             <button
                               disabled={index === 0}
@@ -577,7 +577,7 @@ export const PersonalSettingsView: React.FC<PersonalSettingsViewProps> = ({
 
         {/* 3. 🔑 基本設定與載具 */}
         {activeTab === 'general' && (
-          <div className="glass-panel p-5 rounded-3xl space-y-4 shadow-sm">
+          <div className="glass-panel p-4 sm:p-5 rounded-3xl space-y-4 shadow-sm">
             <div>
               <h3 className="font-bold text-sm text-white">基本參數與個人載具設定</h3>
               <p className="text-xs text-slate-400 mt-0.5">
@@ -739,7 +739,7 @@ export const PersonalSettingsView: React.FC<PersonalSettingsViewProps> = ({
 
         {/* 4. 🤖 AI 偏好規則 */}
         {activeTab === 'ai' && (
-          <div className="glass-panel p-5 rounded-3xl space-y-4 shadow-sm">
+          <div className="glass-panel p-4 sm:p-5 rounded-3xl space-y-4 shadow-sm">
             <div>
               <h3 className="font-bold text-sm text-white">個人 AI 自適應學習規則庫</h3>
               <p className="text-xs text-slate-400 mt-0.5">
@@ -760,7 +760,7 @@ export const PersonalSettingsView: React.FC<PersonalSettingsViewProps> = ({
                 {learningRules.map((rule) => (
                   <div
                     key={rule.id}
-                    className="p-3 rounded-2xl bg-slate-900/80 border border-slate-800 flex items-center justify-between text-xs"
+                    className="p-3 rounded-2xl bg-slate-900/80 border border-slate-800 flex items-center justify-between gap-2 text-xs"
                   >
                     <div className="min-w-0">
                       <div className="flex items-center gap-2 flex-wrap">
@@ -785,7 +785,7 @@ export const PersonalSettingsView: React.FC<PersonalSettingsViewProps> = ({
 
         {/* 5. 📥 匯出私帳 */}
         {activeTab === 'export' && (
-          <div className="glass-panel p-5 rounded-3xl space-y-4 shadow-sm">
+          <div className="glass-panel p-4 sm:p-5 rounded-3xl space-y-4 shadow-sm">
             <div>
               <h3 className="font-bold text-sm text-white">匯出個人私帳明細</h3>
               <p className="text-xs text-slate-400 mt-0.5">

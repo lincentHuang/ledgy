@@ -28,7 +28,7 @@ export function Tabs<T extends string = string>({
   className = '',
 }: TabsProps<T>) {
   const itemPadding =
-    size === 'md' ? 'px-4 py-2.5 text-xs sm:text-sm' : 'px-3.5 py-2 text-xs';
+    size === 'md' ? 'px-3 sm:px-4 py-2.5 text-xs sm:text-sm' : 'px-3 sm:px-3.5 py-2 text-xs';
 
   const activeStyles =
     variant === 'purple'
@@ -40,7 +40,7 @@ export function Tabs<T extends string = string>({
 
   return (
     <div
-      className={`flex gap-1.5 p-1 bg-slate-900/90 border border-slate-800 rounded-2xl font-semibold overflow-x-auto no-scrollbar shadow-sm select-none ${className}`}
+      className={`flex max-w-full gap-1.5 p-1 bg-slate-900/90 border border-slate-800 rounded-2xl font-semibold overflow-x-auto no-scrollbar shadow-sm select-none ${className}`}
     >
       {tabs.map((tab) => {
         const isActive = activeTab === tab.id;
@@ -49,7 +49,7 @@ export function Tabs<T extends string = string>({
             key={tab.id}
             type="button"
             onClick={() => onChange(tab.id)}
-            className={`inline-flex items-center gap-1.5 rounded-xl border flex-shrink-0 transition-all duration-200 active:scale-95 ${itemPadding} ${
+            className={`inline-flex items-center gap-1.5 whitespace-nowrap rounded-xl border flex-shrink-0 transition-all duration-200 active:scale-95 ${itemPadding} ${
               isActive ? activeStyles : inactiveStyles
             }`}
           >

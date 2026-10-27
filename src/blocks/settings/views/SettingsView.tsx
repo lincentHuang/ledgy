@@ -284,7 +284,7 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
                 key={inv.id}
                 className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 p-3 rounded-2xl bg-slate-900/90 border border-purple-800/50 text-xs"
               >
-                <div>
+                <div className="min-w-0 break-words">
                   <p className="font-bold text-slate-100">
                     「{inv.householdName}」組長 <span className="text-purple-300">{inv.inviterName}</span> 邀請您加入群組
                   </p>
@@ -459,8 +459,8 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
                             : 'bg-slate-900/80 text-slate-400 border-slate-800 hover:text-slate-200 hover:border-slate-700'
                         }`}
                       >
-                        <Users className="w-3.5 h-3.5 text-purple-400" />
-                        <span>{h.name}</span>
+                        <Users className="w-3.5 h-3.5 text-purple-400 shrink-0" />
+                        <span className="truncate max-w-[10rem]">{h.name}</span>
                         <span className="text-[10px] text-slate-500 font-mono whitespace-nowrap">
                           ({h.members.length}人)
                         </span>
@@ -480,7 +480,7 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
 
             {/* 子分頁 A: ➕ 建立新群組 */}
             {selectedGroupSubTab === 'create' && (
-              <div className="glass-panel p-5 rounded-3xl space-y-3.5 shadow-sm animate-in fade-in">
+              <div className="glass-panel p-4 sm:p-5 rounded-3xl space-y-3.5 shadow-sm animate-in fade-in">
                 <div className="flex items-center gap-2">
                   <div className="p-2 rounded-2xl bg-purple-950 border border-purple-800 text-purple-400">
                     <Plus className="w-4 h-4" />
@@ -538,7 +538,7 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
 
             {/* 子分頁 B: 📥 輸入邀請碼申請加入群組 */}
             {selectedGroupSubTab === 'join' && (
-              <div className="glass-panel p-5 rounded-3xl space-y-3.5 shadow-sm animate-in fade-in">
+              <div className="glass-panel p-4 sm:p-5 rounded-3xl space-y-3.5 shadow-sm animate-in fade-in">
                 <div className="flex items-center gap-2">
                   <div className="p-2 rounded-2xl bg-purple-950 border border-purple-800 text-purple-400">
                     <UserPlus className="w-4 h-4" />
@@ -608,7 +608,7 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
                           key={req.id}
                           className="flex flex-col sm:flex-row sm:items-center justify-between gap-2.5 p-3 rounded-2xl bg-slate-900/90 border border-slate-800 text-xs"
                         >
-                          <div>
+                          <div className="min-w-0 break-words">
                             <p className="font-bold text-white">
                               {req.applicantName}{' '}
                               {req.applicantEmail && (
@@ -647,7 +647,7 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
                 )}
 
                 {/* 群組資訊卡片 */}
-                <div className="glass-panel p-5 rounded-3xl space-y-4 shadow-sm">
+                <div className="glass-panel p-4 sm:p-5 rounded-3xl space-y-4 shadow-sm">
                   <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b border-slate-800">
                     <div className="min-w-0">
                       <div className="flex items-center gap-2 flex-wrap">
@@ -826,9 +826,9 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
                         </p>
                         <div className="space-y-1">
                           {pendingInvitations.map((inv) => (
-                            <div key={inv.id} className="flex items-center justify-between text-[11px] text-slate-300 py-1 border-b border-slate-800/60 last:border-none">
-                              <span>✉️ {inv.inviteeEmail} ({inv.role === 'admin' ? '副管理員' : '一般成員'})</span>
-                              <span className="text-amber-400 font-mono text-[10px]">待確認</span>
+                            <div key={inv.id} className="flex items-center justify-between text-[11px] text-slate-300 py-1 gap-2 border-b border-slate-800/60 last:border-none">
+                              <span className="min-w-0 truncate">✉️ {inv.inviteeEmail} ({inv.role === 'admin' ? '副管理員' : '一般成員'})</span>
+                              <span className="text-amber-400 font-mono text-[10px] shrink-0">待確認</span>
                             </div>
                           ))}
                         </div>
@@ -844,7 +844,7 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
                         return (
                           <div
                             key={m.userId}
-                            className="flex items-center justify-between p-3 rounded-2xl bg-slate-900/90 border border-slate-800 hover:border-slate-700 transition"
+                            className="flex items-center justify-between gap-2 p-3 rounded-2xl bg-slate-900/90 border border-slate-800 hover:border-slate-700 transition"
                           >
                             <div className="flex items-center gap-2.5 min-w-0">
                               <div className="w-8 h-8 rounded-full bg-purple-950 border border-purple-800 text-purple-300 flex items-center justify-center font-bold text-xs flex-shrink-0">
@@ -899,7 +899,7 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
                   </div>
 
                   {/* 🚪 退出或刪除群組按鈕 */}
-                  <div className="pt-2 flex justify-between items-center border-t border-slate-800">
+                  <div className="pt-2 flex flex-wrap gap-2 justify-between items-center border-t border-slate-800">
                     {isLeader && (
                       <button
                         onClick={() => setShowDeleteModal(true)}
@@ -926,7 +926,7 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
 
         {/* 2. 💳 付款方式管理 */}
         {activeTab === 'payments' && (
-          <div className="glass-panel p-5 rounded-3xl space-y-4 shadow-sm">
+          <div className="glass-panel p-4 sm:p-5 rounded-3xl space-y-4 shadow-sm">
             <div>
               <h3 className="font-bold text-sm text-white">自訂付款方式清單</h3>
               <p className="text-xs text-slate-400 mt-0.5">
@@ -962,10 +962,10 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
               {paymentMethods.map((pm) => (
                 <div
                   key={pm}
-                  className="flex items-center justify-between p-3 rounded-2xl bg-slate-900/80 border border-slate-800 hover:border-slate-700 transition text-xs"
+                  className="flex items-center justify-between gap-2 p-3 rounded-2xl bg-slate-900/80 border border-slate-800 hover:border-slate-700 transition text-xs"
                 >
                   {editingPaymentOld === pm ? (
-                    <div className="flex-1 flex gap-2 mr-2">
+                    <div className="flex-1 min-w-0 flex gap-2 mr-2">
                       <input
                         type="text"
                         value={editingPaymentNew}
@@ -986,14 +986,14 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
                       </button>
                     </div>
                   ) : (
-                    <div className="flex items-center gap-2.5">
-                      <CreditCard className="w-4 h-4 text-emerald-400" />
-                      <span className="font-bold text-slate-200">{pm}</span>
+                    <div className="flex items-center gap-2.5 min-w-0">
+                      <CreditCard className="w-4 h-4 text-emerald-400 shrink-0" />
+                      <span className="font-bold text-slate-200 truncate">{pm}</span>
                     </div>
                   )}
 
                   {editingPaymentOld !== pm && (
-                    <div className="flex items-center gap-1">
+                    <div className="flex items-center gap-1 shrink-0">
                       <button
                         onClick={() => {
                           setEditingPaymentOld(pm);
@@ -1021,7 +1021,7 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
 
         {/* 3. 🏷️ 標籤分類庫 */}
         {activeTab === 'tags' && (
-          <div className="glass-panel p-5 rounded-3xl space-y-4 shadow-sm">
+          <div className="glass-panel p-4 sm:p-5 rounded-3xl space-y-4 shadow-sm">
             <div>
               <h3 className="font-bold text-sm text-white">智慧標籤庫管理</h3>
               <p className="text-xs text-slate-400 mt-0.5">
@@ -1058,10 +1058,10 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
                 {availableTags.map((tag) => (
                   <div
                     key={tag}
-                    className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-slate-900 border border-slate-800 hover:border-emerald-500/40 text-xs text-slate-200 transition whitespace-nowrap shrink-0"
+                    className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-slate-900 border border-slate-800 hover:border-emerald-500/40 text-xs text-slate-200 transition whitespace-nowrap max-w-full"
                   >
-                    <Tag className="w-3 h-3 text-emerald-400" />
-                    <span>#{tag}</span>
+                    <Tag className="w-3 h-3 text-emerald-400 shrink-0" />
+                    <span className="truncate min-w-0">#{tag}</span>
                     <button
                       onClick={() => removeCustomTag(tag)}
                       className="ml-1 text-slate-500 hover:text-rose-400"
@@ -1078,7 +1078,7 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
 
         {/* 4. 🔑 基本設定 (載具與 API Key) */}
         {activeTab === 'general' && (
-          <div className="glass-panel p-5 rounded-3xl space-y-4 shadow-sm">
+          <div className="glass-panel p-4 sm:p-5 rounded-3xl space-y-4 shadow-sm">
             <div>
               <h3 className="font-bold text-sm text-white">基本參數與 API 設定</h3>
               <p className="text-xs text-slate-400 mt-0.5">
@@ -1140,7 +1140,7 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
 
         {/* 5. 🤖 AI 自適應學習規則庫 */}
         {activeTab === 'ai' && (
-          <div className="glass-panel p-5 rounded-3xl space-y-4 shadow-sm">
+          <div className="glass-panel p-4 sm:p-5 rounded-3xl space-y-4 shadow-sm">
             <div>
               <h3 className="font-bold text-sm text-white">AI 自適應學習規則庫</h3>
               <p className="text-xs text-slate-400 mt-0.5">
@@ -1163,9 +1163,9 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
                     key={rule.id}
                     className="p-3 rounded-2xl bg-slate-900/80 border border-slate-800 flex items-center justify-between text-xs"
                   >
-                    <div>
-                      <div className="flex items-center gap-2">
-                        <span className="font-bold text-white font-mono">
+                    <div className="min-w-0">
+                      <div className="flex items-center gap-2 flex-wrap">
+                        <span className="font-bold text-white font-mono break-all">
                           「{rule.vendorPattern || rule.keywordPattern}」
                         </span>
                         <span className="text-slate-500">→</span>
@@ -1186,7 +1186,7 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
 
         {/* 6. 📥 匯出資料 */}
         {activeTab === 'export' && (
-          <div className="glass-panel p-5 rounded-3xl space-y-4 shadow-sm">
+          <div className="glass-panel p-4 sm:p-5 rounded-3xl space-y-4 shadow-sm">
             <div>
               <h3 className="font-bold text-sm text-white">匯出記帳明細資料</h3>
               <p className="text-xs text-slate-400 mt-0.5">

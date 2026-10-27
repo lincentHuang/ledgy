@@ -221,14 +221,14 @@ export const BarcodeModal: React.FC<BarcodeModalProps> = ({ isOpen, onClose, onO
                     setSelectedCarrier(code);
                     setEditVal(code);
                   }}
-                  className={`p-2.5 rounded-xl border text-left transition-all text-xs active:scale-95 ${
+                  className={`min-w-0 p-2.5 rounded-xl border text-left transition-all text-xs active:scale-95 ${
                     selectedCarrier === (m.carrierCode || '/AB1234+')
                       ? 'border-emerald-500 bg-emerald-950/60 text-emerald-300 font-bold'
                       : 'border-slate-800 hover:border-slate-700 text-slate-400'
                   }`}
                 >
                   <p className="truncate font-semibold">{m.displayName}</p>
-                  <p className="text-[10px] font-mono text-slate-500">{m.carrierCode || '/AB1234+'}</p>
+                  <p className="text-[10px] font-mono text-slate-500 truncate">{m.carrierCode || '/AB1234+'}</p>
                 </button>
               ))}
             </div>

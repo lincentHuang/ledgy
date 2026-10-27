@@ -199,8 +199,8 @@ export const TransactionGroupedList: React.FC<TransactionGroupedListProps> = ({
       return (
         <div className="space-y-3">
           <div className="glass-panel rounded-3xl p-3.5 sm:p-4 space-y-3 transition shadow-sm">
-            <div className="flex items-center justify-between gap-2 border-b border-white/5 pb-2">
-              <div className="flex items-center gap-1.5 sm:gap-2 min-w-0">
+            <div className="flex flex-wrap items-center justify-between gap-x-2 gap-y-1 border-b border-white/5 pb-2">
+              <div className="flex flex-wrap items-center gap-1.5 sm:gap-2 min-w-0">
                 <span className="font-mono text-xs font-bold text-slate-300 flex items-center gap-1.5 whitespace-nowrap shrink-0">
                   <Calendar className="w-3.5 h-3.5 text-emerald-400" />
                   {singleDate}
@@ -279,7 +279,7 @@ export const TransactionGroupedList: React.FC<TransactionGroupedListProps> = ({
     }
 
     return (
-      <div className="glass-panel rounded-3xl p-8 sm:p-10 text-center space-y-3">
+      <div className="glass-panel rounded-3xl p-6 sm:p-10 text-center space-y-3">
         <div className="w-12 h-12 rounded-2xl bg-emerald-950/80 border border-emerald-800 text-emerald-400 flex items-center justify-center mx-auto">
           <Sparkles className="w-6 h-6" />
         </div>
@@ -312,8 +312,8 @@ export const TransactionGroupedList: React.FC<TransactionGroupedListProps> = ({
             className="glass-panel rounded-3xl p-3.5 sm:p-4 space-y-2.5 transition shadow-sm"
           >
             {/* 日期標題與當日小計 */}
-            <div className="flex items-center justify-between gap-2 border-b border-white/5 pb-2">
-              <div className="flex items-center gap-1.5 sm:gap-2 min-w-0">
+            <div className="flex flex-wrap items-center justify-between gap-x-2 gap-y-1 border-b border-white/5 pb-2">
+              <div className="flex flex-wrap items-center gap-1.5 sm:gap-2 min-w-0">
                 <span className="font-mono text-xs font-bold text-slate-300 flex items-center gap-1.5 whitespace-nowrap shrink-0">
                   <Calendar className="w-3.5 h-3.5 text-emerald-400" />
                   {dateStr}

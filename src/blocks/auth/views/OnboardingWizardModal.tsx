@@ -155,7 +155,7 @@ export const OnboardingWizardModal: React.FC<OnboardingWizardModalProps> = ({
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-2.5 sm:p-4 bg-black/85 backdrop-blur-md animate-in fade-in duration-200">
-      <div className="relative w-full max-w-lg max-h-[var(--app-height,90dvh)] rounded-2xl sm:rounded-3xl bg-slate-900 text-slate-100 shadow-2xl border border-slate-800 p-4 sm:p-7 flex flex-col overflow-y-auto overscroll-contain">
+      <div className="relative w-full max-w-lg max-h-[calc(var(--app-height,100dvh)-1.25rem)] rounded-2xl sm:rounded-3xl bg-slate-900 text-slate-100 shadow-2xl border border-slate-800 p-4 sm:p-7 flex flex-col overflow-y-auto overscroll-contain">
         {/* 背景氛圍光暈 */}
         <div className="absolute top-0 left-1/2 -translate-x-1/2 w-72 h-32 bg-emerald-500/15 rounded-full blur-3xl pointer-events-none" />
 
@@ -172,12 +172,12 @@ export const OnboardingWizardModal: React.FC<OnboardingWizardModalProps> = ({
 
         {/* 頂部步驟進度列 */}
         <div className="mb-4 sm:mb-6 space-y-2.5 sm:space-y-3 pr-8 sm:pr-12">
-          <div className="flex items-center justify-between">
-            <div className="inline-flex items-center gap-1.5 px-2.5 sm:px-3 py-1 rounded-full bg-emerald-950/80 border border-emerald-800/80 text-emerald-400 text-[10px] sm:text-[11px] font-extrabold tracking-wide">
+          <div className="flex items-center justify-between gap-2">
+            <div className="inline-flex items-center gap-1.5 shrink-0 px-2.5 sm:px-3 py-1 rounded-full bg-emerald-950/80 border border-emerald-800/80 text-emerald-400 text-[10px] sm:text-[11px] font-extrabold tracking-wide">
               <Sparkles className="w-3.5 h-3.5" />
               新手引導 • 步驟 {step} / 4
             </div>
-            <span className="text-[11px] sm:text-xs font-bold text-slate-400">
+            <span className="text-[11px] sm:text-xs font-bold text-slate-400 min-w-0 truncate">
               {step === 1 && '基本資料與載具'}
               {step === 2 && '標籤庫配置'}
               {step === 3 && '預算目標規劃'}
@@ -226,12 +226,12 @@ export const OnboardingWizardModal: React.FC<OnboardingWizardModalProps> = ({
               </div>
 
               <div>
-                <label className="block text-xs font-bold text-slate-300 mb-1.5 flex items-center justify-between">
-                  <span className="flex items-center gap-1">
+                <label className="block text-xs font-bold text-slate-300 mb-1.5 flex items-center justify-between gap-2">
+                  <span className="flex items-center gap-1 shrink-0">
                     <Barcode className="w-3.5 h-3.5 text-emerald-400" />
                     手機條碼載具
                   </span>
-                  <span className="text-[10px] text-slate-400 font-normal">需以「/」開頭共 8 碼</span>
+                  <span className="text-[10px] text-slate-400 font-normal min-w-0 truncate">需以「/」開頭共 8 碼</span>
                 </label>
                 <input
                   type="text"
@@ -279,7 +279,7 @@ export const OnboardingWizardModal: React.FC<OnboardingWizardModalProps> = ({
             </div>
 
             {/* 現有標籤清單膠囊 */}
-            <div className="p-4 rounded-2xl bg-slate-950 border border-slate-800 space-y-3 text-left">
+            <div className="p-3.5 sm:p-4 rounded-2xl bg-slate-950 border border-slate-800 space-y-3 text-left">
               <div className="text-xs font-bold text-slate-400">目前啟用的標籤 ({tags.length} 個)：</div>
               <div className="flex flex-wrap gap-2">
                 {tags.map((t) => (
@@ -345,7 +345,7 @@ export const OnboardingWizardModal: React.FC<OnboardingWizardModalProps> = ({
             </div>
 
             {/* 每月總預算 */}
-            <div className="p-4 rounded-2xl bg-slate-950 border border-slate-800 text-left space-y-2.5">
+            <div className="p-3.5 sm:p-4 rounded-2xl bg-slate-950 border border-slate-800 text-left space-y-2.5">
               <label className="block text-xs font-bold text-slate-300">每月總支出預算目標</label>
               <div className="relative">
                 <span className="absolute left-3.5 top-1/2 -translate-y-1/2 text-sm font-bold text-slate-400">NT$</span>
@@ -403,8 +403,8 @@ export const OnboardingWizardModal: React.FC<OnboardingWizardModalProps> = ({
                     key={t.id}
                     className="p-2 sm:p-2.5 rounded-xl bg-slate-900/80 border border-slate-800 flex items-center justify-between gap-2"
                   >
-                    <span className="text-xs font-bold text-slate-200 shrink-0 truncate">#{t.name}</span>
-                    <div className="relative w-28">
+                    <span className="text-xs font-bold text-slate-200 min-w-0 truncate">#{t.name}</span>
+                    <div className="relative w-28 shrink-0">
                       <span className="absolute left-2 top-1/2 -translate-y-1/2 text-[10px] text-slate-500 font-bold">NT$</span>
                       <input
                         type="number"
@@ -440,15 +440,15 @@ export const OnboardingWizardModal: React.FC<OnboardingWizardModalProps> = ({
 
             <div className="p-3.5 sm:p-4 rounded-2xl bg-slate-950 border border-slate-800 text-left space-y-3.5">
               {/* 是否啟用 Toggle */}
-              <div className="flex items-center justify-between">
-                <div>
+              <div className="flex items-center justify-between gap-3">
+                <div className="min-w-0">
                   <span className="text-xs font-bold text-slate-200 block">啟用 Gemini AI 雲端模型</span>
                   <span className="text-[11px] text-slate-500">免綁卡、官方提供免費額度</span>
                 </div>
                 <button
                   type="button"
                   onClick={() => setEnableAi(!enableAi)}
-                  className={`w-12 h-6 rounded-full transition-colors relative p-0.5 ${
+                  className={`w-12 h-6 rounded-full transition-colors relative p-0.5 shrink-0 ${
                     enableAi ? 'bg-emerald-600' : 'bg-slate-800'
                   }`}
                 >
@@ -478,7 +478,7 @@ export const OnboardingWizardModal: React.FC<OnboardingWizardModalProps> = ({
                     href="https://aistudio.google.com/app/apikey"
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="inline-flex items-center gap-1 text-[11px] text-emerald-400 hover:text-emerald-300 transition underline underline-offset-2 pt-1 font-medium"
+                    className="inline-flex items-center gap-1 text-[11px] text-emerald-400 hover:text-emerald-300 transition underline underline-offset-2 pt-1 font-medium break-words"
                   >
                     👉 點此免費獲取 Google AI Studio API Key (約 30 秒完成)
                     <ExternalLink className="w-3 h-3" />
@@ -500,7 +500,7 @@ export const OnboardingWizardModal: React.FC<OnboardingWizardModalProps> = ({
             <button
               type="button"
               onClick={() => setStep((s) => (s - 1) as any)}
-              className="px-4 py-2 sm:py-2.5 rounded-xl sm:rounded-2xl bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-white text-xs font-bold transition flex items-center gap-1.5"
+              className="px-4 py-2 sm:py-2.5 rounded-xl sm:rounded-2xl bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-white text-xs font-bold transition flex items-center gap-1.5 shrink-0"
             >
               <ChevronLeft className="w-4 h-4" />
               上一步

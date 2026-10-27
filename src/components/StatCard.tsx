@@ -52,6 +52,7 @@ export const StatCard: React.FC<StatCardProps> = ({
         </span>
 
         {trend && (
+          <span className="shrink-0">
           <Badge
             variant={trend.direction === 'down' ? 'emerald' : trend.direction === 'up' ? 'rose' : 'slate'}
             size="xs"
@@ -59,6 +60,7 @@ export const StatCard: React.FC<StatCardProps> = ({
             {trend.value}
             {trend.label && <span className="opacity-70 font-normal ml-0.5">{trend.label}</span>}
           </Badge>
+          </span>
         )}
       </div>
 

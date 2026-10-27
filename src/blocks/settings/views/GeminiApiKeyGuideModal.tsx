@@ -193,19 +193,19 @@ export const GeminiApiKeyGuideModal: React.FC<GeminiApiKeyGuideModalProps> = ({
       }}
     >
       <div
-        className="relative w-full max-w-xl max-h-[92vh] flex flex-col rounded-3xl bg-slate-900/95 border border-slate-700/80 shadow-2xl text-slate-100 overflow-hidden"
+        className="relative w-full max-w-xl max-h-[calc(var(--app-height,100dvh)-1.5rem)] flex flex-col rounded-3xl bg-slate-900/95 border border-slate-700/80 shadow-2xl text-slate-100 overflow-hidden"
         onClick={(e) => e.stopPropagation()}
       >
         {/* 頂部光暈裝飾 */}
         <div className="absolute top-0 left-1/2 -translate-x-1/2 w-3/4 h-24 bg-emerald-500/15 blur-3xl pointer-events-none" />
 
         {/* Modal Header */}
-        <div className="flex items-start justify-between p-5 sm:p-6 pb-4 border-b border-slate-800/80 relative z-10">
-          <div className="flex items-center gap-3">
+        <div className="flex items-start justify-between gap-2 p-4 sm:p-6 pb-4 border-b border-slate-800/80 relative z-10">
+          <div className="flex items-center gap-3 min-w-0">
             <div className="w-10 h-10 rounded-2xl bg-gradient-to-tr from-emerald-600 to-teal-500 flex items-center justify-center shadow-lg shadow-emerald-500/20 text-white flex-shrink-0">
               <Key className="w-5 h-5" />
             </div>
-            <div>
+            <div className="min-w-0">
               <div className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full bg-emerald-950/80 border border-emerald-800/60 text-[10px] font-extrabold text-emerald-400 mb-1">
                 <Sparkles className="w-3 h-3" />
                 BYOK 專屬免費獨立配額
@@ -228,7 +228,7 @@ export const GeminiApiKeyGuideModal: React.FC<GeminiApiKeyGuideModalProps> = ({
         </div>
 
         {/* Modal Scrollable Body */}
-        <div className="p-5 sm:p-6 space-y-5 overflow-y-auto flex-1 overscroll-contain text-xs relative z-10">
+        <div className="p-4 sm:p-6 space-y-5 overflow-y-auto flex-1 overscroll-contain text-xs relative z-10">
           {/* 帳號權限重要提醒 (Edge Case 1 Alert) */}
           <div className="p-3.5 rounded-2xl bg-amber-500/10 border border-amber-500/30 flex items-start gap-3">
             <AlertTriangle className="w-4 h-4 text-amber-400 flex-shrink-0 mt-0.5" />
@@ -242,7 +242,7 @@ export const GeminiApiKeyGuideModal: React.FC<GeminiApiKeyGuideModalProps> = ({
 
           {/* 4 步驟圖文導引 */}
           <div className="space-y-2.5">
-            <h3 className="font-bold text-xs text-slate-300 flex items-center justify-between">
+            <h3 className="font-bold text-xs text-slate-300 flex items-center justify-between flex-wrap gap-x-2 gap-y-0.5">
               <span>📌 3 分鐘快速取得步驟</span>
               <span className="text-[11px] font-normal text-slate-400">免填信用卡 • 即開即用</span>
             </h3>
@@ -307,8 +307,8 @@ export const GeminiApiKeyGuideModal: React.FC<GeminiApiKeyGuideModalProps> = ({
 
           {/* API Key 填寫與驗證區 */}
           <div className="p-4 rounded-2xl bg-slate-950/80 border border-slate-800 space-y-3">
-            <div className="flex items-center justify-between">
-              <label htmlFor="gemini-api-key-input" className="font-bold text-slate-200 flex items-center gap-1.5">
+            <div className="flex items-center justify-between flex-wrap gap-x-2 gap-y-1">
+              <label htmlFor="gemini-api-key-input" className="font-bold text-slate-200 flex items-center gap-1.5 min-w-0">
                 <Key className="w-3.5 h-3.5 text-emerald-400" />
                 填寫您的 Google Gemini API Key
               </label>
@@ -390,11 +390,11 @@ export const GeminiApiKeyGuideModal: React.FC<GeminiApiKeyGuideModalProps> = ({
                 ) : (
                   <AlertCircle className="w-4 h-4 text-rose-400 flex-shrink-0 mt-0.5" />
                 )}
-                <div className="space-y-0.5">
-                  <div className="font-bold flex items-center gap-1.5">
-                    <span>{validationResult.message}</span>
+                <div className="space-y-0.5 min-w-0">
+                  <div className="font-bold flex items-center gap-1.5 flex-wrap">
+                    <span className="min-w-0 break-words">{validationResult.message}</span>
                     {validationResult.maskedKey && (
-                      <span className="font-mono text-[10px] bg-slate-900 px-1.5 py-0.5 rounded border border-slate-700">
+                      <span className="font-mono text-[10px] bg-slate-900 px-1.5 py-0.5 rounded border border-slate-700 break-all">
                         {validationResult.maskedKey}
                       </span>
                     )}
@@ -426,9 +426,9 @@ export const GeminiApiKeyGuideModal: React.FC<GeminiApiKeyGuideModalProps> = ({
                       onClick={() => setOpenFaqIndex(isOpen ? null : idx)}
                       className="w-full px-3 py-2 text-left flex items-center justify-between gap-2 font-bold text-slate-300 hover:text-white transition"
                     >
-                      <span className="text-[11px]">{item.q}</span>
+                      <span className="text-[11px] min-w-0">{item.q}</span>
                       <ChevronDown
-                        className={`w-3.5 h-3.5 text-slate-400 transition-transform duration-200 ${
+                        className={`w-3.5 h-3.5 shrink-0 text-slate-400 transition-transform duration-200 ${
                           isOpen ? 'rotate-180 text-emerald-400' : ''
                         }`}
                       />
@@ -446,13 +446,13 @@ export const GeminiApiKeyGuideModal: React.FC<GeminiApiKeyGuideModalProps> = ({
         </div>
 
         {/* Modal Footer Actions */}
-        <div className="p-4 sm:p-5 border-t border-slate-800 bg-slate-950/70 flex items-center justify-between gap-3 relative z-10">
-          <div className="flex items-center gap-1.5 text-[11px] text-slate-400">
-            <Lock className="w-3.5 h-3.5 text-emerald-400" />
+        <div className="p-4 sm:p-5 border-t border-slate-800 bg-slate-950/70 flex flex-wrap items-center justify-between gap-x-3 gap-y-2 relative z-10">
+          <div className="flex items-center gap-1.5 text-[11px] text-slate-400 min-w-0">
+            <Lock className="w-3.5 h-3.5 text-emerald-400 shrink-0" />
             <span>本地加密保存，安全無虞</span>
           </div>
 
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-2 flex-wrap justify-end ml-auto">
             {currentApiKey && (
               <button
                 type="button"
@@ -468,7 +468,7 @@ export const GeminiApiKeyGuideModal: React.FC<GeminiApiKeyGuideModalProps> = ({
               type="button"
               onClick={handleValidateAndSave}
               disabled={isValidating || isSaving || isInputEmpty}
-              className="px-5 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-extrabold text-xs shadow-lg shadow-emerald-600/30 flex items-center gap-1.5 transition active:scale-95 disabled:opacity-40 disabled:pointer-events-none"
+              className="px-4 sm:px-5 py-2 whitespace-nowrap rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-extrabold text-xs shadow-lg shadow-emerald-600/30 flex items-center gap-1.5 transition active:scale-95 disabled:opacity-40 disabled:pointer-events-none"
             >
               {isValidating ? (
                 <>

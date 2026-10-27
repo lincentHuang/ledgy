@@ -37,10 +37,10 @@ export function SegmentedControl<T extends string = string>({
 
   const itemPadding =
     size === 'xs'
-      ? 'px-2.5 py-1'
+      ? 'px-2 sm:px-2.5 py-1'
       : size === 'md'
-      ? 'px-4 py-2'
-      : 'px-3 py-1.5';
+      ? 'px-3 sm:px-4 py-2'
+      : 'px-2.5 sm:px-3 py-1.5';
 
   const activeStyles =
     variant === 'purple'
@@ -52,7 +52,7 @@ export function SegmentedControl<T extends string = string>({
 
   return (
     <div
-      className={`inline-flex items-center bg-slate-900/90 border border-slate-800 rounded-2xl font-bold shadow-sm select-none ${
+      className={`inline-flex max-w-full overflow-x-auto no-scrollbar items-center bg-slate-900/90 border border-slate-800 rounded-2xl font-bold shadow-sm select-none ${
         fullWidth ? 'w-full grid' : ''
       } ${sizeClasses} ${className}`}
       style={fullWidth ? { gridTemplateColumns: `repeat(${options.length}, 1fr)` } : undefined}
@@ -64,7 +64,7 @@ export function SegmentedControl<T extends string = string>({
             key={opt.value}
             type="button"
             onClick={() => onChange(opt.value)}
-            className={`inline-flex items-center justify-center gap-1.5 rounded-xl border transition-all duration-200 active:scale-95 ${itemPadding} ${
+            className={`inline-flex items-center justify-center gap-1.5 whitespace-nowrap rounded-xl border transition-all duration-200 active:scale-95 ${itemPadding} ${
               isSelected ? activeStyles : inactiveStyles
             }`}
           >

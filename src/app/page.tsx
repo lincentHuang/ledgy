@@ -176,7 +176,7 @@ export default function Home() {
           className="flex-1 min-w-0 pb-24 lg:pb-6"
         >
           {/* 主內容區 */}
-          <main className="max-w-4xl w-full mx-auto px-4 py-4 sm:py-6 space-y-5">
+          <main className="max-w-4xl w-full min-w-0 mx-auto px-3 min-[400px]:px-4 py-4 sm:py-6 space-y-5">
             {/* 收支明細列表與總覽 */}
             {currentTab === 'overview' && (
               <>

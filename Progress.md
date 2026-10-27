@@ -5,3 +5,4 @@
 - 2026-10-23：語音按鈕即時音量反應與收音階段狀態、偵測裝置不支援即時逐字並提示切換 Google 語音服務（useMicLevel.ts、useSpeechRecognition.ts、VoiceInputModal.tsx）
 - 2026-10-23：Android Chrome 語音改回連續模式以恢復即時逐字、合併重複片段，修正錯誤的語音服務設定提示（useSpeechRecognition.ts、VoiceInputModal.tsx）
 - 2026-10-23：移除語音視窗誤判的「不支援即時逐字」提示（VoiceInputModal.tsx）
+- 2026-10-27：全站手機版排版再優化（320–414px）：彈窗高度扣除外邊距、主捲動區防橫向溢出、flex 列補 min-w-0/truncate/flex-wrap、7 欄月曆週曆縮小間距、走勢圖手機字級放大、側邊欄寬度改 85vw、語音視窗移除重複的瀏海安全區（共 46 檔，src/blocks/*/views、src/components、Modal.tsx、PullToRefresh.tsx）

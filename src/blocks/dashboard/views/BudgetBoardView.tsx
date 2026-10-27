@@ -510,7 +510,7 @@ export const BudgetBoardView: React.FC<BudgetBoardViewProps> = ({
 
         {/* Middle: 金額與進度資訊 */}
         <div className="space-y-1.5 pt-1">
-          <div className="flex items-baseline justify-between gap-2 text-xs">
+          <div className="flex flex-wrap items-baseline justify-between gap-x-2 gap-y-0.5 text-xs">
             <div className="text-slate-400 whitespace-nowrap min-w-0">
               已花費{' '}
               <span className={`font-mono font-black text-sm tabular-nums whitespace-nowrap ${statusConfig.textColor}`}>
@@ -551,7 +551,7 @@ export const BudgetBoardView: React.FC<BudgetBoardViewProps> = ({
                 />
               </div>
 
-              <div className="flex items-center justify-between gap-2 text-[10px] text-slate-400 font-mono tabular-nums">
+              <div className="flex flex-wrap items-center justify-between gap-x-2 gap-y-0.5 text-[10px] text-slate-400 font-mono tabular-nums">
                 <span className="min-w-0">
                   {item.status === 'over' ? (
                     <span className="text-rose-400 font-bold">
@@ -576,7 +576,7 @@ export const BudgetBoardView: React.FC<BudgetBoardViewProps> = ({
           {/* 快速微調預算列 */}
           {isEditing ? (
             <div className="pt-2 border-t border-white/5 space-y-2 animate-in fade-in">
-              <div className="flex items-center justify-between gap-2 text-[11px]">
+              <div className="flex flex-wrap items-center justify-between gap-2 text-[11px]">
                 <span className="text-slate-400 font-medium whitespace-nowrap">調整每月預算：</span>
                 <div className="flex items-center gap-1 shrink-0">
                   <button
@@ -727,8 +727,8 @@ export const BudgetBoardView: React.FC<BudgetBoardViewProps> = ({
           </div>
 
           <div className="min-w-0">
-            <h2 className="font-extrabold text-base sm:text-lg text-white flex items-center gap-2 whitespace-nowrap">
-              <span>預算看板模式</span>
+            <h2 className="font-extrabold text-base sm:text-lg text-white flex flex-wrap items-center gap-x-2 gap-y-0.5">
+              <span className="whitespace-nowrap">預算看板模式</span>
               <Badge variant={currentLedgerType === 'household' ? 'purple' : 'emerald'} size="xs">
                 {currentLedgerType === 'household' ? 'GROUP KANBAN' : 'PERSONAL KANBAN'}
               </Badge>
@@ -740,7 +740,7 @@ export const BudgetBoardView: React.FC<BudgetBoardViewProps> = ({
         </div>
 
         {/* 月份導航器 */}
-        <div className="flex flex-wrap items-center gap-2 self-start sm:self-auto">
+        <div className="flex flex-wrap items-center gap-2 self-start sm:self-auto max-w-full">
           <div className="flex items-center bg-slate-900/90 border border-slate-800 rounded-2xl p-1 shadow-sm">
             <button
               type="button"
@@ -881,7 +881,7 @@ export const BudgetBoardView: React.FC<BudgetBoardViewProps> = ({
               variant={remainingTotalBudget < 0 ? 'auto' : 'emerald'}
               height="md"
             />
-            <div className="flex justify-between gap-2 text-[10px] text-slate-400 font-mono tabular-nums">
+            <div className="flex flex-wrap justify-between gap-x-2 gap-y-0.5 text-[10px] text-slate-400 font-mono tabular-nums">
               <span className="whitespace-nowrap">預算已消耗 {overallUsagePercent}%</span>
               <span>
                 {pacingStats.isThisMonth
@@ -927,7 +927,7 @@ export const BudgetBoardView: React.FC<BudgetBoardViewProps> = ({
       {/* 3. 看板檢視工具列 (看板分欄 vs 網格全覽切換 & 搜尋 & 排序) */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2.5 pt-1">
         {/* 檢視模式切換 */}
-        <div className="flex items-center gap-1 bg-slate-900/90 p-1 rounded-2xl border border-slate-800 self-start max-w-full">
+        <div className="flex items-center gap-1 bg-slate-900/90 p-1 rounded-2xl border border-slate-800 self-start max-w-full overflow-x-auto no-scrollbar">
           <button
             type="button"
             onClick={() => setBoardLayout('kanban')}
@@ -956,7 +956,7 @@ export const BudgetBoardView: React.FC<BudgetBoardViewProps> = ({
         </div>
 
         {/* 搜尋與排序 */}
-        <div className="flex flex-wrap items-center gap-2">
+        <div className="flex flex-wrap items-center gap-2 min-w-0">
           {boardLayout === 'grid' && (
             <div className="flex items-center gap-1 bg-slate-900 border border-slate-800 rounded-xl px-2 py-1 text-xs whitespace-nowrap shrink-0">
               <ArrowUpDown className="w-3 h-3 text-slate-400" />
@@ -973,13 +973,13 @@ export const BudgetBoardView: React.FC<BudgetBoardViewProps> = ({
             </div>
           )}
 
-          <div className="relative">
+          <div className="relative flex-1 sm:flex-none min-w-0">
             <input
               type="text"
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               placeholder="搜尋標籤..."
-              className="w-36 sm:w-48 px-3 py-1.5 pl-8 rounded-xl bg-slate-900 border border-slate-800 text-xs text-white placeholder-slate-500 focus:outline-none focus:ring-1 focus:ring-emerald-500"
+              className="w-full min-w-[9rem] sm:w-48 px-3 py-1.5 pl-8 rounded-xl bg-slate-900 border border-slate-800 text-xs text-white placeholder-slate-500 focus:outline-none focus:ring-1 focus:ring-emerald-500"
             />
             <Search className="w-3.5 h-3.5 text-slate-400 absolute left-2.5 top-1/2 -translate-y-1/2" />
             {searchQuery && (

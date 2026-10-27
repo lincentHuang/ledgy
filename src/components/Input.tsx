@@ -27,7 +27,7 @@ export const Input = React.forwardRef<HTMLInputElement, InputProps>(
     ref
   ) => {
     return (
-      <div className="w-full space-y-1">
+      <div className="w-full min-w-0 space-y-1">
         {label && (
           <label className="block text-[11px] font-bold text-slate-300">
             {label}

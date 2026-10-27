@@ -45,9 +45,9 @@ export const ProgressBar: React.FC<ProgressBarProps> = ({
   return (
     <div className={`w-full space-y-1.5 ${className}`}>
       {showLabel && (
-        <div className="flex items-center justify-between text-xs text-slate-400">
-          <span>{currentLabel || `進度: ${safePercent}%`}</span>
-          {maxLabel && <span className="font-mono text-slate-300">{maxLabel}</span>}
+        <div className="flex items-center justify-between gap-2 text-xs text-slate-400">
+          <span className="min-w-0 truncate">{currentLabel || `進度: ${safePercent}%`}</span>
+          {maxLabel && <span className="font-mono text-slate-300 shrink-0">{maxLabel}</span>}
         </div>
       )}
       <div className={`w-full ${heightClasses[height]} rounded-full bg-slate-800/80 overflow-hidden`}>

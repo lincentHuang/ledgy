@@ -168,8 +168,8 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/75 backdrop-blur-sm animate-in fade-in duration-200">
-      <div className="relative w-full max-w-lg max-h-[90vh] rounded-3xl bg-slate-900 text-slate-100 shadow-2xl border border-slate-800 p-5 sm:p-6 flex flex-col overflow-hidden">
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-black/75 backdrop-blur-sm animate-in fade-in duration-200">
+      <div className="relative w-full max-w-lg max-h-[calc(var(--app-height,100dvh)-1.5rem)] rounded-3xl bg-slate-900 text-slate-100 shadow-2xl border border-slate-800 p-4 sm:p-6 flex flex-col overflow-hidden">
         {/* Header */}
         <div className="flex items-center justify-between gap-2 pb-3 border-b border-slate-800">
           <div className="min-w-0">
@@ -338,7 +338,7 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
                       {household.members.map((m) => (
                         <div
                           key={m.userId}
-                          className="flex items-center justify-between p-2.5 rounded-xl bg-slate-900/80 border border-slate-800"
+                          className="flex items-center justify-between gap-2 p-2.5 rounded-xl bg-slate-900/80 border border-slate-800"
                         >
                           <div className="flex items-center gap-2 min-w-0">
                             <div className="w-7 h-7 shrink-0 rounded-full bg-purple-950 text-purple-400 border border-purple-800 flex items-center justify-center font-bold text-xs">
@@ -360,7 +360,7 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
                   </div>
 
                   {/* 退出與解散群組按鈕 */}
-                  <div className="pt-2 border-t border-slate-800 flex justify-between items-center gap-2">
+                  <div className="pt-2 border-t border-slate-800 flex flex-wrap justify-between items-center gap-2">
                     {household.ownerId === user.uid && (
                       <button
                         onClick={() => setShowDeleteModal(true)}
@@ -453,9 +453,9 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
           {activeTab === 'payments' && (
             <div className="space-y-4">
               <div className="p-4 rounded-2xl bg-slate-800/50 border border-slate-800 space-y-3">
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-2">
-                    <CreditCard className="w-4 h-4 text-sky-400" />
+                <div className="flex items-center justify-between gap-2">
+                  <div className="flex items-center gap-2 min-w-0">
+                    <CreditCard className="w-4 h-4 text-sky-400 shrink-0" />
                     <h3 className="font-bold text-sm text-slate-200">付款方式管理</h3>
                   </div>
                   <span className="text-[10px] text-slate-400 whitespace-nowrap shrink-0">
@@ -495,10 +495,10 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
                   {paymentMethods.map((pm) => (
                     <div
                       key={pm}
-                      className="flex items-center justify-between p-2.5 rounded-xl bg-slate-900/80 border border-slate-800 hover:border-slate-700 transition"
+                      className="flex items-center justify-between gap-2 p-2.5 rounded-xl bg-slate-900/80 border border-slate-800 hover:border-slate-700 transition"
                     >
                       {editingPaymentOld === pm ? (
-                        <div className="flex items-center gap-2 flex-1 mr-2">
+                        <div className="flex items-center gap-2 flex-1 min-w-0 mr-2">
                           <input
                             type="text"
                             value={editingPaymentNew}
@@ -562,9 +562,9 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
           {activeTab === 'tags' && (
             <div className="space-y-4">
               <div className="p-4 rounded-2xl bg-slate-800/50 border border-slate-800 space-y-3">
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-2">
-                    <Tag className="w-4 h-4 text-emerald-400" />
+                <div className="flex items-center justify-between gap-2">
+                  <div className="flex items-center gap-2 min-w-0">
+                    <Tag className="w-4 h-4 text-emerald-400 shrink-0" />
                     <h3 className="font-bold text-sm text-slate-200">標籤與分類庫管理</h3>
                   </div>
                   <span className="text-[10px] text-slate-400 whitespace-nowrap shrink-0">共 {availableTags.length} 個標籤</span>
@@ -602,10 +602,10 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
                   {availableTags.map((tag) => (
                     <div
                       key={tag}
-                      className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-slate-800 border border-slate-700 text-slate-200 font-medium text-xs group whitespace-nowrap shrink-0"
+                      className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-slate-800 border border-slate-700 text-slate-200 font-medium text-xs group whitespace-nowrap max-w-full"
                     >
                       <span className="text-emerald-400 font-bold">#</span>
-                      <span>{tag}</span>
+                      <span className="truncate min-w-0">{tag}</span>
                       <button
                         onClick={() => removeCustomTag(tag)}
                         className="opacity-60 hover:opacity-100 hover:text-rose-400 ml-1 text-slate-400 transition"
@@ -640,9 +640,9 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
                   learningRules.map((rule) => (
                     <div
                       key={rule.id}
-                      className="p-2.5 rounded-xl bg-slate-900 border border-slate-800 flex items-center justify-between"
+                      className="p-2.5 rounded-xl bg-slate-900 border border-slate-800 flex items-center justify-between gap-2"
                     >
-                      <div>
+                      <div className="min-w-0 break-words">
                         <p className="font-bold text-slate-200">
                           關鍵字: <span className="text-emerald-400">「{rule.vendorPattern || rule.keywordPattern || '生活消費'}」</span>
                         </p>

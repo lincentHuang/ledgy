@@ -264,7 +264,7 @@ export const WeekView: React.FC<WeekViewProps> = ({
           <button
             type="button"
             onClick={() => setIsWeekModalOpen(true)}
-            className="px-2.5 sm:px-3 py-1.5 text-xs font-bold whitespace-nowrap min-w-0 rounded-xl bg-slate-800/90 hover:bg-slate-700 text-slate-200 hover:text-emerald-300 transition active:scale-95 flex items-center gap-1.5 border border-slate-700/60 shadow-sm"
+            className="px-2.5 sm:px-3 py-1.5 text-xs font-bold whitespace-nowrap shrink min-w-0 rounded-xl bg-slate-800/90 hover:bg-slate-700 text-slate-200 hover:text-emerald-300 transition active:scale-95 flex items-center gap-1.5 border border-slate-700/60 shadow-sm"
             title="點擊展開週曆趨勢"
           >
             <BarChart3 className="w-3.5 h-3.5 text-emerald-400 shrink-0" />
@@ -311,7 +311,7 @@ export const WeekView: React.FC<WeekViewProps> = ({
       {isWeekModalOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-black/80 backdrop-blur-md animate-in fade-in duration-200 select-none">
           <div
-            className="relative w-full max-w-lg rounded-3xl glass-modal border border-emerald-500/30 bg-slate-900/95 shadow-2xl p-4 sm:p-5 space-y-4 text-slate-100 animate-in zoom-in-95 duration-200"
+            className="relative w-full max-w-lg max-h-[calc(var(--app-height,100dvh)-1.5rem)] overflow-y-auto rounded-3xl glass-modal border border-emerald-500/30 bg-slate-900/95 shadow-2xl p-4 sm:p-5 space-y-4 text-slate-100 animate-in zoom-in-95 duration-200"
             onClick={(e) => e.stopPropagation()}
           >
             <div className="flex items-center justify-between border-b border-slate-800 pb-3">
@@ -367,7 +367,7 @@ export const WeekView: React.FC<WeekViewProps> = ({
 
             {/* 🎯 極簡 7 天柱狀分佈 (支援滑鼠/觸控拖曳連續框選與點擊) */}
             <div
-              className="grid grid-cols-7 gap-1 sm:gap-2 pt-2 pb-1 touch-none"
+              className="grid grid-cols-7 gap-0.5 min-[360px]:gap-1 sm:gap-2 pt-2 pb-1 touch-none"
               onTouchMove={handleTouchMove}
             >
               {dailyAmounts.map((d, index) => {
@@ -387,7 +387,7 @@ export const WeekView: React.FC<WeekViewProps> = ({
                     onMouseDown={() => handleDayMouseDown(index)}
                     onMouseEnter={() => handleDayMouseEnter(index)}
                     onTouchStart={() => handleDayMouseDown(index)}
-                    className={`flex flex-col items-center justify-end py-2 px-1 rounded-2xl transition group relative cursor-pointer border ${
+                    className={`flex flex-col items-center justify-end min-w-0 py-2 px-0.5 sm:px-1 rounded-2xl transition group relative cursor-pointer border ${
                       isDragging && isSelected
                         ? 'bg-emerald-950/90 border-emerald-400 shadow-md ring-1 ring-emerald-400/50'
                         : isExplicitlySingleOrMulti
@@ -459,7 +459,7 @@ export const WeekView: React.FC<WeekViewProps> = ({
 
             {/* 單選日期當日備忘預覽與編輯快捷列 */}
             {selectedDates.length === 1 && (
-              <div className="flex items-center justify-between px-3 py-2 rounded-2xl bg-slate-950/60 border border-slate-800 text-xs">
+              <div className="flex items-center justify-between gap-2 px-3 py-2 rounded-2xl bg-slate-950/60 border border-slate-800 text-xs">
                 <div className="flex items-center gap-2 min-w-0">
                   <StickyNote className="w-3.5 h-3.5 text-amber-400 flex-shrink-0" />
                   <span className="text-[11px] text-slate-300 truncate">
@@ -479,7 +479,7 @@ export const WeekView: React.FC<WeekViewProps> = ({
             )}
 
             {/* Modal 底部 */}
-            <div className="flex items-center justify-between gap-2 pt-3 border-t border-slate-800 text-xs">
+            <div className="flex flex-wrap items-center justify-between gap-2 pt-3 border-t border-slate-800 text-xs">
               <div className="text-slate-400 min-w-0">
                 {selectedDates.length > 0
                   ? `已選取 ${selectedDates.length} 天`

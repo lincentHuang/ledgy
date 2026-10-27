@@ -376,7 +376,7 @@ export const BudgetAllocationView: React.FC<BudgetAllocationViewProps> = ({
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 pb-2 border-b border-white/5">
           <div className="flex items-center gap-2 min-w-0">
             <Sliders className="w-4 h-4 text-emerald-400 shrink-0" />
-            <h4 className="font-bold text-sm text-white whitespace-nowrap">標籤預算明細表 ({targetTagItems.length} 個標籤)</h4>
+            <h4 className="font-bold text-sm text-white truncate min-w-0">標籤預算明細表 ({targetTagItems.length} 個標籤)</h4>
           </div>
 
           <div className="relative max-w-xs w-full">
@@ -437,7 +437,7 @@ export const BudgetAllocationView: React.FC<BudgetAllocationViewProps> = ({
 
                 {/* Middle: Spending vs Budget Input */}
                 <div className="flex items-center justify-between gap-2 text-xs">
-                  <div className="text-slate-400 whitespace-nowrap min-w-0">
+                  <div className="text-slate-400 truncate min-w-0 flex-1">
                     本月已花費：
                     <span className="font-mono font-bold text-slate-200 ml-1 tabular-nums">
                       ${spent.toLocaleString()}
@@ -453,7 +453,7 @@ export const BudgetAllocationView: React.FC<BudgetAllocationViewProps> = ({
                         handleSetTagBudget(tagItem, Number(e.target.value))
                       }
                       placeholder="0"
-                      className="w-20 sm:w-24 px-2 py-1 text-xs font-mono font-bold rounded-lg border border-slate-700 bg-slate-950 text-emerald-400 text-right focus:outline-none focus:ring-1 focus:ring-emerald-500"
+                      className="w-20 sm:w-24 min-w-0 px-2 py-1 text-xs font-mono font-bold rounded-lg border border-slate-700 bg-slate-950 text-emerald-400 text-right focus:outline-none focus:ring-1 focus:ring-emerald-500"
                     />
                   </div>
                 </div>

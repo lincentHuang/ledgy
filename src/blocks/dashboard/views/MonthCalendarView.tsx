@@ -319,7 +319,7 @@ export const MonthCalendarView: React.FC<MonthCalendarViewProps> = ({
           <button
             type="button"
             onClick={() => setIsMonthModalOpen(true)}
-            className="px-2.5 sm:px-3 py-1.5 text-xs font-bold whitespace-nowrap min-w-0 rounded-xl bg-slate-800/90 hover:bg-slate-700 text-slate-200 hover:text-emerald-300 transition active:scale-95 flex items-center gap-1.5 border border-slate-700/60 shadow-sm"
+            className="px-2.5 sm:px-3 py-1.5 text-xs font-bold whitespace-nowrap shrink min-w-0 rounded-xl bg-slate-800/90 hover:bg-slate-700 text-slate-200 hover:text-emerald-300 transition active:scale-95 flex items-center gap-1.5 border border-slate-700/60 shadow-sm"
             title="點擊展開月曆"
           >
             <CalendarDays className="w-3.5 h-3.5 text-emerald-400 shrink-0" />
@@ -366,7 +366,7 @@ export const MonthCalendarView: React.FC<MonthCalendarViewProps> = ({
       {isMonthModalOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-black/80 backdrop-blur-md animate-in fade-in duration-200 select-none">
           <div
-            className="relative w-full max-w-md rounded-3xl glass-modal border border-emerald-500/30 bg-slate-900/95 shadow-2xl p-4 sm:p-5 space-y-4 text-slate-100 animate-in zoom-in-95 duration-200"
+            className="relative w-full max-w-md max-h-[calc(var(--app-height,100dvh)-1.5rem)] overflow-y-auto rounded-3xl glass-modal border border-emerald-500/30 bg-slate-900/95 shadow-2xl p-4 sm:p-5 space-y-4 text-slate-100 animate-in zoom-in-95 duration-200"
             onClick={(e) => e.stopPropagation()}
           >
             <div className="flex items-center justify-between border-b border-slate-800 pb-3">
@@ -419,7 +419,7 @@ export const MonthCalendarView: React.FC<MonthCalendarViewProps> = ({
             </div>
 
             {/* 星期抬頭 */}
-            <div className="grid grid-cols-7 gap-1 text-center text-xs font-bold text-slate-400">
+            <div className="grid grid-cols-7 gap-0.5 sm:gap-1 text-center text-xs font-bold text-slate-400">
               {WEEK_DAYS.map((wd) => (
                 <span key={wd} className={wd === '日' || wd === '六' ? 'text-amber-400/80' : ''}>
                   {wd}
@@ -429,7 +429,7 @@ export const MonthCalendarView: React.FC<MonthCalendarViewProps> = ({
 
             {/* 精簡月曆網格 (支援滑鼠/觸控拖曳框選與點選) */}
             <div
-              className="grid grid-cols-7 gap-1 sm:gap-1.5 touch-none"
+              className="grid grid-cols-7 gap-0.5 min-[360px]:gap-1 sm:gap-1.5 touch-none"
               onTouchMove={handleTouchMove}
             >
               {/* 前置空白格 */}
@@ -457,7 +457,7 @@ export const MonthCalendarView: React.FC<MonthCalendarViewProps> = ({
                     onMouseDown={() => handleDayMouseDown(index)}
                     onMouseEnter={() => handleDayMouseEnter(index)}
                     onTouchStart={() => handleDayMouseDown(index)}
-                    className={`h-10 sm:h-11 p-1 rounded-xl border flex flex-col justify-between items-center transition relative cursor-pointer group select-none ${
+                    className={`h-10 sm:h-11 min-w-0 overflow-hidden p-0.5 sm:p-1 rounded-xl border flex flex-col justify-between items-center transition relative cursor-pointer group select-none ${
                       isDragging && isSelected
                         ? 'border-emerald-400 bg-emerald-950/90 shadow ring-1 ring-emerald-400/50'
                         : isExplicitlySingleOrMulti
@@ -512,7 +512,7 @@ export const MonthCalendarView: React.FC<MonthCalendarViewProps> = ({
 
             {/* 單選日期當日備忘預覽與編輯快捷列 */}
             {selectedDates.length === 1 && (
-              <div className="flex items-center justify-between px-3 py-2 rounded-2xl bg-slate-950/60 border border-slate-800 text-xs">
+              <div className="flex items-center justify-between gap-2 px-3 py-2 rounded-2xl bg-slate-950/60 border border-slate-800 text-xs">
                 <div className="flex items-center gap-2 min-w-0">
                   <StickyNote className="w-3.5 h-3.5 text-amber-400 flex-shrink-0" />
                   <span className="text-[11px] text-slate-300 truncate">
@@ -532,7 +532,7 @@ export const MonthCalendarView: React.FC<MonthCalendarViewProps> = ({
             )}
 
             {/* Modal 底部 */}
-            <div className="flex items-center justify-between gap-2 pt-3 border-t border-slate-800 text-xs">
+            <div className="flex flex-wrap items-center justify-between gap-2 pt-3 border-t border-slate-800 text-xs">
               <div className="text-slate-400 min-w-0">
                 {selectedDates.length > 0
                   ? `已選取 ${selectedDates.length} 天`

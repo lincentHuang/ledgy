@@ -162,14 +162,14 @@ export const AnalyticsView: React.FC = () => {
   return (
     <div className="space-y-4 animate-in fade-in duration-200">
       {/* 📈 股票式走勢看板 (Stock Candle/Trend Panel) */}
-      <div className="glass-panel rounded-3xl p-5 sm:p-6 shadow-xl border border-slate-800 space-y-4 relative overflow-hidden">
+      <div className="glass-panel rounded-3xl p-4 sm:p-6 shadow-xl border border-slate-800 space-y-4 relative overflow-hidden">
         {/* 背景光暈效果 */}
         <div className="absolute -top-24 -right-24 w-72 h-72 rounded-full bg-emerald-500/10 blur-3xl pointer-events-none" />
 
         {/* 頂部：股票代號式抬頭與週期切換 */}
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 relative z-10">
           <div className="min-w-0">
-            <div className="flex items-center gap-2">
+            <div className="flex items-center gap-2 min-w-0">
               <span className="text-[11px] font-extrabold uppercase whitespace-nowrap shrink-0 px-2 py-0.5 rounded-md bg-emerald-950/80 text-emerald-400 border border-emerald-800/80">
                 EXPENSE TREND
               </span>
@@ -177,7 +177,7 @@ export const AnalyticsView: React.FC = () => {
             </div>
 
             <div className="flex items-baseline flex-wrap gap-x-3 gap-y-1 mt-1.5">
-              <span className="text-xl sm:text-3xl font-black font-mono tabular-nums whitespace-nowrap tracking-tight text-white">
+              <span className="text-xl sm:text-3xl font-black font-mono tabular-nums whitespace-nowrap tracking-tight text-white max-w-full truncate">
                 NT$ {totalExpense.toLocaleString()}
               </span>
 
@@ -222,7 +222,7 @@ export const AnalyticsView: React.FC = () => {
           {activePoint && (
             <div
               style={{
-                left: `${(activePoint.x / svgWidth) * 100}%`,
+                left: `clamp(3.5rem, ${(activePoint.x / svgWidth) * 100}%, calc(100% - 3.5rem))`,
                 top: '0px',
               }}
               className="absolute z-20 -translate-x-1/2 -translate-y-2 pointer-events-none bg-slate-900/95 border border-emerald-500/60 shadow-xl rounded-xl p-2 text-center text-xs animate-in fade-in zoom-in-95 backdrop-blur-md"
@@ -280,6 +280,7 @@ export const AnalyticsView: React.FC = () => {
                     fill="#64748B"
                     fontSize="9"
                     fontFamily="monospace"
+                    className="text-[20px] sm:text-[12px] md:text-[10px]"
                   >
                     ${gridAmount >= 1000 ? `${(gridAmount / 1000).toFixed(1)}k` : gridAmount}
                   </text>
@@ -368,6 +369,7 @@ export const AnalyticsView: React.FC = () => {
                   fill="#94A3B8"
                   fontSize="10"
                   fontFamily="monospace"
+                    className="text-[20px] sm:text-[12px] md:text-[10px]"
                 >
                   {pt.data.shortLabel}
                 </text>
@@ -377,19 +379,19 @@ export const AnalyticsView: React.FC = () => {
 
         {/* 底部摘要指標 (最高日 / 日均 / 最低日) */}
         <div className="grid grid-cols-3 divide-x divide-slate-800 pt-3 border-t border-slate-800/80 text-center text-xs">
-          <div>
+          <div className="min-w-0 px-1">
             <p className="text-[10px] text-slate-400">週期日均</p>
-            <p className="font-mono font-bold text-slate-200 mt-0.5">
+            <p className="font-mono font-bold text-slate-200 mt-0.5 truncate">
               NT$ {avgExpense.toLocaleString()}
             </p>
           </div>
-          <div>
+          <div className="min-w-0 px-1">
             <p className="text-[10px] text-slate-400">最高單日</p>
-            <p className="font-mono font-bold text-amber-400 mt-0.5">
+            <p className="font-mono font-bold text-amber-400 mt-0.5 truncate">
               NT$ {maxExpense.toLocaleString()}
             </p>
           </div>
-          <div>
+          <div className="min-w-0 px-1">
             <p className="text-[10px] text-slate-400">記錄筆數</p>
             <p className="font-mono font-bold text-slate-200 mt-0.5">
               {chartData.reduce((s, p) => s + p.count, 0)} 筆
@@ -399,7 +401,7 @@ export const AnalyticsView: React.FC = () => {
       </div>
 
       {/* 💼 標籤支出持股佔比 (Portfolio Tag Breakdown) */}
-      <div className="glass-panel rounded-3xl p-5 shadow-sm space-y-3.5">
+      <div className="glass-panel rounded-3xl p-4 sm:p-5 shadow-sm space-y-3.5">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2 min-w-0">
             <div className="p-2 rounded-2xl bg-emerald-950/80 border border-emerald-800 text-emerald-400 shrink-0">
@@ -451,7 +453,7 @@ export const AnalyticsView: React.FC = () => {
           <Sparkles className="w-4 h-4" />
         </div>
         <div className="space-y-1 min-w-0">
-          <p className="font-bold text-slate-100 flex flex-wrap items-center gap-x-1.5 whitespace-nowrap">
+          <p className="font-bold text-slate-100 flex flex-wrap items-center gap-x-1.5">
             <span>AI 走勢診斷報告</span>
             <span className="text-[10px] text-emerald-400 font-mono">● 即時運算</span>
           </p>

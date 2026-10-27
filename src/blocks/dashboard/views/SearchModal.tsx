@@ -111,14 +111,14 @@ export const SearchModal: React.FC<SearchModalProps> = ({
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-black/80 backdrop-blur-md animate-in fade-in duration-200">
       <div
-        className="relative w-full max-w-xl max-h-[var(--app-height,88vh)] rounded-3xl glass-modal border border-emerald-500/30 bg-slate-900/95 shadow-2xl flex flex-col overflow-hidden animate-in zoom-in-95 duration-200 text-slate-100"
+        className="relative w-full max-w-xl max-h-[calc(var(--app-height,100dvh)-1.5rem)] rounded-3xl glass-modal border border-emerald-500/30 bg-slate-900/95 shadow-2xl flex flex-col overflow-hidden animate-in zoom-in-95 duration-200 text-slate-100"
         onClick={(e) => e.stopPropagation()}
       >
         {/* 頂部搜尋列 */}
-        <div className="p-4 border-b border-slate-800 space-y-3">
+        <div className="p-3 sm:p-4 border-b border-slate-800 space-y-3">
           <div className="flex items-center justify-between gap-2">
             <div className="flex items-center gap-2 text-sm font-bold text-white whitespace-nowrap min-w-0">
-              <Search className="w-4 h-4 text-emerald-400" />
+              <Search className="w-4 h-4 text-emerald-400 shrink-0" />
               <span>搜尋記帳項目</span>
             </div>
             <button
@@ -188,8 +188,8 @@ export const SearchModal: React.FC<SearchModalProps> = ({
         </div>
 
         {/* 搜尋結果統計列 */}
-        <div className="px-3 sm:px-4 py-2 bg-slate-950/60 border-b border-slate-800/80 flex items-center justify-between gap-2 text-xs whitespace-nowrap text-slate-400">
-          <span>
+        <div className="px-3 sm:px-4 py-2 bg-slate-950/60 border-b border-slate-800/80 flex flex-wrap items-center justify-between gap-x-2 gap-y-0.5 text-xs text-slate-400">
+          <span className="whitespace-nowrap">
             搜尋結果：<strong className="text-white font-bold">{searchResults.length}</strong> 筆
           </span>
           {searchResults.length > 0 && (
@@ -223,14 +223,14 @@ export const SearchModal: React.FC<SearchModalProps> = ({
                 <div
                   key={tx.id}
                   onClick={() => onEditTransaction(tx)}
-                  className="p-3 rounded-2xl bg-slate-800/60 border border-slate-700/60 hover:border-emerald-500/50 hover:bg-slate-800 transition cursor-pointer flex items-center justify-between gap-3 group"
+                  className="p-3 rounded-2xl bg-slate-800/60 border border-slate-700/60 hover:border-emerald-500/50 hover:bg-slate-800 transition cursor-pointer flex items-center justify-between gap-2 sm:gap-3 group"
                 >
-                  <div className="flex items-center gap-3 min-w-0">
-                    <div className="w-10 h-10 rounded-xl bg-slate-700/60 border border-slate-600/50 flex items-center justify-center flex-shrink-0 group-hover:scale-105 transition">
+                  <div className="flex items-center gap-2 sm:gap-3 min-w-0 flex-1">
+                    <div className="w-9 h-9 sm:w-10 sm:h-10 rounded-xl bg-slate-700/60 border border-slate-600/50 flex items-center justify-center flex-shrink-0 group-hover:scale-105 transition">
                       <Tag className="w-4 h-4 text-emerald-400" />
                     </div>
 
-                    <div className="min-w-0 space-y-0.5">
+                    <div className="min-w-0 flex-1 space-y-0.5">
                       <div className="flex items-center gap-2 min-w-0">
                         <h4 className="font-bold text-xs sm:text-sm text-white truncate group-hover:text-emerald-300 transition">
                           {tx.title || '無品項名稱'}
