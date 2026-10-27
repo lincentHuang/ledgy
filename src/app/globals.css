@@ -166,3 +166,71 @@ input, textarea, [contenteditable="true"], .selectable-text {
   -ms-overflow-style: none;
   scrollbar-width: none;
 }
+
+/* 🤖 智帳君吉祥物動畫 (LedgyMascot) */
+.ledgy-mascot { overflow: visible; }
+.ledgy-mascot .ledgy-body { transform-box: fill-box; transform-origin: 50% 90%; animation: ledgy-float 3.2s ease-in-out infinite; }
+.ledgy-mascot .ledgy-eyes { transform-box: fill-box; transform-origin: center; animation: ledgy-blink 4.2s infinite; }
+.ledgy-mascot .ledgy-face { transition: transform 0.3s ease; }
+.ledgy-mascot .ledgy-spark-a,
+.ledgy-mascot .ledgy-spark-b { transform-box: fill-box; transform-origin: center; animation: ledgy-twinkle 2.4s ease-in-out infinite; }
+.ledgy-mascot .ledgy-spark-b { animation-delay: 1.2s; }
+.ledgy-mascot .ledgy-headphones,
+.ledgy-mascot .ledgy-waves,
+.ledgy-mascot .ledgy-pencil,
+.ledgy-mascot .ledgy-notes { opacity: 0; transition: opacity 0.25s ease; }
+.ledgy-mascot .ledgy-coin { transition: opacity 0.25s ease; }
+
+/* 聆聽：戴耳機、跟著音量 (--mic-level) 搖擺、音波擴散 */
+.ledgy-listening .ledgy-headphones { opacity: 1; }
+.ledgy-listening .ledgy-waves { opacity: calc(0.45 + var(--mic-level, 0) * 0.55); }
+.ledgy-listening .ledgy-body { animation: ledgy-groove 1.4s ease-in-out infinite; }
+.ledgy-listening .ledgy-coin { opacity: 0; }
+.ledgy-mascot .ledgy-wave-1,
+.ledgy-mascot .ledgy-wave-2 { transform-box: view-box; transform-origin: 60px 60px; animation: ledgy-wave 1.2s ease-out infinite; }
+.ledgy-mascot .ledgy-wave-2 { animation-delay: 0.3s; }
+
+/* 記筆記：低頭、鉛筆沿著線條書寫 */
+.ledgy-writing .ledgy-pencil,
+.ledgy-writing .ledgy-notes { opacity: 1; }
+.ledgy-writing .ledgy-coin { opacity: 0; }
+.ledgy-writing .ledgy-face { transform: translateY(-3px); }
+.ledgy-writing .ledgy-eyes { animation: ledgy-look-down 2.4s ease-in-out infinite; }
+.ledgy-writing .ledgy-pencil { animation: ledgy-pencil 2.4s ease-in-out infinite; }
+.ledgy-mascot .ledgy-notes path { stroke-dasharray: 1; stroke-dashoffset: 1; }
+.ledgy-writing .ledgy-line-1 { animation: ledgy-line-1 2.4s linear infinite; }
+.ledgy-writing .ledgy-line-2 { animation: ledgy-line-2 2.4s linear infinite; }
+.ledgy-writing .ledgy-line-3 { animation: ledgy-line-3 2.4s linear infinite; }
+
+@keyframes ledgy-float { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-3px); } }
+@keyframes ledgy-groove {
+  0%, 100% { transform: rotate(-4deg) translateY(0); }
+  50% { transform: rotate(4deg) translateY(-2px); }
+}
+@keyframes ledgy-blink { 0%, 92%, 100% { transform: scaleY(1); } 95% { transform: scaleY(0.1); } }
+@keyframes ledgy-look-down { 0%, 100% { transform: translate(-1px, 3px); } 50% { transform: translate(2px, 3px); } }
+@keyframes ledgy-twinkle { 0%, 100% { transform: scale(1); opacity: 1; } 50% { transform: scale(0.6); opacity: 0.5; } }
+@keyframes ledgy-wave {
+  0% { transform: scale(0.9); opacity: 0.2; }
+  40% { opacity: 1; }
+  100% { transform: scale(1.12); opacity: 0; }
+}
+@keyframes ledgy-pencil {
+  0% { transform: translate(44px, 82px); }
+  25% { transform: translate(78px, 81px); }
+  29% { transform: translate(44px, 89px); }
+  52% { transform: translate(72px, 88px); }
+  56% { transform: translate(44px, 96px); }
+  74% { transform: translate(64px, 95px); }
+  90% { transform: translate(64px, 95px); }
+  100% { transform: translate(44px, 82px); }
+}
+@keyframes ledgy-line-1 { 0% { stroke-dashoffset: 1; } 25%, 90% { stroke-dashoffset: 0; } 100% { stroke-dashoffset: 1; } }
+@keyframes ledgy-line-2 { 0%, 29% { stroke-dashoffset: 1; } 52%, 90% { stroke-dashoffset: 0; } 100% { stroke-dashoffset: 1; } }
+@keyframes ledgy-line-3 { 0%, 56% { stroke-dashoffset: 1; } 74%, 90% { stroke-dashoffset: 0; } 100% { stroke-dashoffset: 1; } }
+
+@media (prefers-reduced-motion: reduce) {
+  .ledgy-mascot * { animation: none !important; }
+  .ledgy-writing .ledgy-notes path { stroke-dashoffset: 0; }
+  .ledgy-writing .ledgy-pencil { transform: translate(64px, 95px); }
+}

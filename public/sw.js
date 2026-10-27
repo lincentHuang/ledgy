@@ -1,4 +1,4 @@
-const CACHE_NAME = 'ledgy-pwa-v3';
+const CACHE_NAME = 'ledgy-pwa-v4';
 const ASSETS_TO_CACHE = [
   '/',
   '/manifest.json',

@@ -10,3 +10,4 @@ export * from './Textarea';
 export * from './Modal';
 export * from './ProgressBar';
 export * from './StatCard';
+export * from './LedgyMascot';

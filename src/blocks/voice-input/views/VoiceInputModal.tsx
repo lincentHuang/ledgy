@@ -19,7 +19,7 @@ import {
   Keyboard,
   Plus,
 } from 'lucide-react';
-import { Button } from '@/components';
+import { Button, LedgyMascot } from '@/components';
 import { useSpeechRecognition } from '../hooks/useSpeechRecognition';
 import { useMicLevel } from '../hooks/useMicLevel';
 import { Capacitor } from '@capacitor/core';
@@ -423,7 +423,7 @@ export const VoiceInputModal: React.FC<VoiceInputModalProps> = ({
                       <>
                         {/* 音量光暈：說越大聲擴散越大 */}
                         <div
-                          className="absolute w-28 h-28 rounded-full bg-emerald-400/30 pointer-events-none transition-transform duration-75 ease-out"
+                          className="absolute w-32 h-32 rounded-full bg-emerald-400/30 pointer-events-none transition-transform duration-75 ease-out"
                           style={{
                             transform: 'scale(calc(1 + var(--mic-level, 0) * 0.9))',
                             opacity: 'calc(0.25 + var(--mic-level, 0) * 0.75)',
@@ -433,10 +433,10 @@ export const VoiceInputModal: React.FC<VoiceInputModalProps> = ({
                         <div
                           className={`absolute rounded-full pointer-events-none ${
                             audioPhase === 'speech'
-                              ? 'w-36 h-36 bg-emerald-400/25 animate-ping'
+                              ? 'w-40 h-40 bg-emerald-400/25 animate-ping'
                               : audioPhase === 'sound'
-                              ? 'w-32 h-32 bg-teal-400/20 animate-ping'
-                              : 'w-28 h-28 bg-emerald-500/10 animate-pulse'
+                              ? 'w-36 h-36 bg-teal-400/20 animate-ping'
+                              : 'w-32 h-32 bg-emerald-500/10 animate-pulse'
                           }`}
                         />
                       </>
@@ -450,15 +450,30 @@ export const VoiceInputModal: React.FC<VoiceInputModalProps> = ({
                       <button
                         type="button"
                         onClick={handleToggleListening}
-                        className={`relative w-24 h-24 sm:w-28 sm:h-28 rounded-full flex items-center justify-center shadow-2xl transition-all duration-150 active:scale-90 ${isListening
+                        className={`relative w-28 h-28 sm:w-32 sm:h-32 rounded-full flex items-center justify-center shadow-2xl transition-all duration-150 active:scale-90 ${isListening
                           ? `bg-gradient-to-tr from-emerald-600 via-teal-500 to-cyan-500 text-white shadow-emerald-600/50 ring-8 ${
                               audioPhase === 'speech' ? 'ring-emerald-300/50' : 'ring-emerald-500/25'
                             }`
+                          : isParsing
+                          ? 'bg-gradient-to-tr from-teal-700 to-emerald-600 text-white shadow-teal-900/50 ring-8 ring-teal-500/25'
                           : 'bg-slate-800 hover:bg-slate-700 text-slate-300 shadow-slate-900/60 ring-8 ring-slate-800/40'
                           }`}
                         title={isListening ? '點擊結束錄音並開始辨識' : '點擊開始錄音'}
+                        aria-label={isListening ? '結束錄音並開始辨識' : '開始錄音'}
                       >
-                        <Mic className="w-10 h-10 sm:w-12 sm:h-12" />
+                        {/* 智帳君：收音時戴耳機聆聽、解析時拿筆記帳 */}
+                        <LedgyMascot
+                          state={isListening ? 'listening' : isParsing ? 'writing' : 'idle'}
+                          className="w-20 h-20 sm:w-24 sm:h-24"
+                        />
+                        {/* 麥克風小徽章：保留「這是錄音鍵」的辨識度 */}
+                        <span
+                          className={`absolute -bottom-1 -right-1 w-9 h-9 rounded-full flex items-center justify-center border-2 border-slate-950 shadow-lg ${
+                            isListening ? 'bg-rose-500 text-white' : 'bg-emerald-600 text-white'
+                          }`}
+                        >
+                          <Mic className="w-4 h-4" />
+                        </span>
                       </button>
                     </div>
                   </div>
@@ -539,6 +554,15 @@ export const VoiceInputModal: React.FC<VoiceInputModalProps> = ({
               ) : (
                 /* ⌨️ 手動輸入模式 (Manual Mode) */
                 <div className="w-full max-w-md space-y-4 my-auto">
+                  {/* 智帳君：打字或解析時拿筆做筆記 */}
+                  <div className="flex justify-center">
+                    <div className="w-24 h-24 sm:w-28 sm:h-28 rounded-[2rem] bg-gradient-to-br from-emerald-600 to-teal-700 shadow-xl shadow-emerald-950/50 ring-4 ring-emerald-500/20 flex items-center justify-center">
+                      <LedgyMascot
+                        state={isParsing || manualInputText.trim() ? 'writing' : 'idle'}
+                        className="w-20 h-20 sm:w-24 sm:h-24"
+                      />
+                    </div>
+                  </div>
                   <div className="flex items-center justify-center gap-2 text-xs font-bold text-emerald-400">
                     <Sparkles className="w-4 h-4" />
                     <span>自然語言 AI 智慧打字記帳</span>
