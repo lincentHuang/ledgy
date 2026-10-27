@@ -25,7 +25,6 @@ import {
 } from '@app/shared';
 import { getMonthKey, getFixedCostDueDate, listDueFixedCosts } from './shared/fixedCosts';
 import { AuthService, AuthUser } from './authService';
-import { CloudApiClient } from './cloudApiClient';
 import { Platform } from './platform';
 import { FirestoreService } from './firestoreService';
 import { getFirebaseServices } from './firebase';
@@ -589,48 +588,22 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
 
       // 雲端資料同步 (拉取該使用者的真實群組與交易)
       if (active && active.uid) {
-        CloudApiClient.getHouseholds(active.uid).then((serverHouseholds) => {
-          if (serverHouseholds) {
-            setHouseholds(serverHouseholds);
-            localStorage.setItem(STORAGE_KEYS.HOUSEHOLDS, JSON.stringify(serverHouseholds));
-            if (serverHouseholds.length > 0 && (!storedActiveHId || !serverHouseholds.some(h => h.id === storedActiveHId))) {
-              setActiveHouseholdId(serverHouseholds[0].id);
-              localStorage.setItem(STORAGE_KEYS.ACTIVE_HOUSEHOLD_ID, serverHouseholds[0].id);
-            }
-          }
-        });
+        syncHouseholdsFromCloud(active.uid, parsedHouseholds, storedActiveHId);
 
         // 查詢當前 Email 是否有待回覆的群組邀請
         if (active.email) {
-          CloudApiClient.getPendingInvitationsForEmail(active.email).then((invs) => {
+          FirestoreService.getPendingInvitationsForEmail(active.email).then((invs) => {
             if (invs) setIncomingInvitations(invs);
           });
         }
 
-        // 雲端 Firestore 與後端拉取
-        const { isConfigured } = getFirebaseServices();
-        if (isConfigured) {
-          FirestoreService.pullFromCloud(active.uid, storedActiveHId || undefined).then((data) => {
-            if (data && data.transactions && data.transactions.length > 0) {
-              setTransactions(data.transactions);
-              localStorage.setItem(STORAGE_KEYS.TRANSACTIONS, JSON.stringify(data.transactions));
-            } else {
-              CloudApiClient.getTransactions(active.uid, storedActiveHId || undefined).then((serverTx) => {
-                if (serverTx && serverTx.length > 0) {
-                  setTransactions(serverTx);
-                  localStorage.setItem(STORAGE_KEYS.TRANSACTIONS, JSON.stringify(serverTx));
-                }
-              });
-            }
-          });
-        } else {
-          CloudApiClient.getTransactions(active.uid, storedActiveHId || undefined).then((serverTx) => {
-            if (serverTx) {
-              setTransactions(serverTx);
-              localStorage.setItem(STORAGE_KEYS.TRANSACTIONS, JSON.stringify(serverTx));
-            }
-          });
-        }
+        // 雲端 Firestore 拉取
+        FirestoreService.pullFromCloud(active.uid, storedActiveHId || undefined).then((data) => {
+          if (data && data.transactions && data.transactions.length > 0) {
+            setTransactions(data.transactions);
+            localStorage.setItem(STORAGE_KEYS.TRANSACTIONS, JSON.stringify(data.transactions));
+          }
+        });
       }
     } catch (e) {
       console.error('Failed to load storage/backend data:', e);
@@ -647,10 +620,18 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     if (!isConfigured) return;
 
     // 1. 建立 Firestore onSnapshot 即時監聽器 (交易明細)
+    // 監聽器只涵蓋個人帳目，群組公帳明細需保留，避免被個人清單整批覆蓋掉
     const unsubscribeTx = FirestoreService.subscribeToUserTransactions(user.uid, (cloudTx) => {
       if (cloudTx && cloudTx.length > 0) {
-        setTransactions(cloudTx);
-        localStorage.setItem(STORAGE_KEYS.TRANSACTIONS, JSON.stringify(cloudTx));
+        setTransactions((prev) => {
+          const householdTx = prev.filter((t) => t.ledgerType === 'household' && t.householdId);
+          const merged = [...cloudTx, ...householdTx].sort((a, b) => {
+            if (a.date !== b.date) return b.date.localeCompare(a.date);
+            return (b.createdAt || 0) - (a.createdAt || 0);
+          });
+          localStorage.setItem(STORAGE_KEYS.TRANSACTIONS, JSON.stringify(merged));
+          return merged;
+        });
       }
     });
 
@@ -734,14 +715,39 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     localStorage.setItem(STORAGE_KEYS.HOUSEHOLDS, JSON.stringify(list));
   };
 
+  // 以雲端群組清單為準；本機有、雲端沒有的群組 (舊版只存本機) 自動補傳到 Firestore
+  const syncHouseholdsFromCloud = (uid: string, localList: Household[], preferredActiveId?: string | null) => {
+    FirestoreService.getHouseholdsByUser(uid).then((cloudList) => {
+      if (!cloudList) return;
+
+      const cloudIds = new Set(cloudList.map((h) => h.id));
+      const localOnly = localList.filter(
+        (h) => !cloudIds.has(h.id) && (h.ownerId === uid || h.members.some((m) => m.userId === uid))
+      );
+      // 舊資料缺少 memberIds 查詢欄位，重存一次讓其他成員查得到
+      [...localOnly, ...cloudList.filter((h) => !h.memberIds)].forEach((h) => FirestoreService.saveHousehold(h));
+
+      const list = [...cloudList, ...localOnly];
+      saveHouseholdsList(list);
+      if (list.length === 0) {
+        setActiveHouseholdId(null);
+        localStorage.removeItem(STORAGE_KEYS.ACTIVE_HOUSEHOLD_ID);
+      } else if (!preferredActiveId || !list.some((h) => h.id === preferredActiveId)) {
+        setActiveHouseholdId(list[0].id);
+        localStorage.setItem(STORAGE_KEYS.ACTIVE_HOUSEHOLD_ID, list[0].id);
+      }
+    });
+  };
+
+  const loadTransactionsFor = async (uid: string, householdId?: string) => {
+    const data = await FirestoreService.pullFromCloud(uid, householdId);
+    if (data) saveTx(data.transactions);
+  };
+
   const switchActiveHousehold = (householdId: string) => {
     setActiveHouseholdId(householdId);
     localStorage.setItem(STORAGE_KEYS.ACTIVE_HOUSEHOLD_ID, householdId);
-    if (user.uid) {
-      CloudApiClient.getTransactions(user.uid, householdId).then((serverTx) => {
-        if (serverTx) saveTx(serverTx);
-      });
-    }
+    if (user.uid) loadTransactionsFor(user.uid, householdId);
   };
 
   const createHousehold = (name: string, monthlyBudget?: number): Household => {
@@ -777,7 +783,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     saveHouseholdsList(updated);
     setActiveHouseholdId(newHousehold.id);
     localStorage.setItem(STORAGE_KEYS.ACTIVE_HOUSEHOLD_ID, newHousehold.id);
-    CloudApiClient.saveHousehold(newHousehold);
+    FirestoreService.saveHousehold(newHousehold);
     return newHousehold;
   };
 
@@ -790,22 +796,21 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     const targetHId = targetHouseholdId || activeHouseholdId;
     if (!targetHId) return { success: false, message: '尚未選取群組' };
 
-    const res = await CloudApiClient.inviteMemberByEmail(
+    const res = await FirestoreService.inviteMemberByEmail(
       targetHId,
       { uid: user.uid, displayName: user.displayName },
       email.trim().toLowerCase(),
       role
     );
 
-    if (res && res.success) {
-      const updatedH = await CloudApiClient.getHousehold(targetHId);
-      if (updatedH) {
-        const updatedList = households.map((h) => (h.id === targetHId ? updatedH : h));
+    if (res.success) {
+      if (res.household) {
+        const updatedList = households.map((h) => (h.id === targetHId ? res.household! : h));
         saveHouseholdsList(updatedList);
       }
       return { success: true, message: res.message };
     }
-    return { success: false, message: res?.message || '邀請失敗，請稍後再試。' };
+    return { success: false, message: res.message || '邀請失敗，請稍後再試。' };
   };
 
   // 被邀請者回覆邀請 (同意/拒絕)
@@ -815,14 +820,12 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   ): Promise<{ success: boolean; message: string }> => {
     if (!user.email) return { success: false, message: '未設定 Email 帳號' };
 
-    const res = await CloudApiClient.respondToInvitation(
-      invitationId,
-      user.email,
-      action,
-      user
-    );
+    const invitation = incomingInvitations.find((i) => i.id === invitationId);
+    if (!invitation) return { success: false, message: '找不到該邀請記錄。' };
 
-    if (res && res.success) {
+    const res = await FirestoreService.respondToInvitation(invitation, action, user);
+
+    if (res.success) {
       setIncomingInvitations((prev) => prev.filter((i) => i.id !== invitationId));
       if (action === 'accept' && res.household) {
         const filtered = households.filter((h) => h.id !== res.household!.id);
@@ -830,12 +833,11 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         saveHouseholdsList(newHouseholds);
         setActiveHouseholdId(res.household.id);
         localStorage.setItem(STORAGE_KEYS.ACTIVE_HOUSEHOLD_ID, res.household.id);
-        const serverTx = await CloudApiClient.getTransactions(user.uid, res.household.id);
-        if (serverTx) saveTx(serverTx);
+        await loadTransactionsFor(user.uid, res.household.id);
       }
       return { success: true, message: res.message };
     }
-    return { success: false, message: res?.message || '操作失敗，請稍後再試。' };
+    return { success: false, message: res.message || '操作失敗，請稍後再試。' };
   };
 
   // 透過邀請碼申請加入群組 (提交審核申請)
@@ -845,11 +847,11 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     const cleanCode = inviteCode.trim().toUpperCase();
     if (!cleanCode) return { success: false, message: '請輸入 6 位群組邀請碼' };
 
-    const res = await CloudApiClient.submitJoinRequest(cleanCode, user);
-    if (res && res.success) {
+    const res = await FirestoreService.submitJoinRequest(cleanCode, user);
+    if (res.success) {
       return { success: true, message: res.message, household: res.household };
     }
-    return { success: false, message: res?.message || '申請失敗，請檢查邀請碼是否正確。' };
+    return { success: false, message: res.message || '申請失敗，請檢查邀請碼是否正確。' };
   };
 
   // 組長審核申請 (同意/拒絕)
@@ -861,15 +863,15 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     const targetHId = targetHouseholdId || activeHouseholdId;
     if (!targetHId) return { success: false, message: '尚未選取群組' };
 
-    const res = await CloudApiClient.respondToJoinRequest(targetHId, requestId, action);
-    if (res && res.success) {
+    const res = await FirestoreService.respondToJoinRequest(targetHId, requestId, action);
+    if (res.success) {
       if (res.household) {
         const updatedList = households.map((h) => (h.id === targetHId ? res.household! : h));
         saveHouseholdsList(updatedList);
       }
       return { success: true, message: res.message };
     }
-    return { success: false, message: res?.message || '審核操作失敗' };
+    return { success: false, message: res.message || '審核操作失敗' };
   };
 
   const joinHousehold = async (
@@ -898,7 +900,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   };
 
   const deleteHousehold = (targetHouseholdId: string) => {
-    CloudApiClient.deleteHousehold(targetHouseholdId);
+    FirestoreService.deleteHousehold(targetHouseholdId);
     setTransactions((prev) => {
       const updated = prev.filter((t) => t.householdId !== targetHouseholdId);
       localStorage.setItem(STORAGE_KEYS.TRANSACTIONS, JSON.stringify(updated));
@@ -931,7 +933,6 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
 
     const updatedList = households.map((h) => (h.id === targetH.id ? updated : h));
     saveHouseholdsList(updatedList);
-    CloudApiClient.saveHousehold(updated);
     FirestoreService.saveHousehold(updated);
   };
 
@@ -947,7 +948,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
 
     const updatedList = households.map((h) => (h.id === targetH.id ? updated : h));
     saveHouseholdsList(updatedList);
-    CloudApiClient.saveHousehold(updated);
+    FirestoreService.saveHousehold(updated);
   };
 
   const updateHousehold = (data: Partial<Household>, targetHouseholdId?: string) => {
@@ -962,7 +963,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
 
     const updatedList = households.map((h) => (h.id === targetH.id ? updated : h));
     saveHouseholdsList(updatedList);
-    CloudApiClient.saveHousehold(updated);
+    FirestoreService.saveHousehold(updated);
   };
 
   // 群組付款方式操作
@@ -1145,7 +1146,6 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     localStorage.setItem(STORAGE_KEYS.PAYMENT_METHODS, JSON.stringify(updated));
     if (user.uid) {
       FirestoreService.saveUserProfile({ ...user, paymentMethods: updated });
-      CloudApiClient.saveUserProfile({ ...user, paymentMethods: updated });
     }
   };
 
@@ -1159,7 +1159,6 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     localStorage.setItem(STORAGE_KEYS.PAYMENT_METHODS, JSON.stringify(updated));
     if (user.uid) {
       FirestoreService.saveUserProfile({ ...user, paymentMethods: updated });
-      CloudApiClient.saveUserProfile({ ...user, paymentMethods: updated });
     }
   };
 
@@ -1176,7 +1175,6 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     localStorage.setItem(STORAGE_KEYS.TRANSACTIONS, JSON.stringify(updatedTx));
     if (user.uid) {
       FirestoreService.saveUserProfile({ ...user, paymentMethods: updated });
-      CloudApiClient.saveUserProfile({ ...user, paymentMethods: updated });
     }
   };
 
@@ -1197,7 +1195,6 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     localStorage.setItem(STORAGE_KEYS.TAGS, JSON.stringify(updated.map((t) => t.name)));
     if (user.uid) {
       FirestoreService.saveUserProfile({ ...user, tagItems: updated });
-      CloudApiClient.saveUserProfile({ ...user, tagItems: updated });
     }
   };
 
@@ -1223,7 +1220,6 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
 
     if (user.uid) {
       FirestoreService.saveUserProfile({ ...user, tagItems: updated, tagBudgets: nextTagBudgets });
-      CloudApiClient.saveUserProfile({ ...user, tagItems: updated, tagBudgets: nextTagBudgets });
     }
   };
 
@@ -1259,7 +1255,6 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
 
     if (user.uid) {
       FirestoreService.saveUserProfile({ ...user, tagItems: updatedTagItems, tagBudgets: nextTagBudgets });
-      CloudApiClient.saveUserProfile({ ...user, tagItems: updatedTagItems, tagBudgets: nextTagBudgets });
     }
 
     // 3. 連動更新私帳既有所有交易中的標籤名稱與永久 tagIds (全面找回與同步)
@@ -1327,7 +1322,6 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     localStorage.setItem(STORAGE_KEYS.TAGS, JSON.stringify(updatedItems.map((t) => t.name)));
     if (user.uid) {
       FirestoreService.saveUserProfile({ ...user, tagItems: updatedItems });
-      CloudApiClient.saveUserProfile({ ...user, tagItems: updatedItems });
     }
   };
 
@@ -1548,95 +1542,48 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     AuthService.saveActiveSession(authUser);
 
     // 拉取該使用者名下的所有真實群組 (複數群組支援)
-    CloudApiClient.getHouseholds(authUser.uid).then((serverHouseholds) => {
-      const list = serverHouseholds || [];
-      saveHouseholdsList(list);
-      if (list.length > 0) {
-        setActiveHouseholdId(list[0].id);
-        localStorage.setItem(STORAGE_KEYS.ACTIVE_HOUSEHOLD_ID, list[0].id);
-      } else {
-        setActiveHouseholdId(null);
-        localStorage.removeItem(STORAGE_KEYS.ACTIVE_HOUSEHOLD_ID);
-      }
-    });
+    syncHouseholdsFromCloud(authUser.uid, households, authUser.activeHouseholdId);
 
     if (authUser.email) {
-      CloudApiClient.getPendingInvitationsForEmail(authUser.email).then((invs) => {
+      FirestoreService.getPendingInvitationsForEmail(authUser.email).then((invs) => {
         if (invs) setIncomingInvitations(invs);
       });
     }
 
-    // 載入該使用者專屬真實交易與雲端個人資料 (優先從 Cloud Firestore 拉取)
-    const { isConfigured } = getFirebaseServices();
-    if (isConfigured) {
-      FirestoreService.pullFromCloud(authUser.uid, authUser.activeHouseholdId).then((data) => {
-        if (data) {
-          if (data.user) {
-            setUser((prev) => {
-              const merged = { ...prev, ...data.user };
-              AuthService.saveActiveSession(merged as AuthUser);
-              return merged;
-            });
-            if (data.user.paymentMethods && Array.isArray(data.user.paymentMethods) && data.user.paymentMethods.length > 0) {
-              setPaymentMethods(data.user.paymentMethods);
-              localStorage.setItem(STORAGE_KEYS.PAYMENT_METHODS, JSON.stringify(data.user.paymentMethods));
-            }
-          } else {
-            // 雲端尚無 profile 時，立即上傳當前 authUser
-            FirestoreService.saveUserProfile({
-              ...authUser,
-              tagItems: availableTagItems,
-              paymentMethods,
-            });
-          }
-
-          if (data.tagItems && Array.isArray(data.tagItems) && data.tagItems.length > 0) {
-            setAvailableTagItems(data.tagItems);
-            localStorage.setItem(STORAGE_KEYS.TAG_ITEMS, JSON.stringify(data.tagItems));
-            localStorage.setItem(STORAGE_KEYS.TAGS, JSON.stringify(data.tagItems.map((t) => t.name)));
-          }
-
-          if (data.transactions && data.transactions.length > 0) {
-            setTransactions(data.transactions);
-            localStorage.setItem(STORAGE_KEYS.TRANSACTIONS, JSON.stringify(data.transactions));
-          } else {
-            CloudApiClient.getTransactions(authUser.uid, authUser.activeHouseholdId).then((serverTx) => {
-              if (serverTx && serverTx.length > 0) {
-                setTransactions(serverTx);
-                localStorage.setItem(STORAGE_KEYS.TRANSACTIONS, JSON.stringify(serverTx));
-              }
-            });
-          }
-        }
-      });
-    } else {
-      CloudApiClient.getUserProfile(authUser.uid).then((serverUser) => {
-        if (serverUser) {
+    // 載入該使用者專屬真實交易與雲端個人資料
+    FirestoreService.pullFromCloud(authUser.uid, authUser.activeHouseholdId).then((data) => {
+      if (data) {
+        if (data.user) {
           setUser((prev) => {
-            const merged = { ...prev, ...serverUser };
+            const merged = { ...prev, ...data.user };
             AuthService.saveActiveSession(merged as AuthUser);
             return merged;
           });
-          if (serverUser.tagItems && Array.isArray(serverUser.tagItems) && serverUser.tagItems.length > 0) {
-            setAvailableTagItems(serverUser.tagItems);
-            localStorage.setItem(STORAGE_KEYS.TAG_ITEMS, JSON.stringify(serverUser.tagItems));
-            localStorage.setItem(STORAGE_KEYS.TAGS, JSON.stringify(serverUser.tagItems.map((t) => t.name)));
-          }
-          if (serverUser.paymentMethods && Array.isArray(serverUser.paymentMethods) && serverUser.paymentMethods.length > 0) {
-            setPaymentMethods(serverUser.paymentMethods);
-            localStorage.setItem(STORAGE_KEYS.PAYMENT_METHODS, JSON.stringify(serverUser.paymentMethods));
+          if (data.user.paymentMethods && Array.isArray(data.user.paymentMethods) && data.user.paymentMethods.length > 0) {
+            setPaymentMethods(data.user.paymentMethods);
+            localStorage.setItem(STORAGE_KEYS.PAYMENT_METHODS, JSON.stringify(data.user.paymentMethods));
           }
         } else {
-          CloudApiClient.saveUserProfile({ ...authUser, tagItems: availableTagItems, paymentMethods });
+          // 雲端尚無 profile 時，立即上傳當前 authUser
+          FirestoreService.saveUserProfile({
+            ...authUser,
+            tagItems: availableTagItems,
+            paymentMethods,
+          });
         }
-      });
 
-      CloudApiClient.getTransactions(authUser.uid, authUser.activeHouseholdId).then((serverTx) => {
-        const list = serverTx || [];
-        setTransactions(list);
-        localStorage.setItem(STORAGE_KEYS.TRANSACTIONS, JSON.stringify(list));
-      });
-    }
+        if (data.tagItems && Array.isArray(data.tagItems) && data.tagItems.length > 0) {
+          setAvailableTagItems(data.tagItems);
+          localStorage.setItem(STORAGE_KEYS.TAG_ITEMS, JSON.stringify(data.tagItems));
+          localStorage.setItem(STORAGE_KEYS.TAGS, JSON.stringify(data.tagItems.map((t) => t.name)));
+        }
+
+        if (data.transactions && data.transactions.length > 0) {
+          setTransactions(data.transactions);
+          localStorage.setItem(STORAGE_KEYS.TRANSACTIONS, JSON.stringify(data.transactions));
+        }
+      }
+    });
   };
 
   const logout = () => {
@@ -1719,38 +1666,23 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         paymentMethods: profile.paymentMethods || paymentMethods,
       };
       FirestoreService.saveUserProfile(payloadToSave);
-      CloudApiClient.saveUserProfile(payloadToSave);
     }
   };
 
   const syncToCloud = async () => {
     try {
-      const { isConfigured } = getFirebaseServices();
-      if (isConfigured) {
-        return await FirestoreService.syncLocalToCloud({
-          user: {
-            ...user,
-            tagItems: availableTagItems,
-            paymentMethods,
-          },
-          households,
-          transactions,
-          invoices,
+      return await FirestoreService.syncLocalToCloud({
+        user: {
+          ...user,
           tagItems: availableTagItems,
-          learningRules,
-        });
-      }
-
-      for (const t of transactions) {
-        await CloudApiClient.saveTransaction(t);
-      }
-      for (const inv of invoices) {
-        await CloudApiClient.saveInvoice(inv);
-      }
-      for (const h of households) {
-        await CloudApiClient.saveHousehold(h);
-      }
-      return { success: true, message: '全量數據已成功同步至雲端！' };
+          paymentMethods,
+        },
+        households,
+        transactions,
+        invoices,
+        tagItems: availableTagItems,
+        learningRules,
+      });
     } catch (e: any) {
       return { success: false, message: `同步失敗：${e.message}` };
     }
@@ -1758,35 +1690,18 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
 
   const pullFromCloud = async () => {
     if (!user.uid) return false;
-    const { isConfigured } = getFirebaseServices();
-    if (isConfigured) {
-      const data = await FirestoreService.pullFromCloud(user.uid, household?.id);
-      if (data) {
-        restoreFullBackup({
-          transactions: data.transactions,
-          availableTagItems: data.tagItems || undefined,
-          households: data.households.length > 0 ? data.households : undefined,
-          invoices: data.invoices,
-        });
-        return true;
-      }
-    }
+    const [data, cloudHouseholds] = await Promise.all([
+      FirestoreService.pullFromCloud(user.uid, household?.id),
+      FirestoreService.getHouseholdsByUser(user.uid),
+    ]);
+    if (!data) return false;
 
-    const serverHouseholds = await CloudApiClient.getHouseholds(user.uid);
-    if (serverHouseholds) {
-      setHouseholds(serverHouseholds);
-      localStorage.setItem(STORAGE_KEYS.HOUSEHOLDS, JSON.stringify(serverHouseholds));
-    }
-    const serverTx = await CloudApiClient.getTransactions(user.uid, household?.id);
-    if (serverTx) {
-      setTransactions(serverTx);
-      localStorage.setItem(STORAGE_KEYS.TRANSACTIONS, JSON.stringify(serverTx));
-    }
-    const serverInvs = await CloudApiClient.getInvoices(user.defaultCarrierCode);
-    if (serverInvs) {
-      setInvoices(serverInvs);
-      localStorage.setItem(STORAGE_KEYS.INVOICES, JSON.stringify(serverInvs));
-    }
+    restoreFullBackup({
+      transactions: data.transactions,
+      availableTagItems: data.tagItems || undefined,
+      households: cloudHouseholds && cloudHouseholds.length > 0 ? cloudHouseholds : undefined,
+      invoices: data.invoices,
+    });
     return true;
   };
 
@@ -1877,7 +1792,6 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       localStorage.setItem(STORAGE_KEYS.TRANSACTIONS, JSON.stringify(updated));
       return updated;
     });
-    CloudApiClient.saveTransaction(newTx);
     FirestoreService.saveTransaction(newTx);
     return newTx;
   };
@@ -1955,14 +1869,12 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     });
 
     if (savedTarget) {
-      CloudApiClient.saveTransaction(savedTarget);
       FirestoreService.saveTransaction(savedTarget);
     }
   };
 
   const deleteTransaction = (id: string) => {
     const target = transactions.find((t) => t.id === id);
-    CloudApiClient.deleteTransaction(id);
     if (target) {
       FirestoreService.deleteTransaction(target);
     }
@@ -1976,7 +1888,6 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   const deleteTransactions = (ids: string[]) => {
     const idSet = new Set(ids);
     const targets = transactions.filter((t) => idSet.has(t.id));
-    ids.forEach((id) => CloudApiClient.deleteTransaction(id));
     targets.forEach((t) => FirestoreService.deleteTransaction(t));
     setTransactions((prev) => {
       const updated = prev.filter((t) => !idSet.has(t.id));
@@ -1996,7 +1907,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
 
     const updatedInvoices = [invoiceWithPrize, ...invoices];
     saveInvoices(updatedInvoices);
-    CloudApiClient.saveInvoice(invoiceWithPrize);
+    if (user.uid) FirestoreService.saveInvoice(user.uid, invoiceWithPrize);
 
     let dominantCatId = 'food';
     let dominantCatName = '餐飲飲食';
@@ -2071,47 +1982,17 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     saveInvoices(updated);
   };
 
+  // 財政部雲端發票串接因法規授權限制已關閉 (見 PRD 1.2)，靜態部署也沒有後端可代理
   const syncMofInvoices = async (
-    verificationCode?: string,
-    appID?: string,
-    force?: boolean
-  ) => {
-    const carrier = user.defaultCarrierCode || '/AB1234+';
-    const res = await CloudApiClient.syncMofInvoices({
-      carrierCode: carrier,
-      verificationCode,
-      appID,
-      force,
-      userId: user.uid || 'user_guest',
-      householdId: household?.id,
-    });
-
-    if (!res || !res.success) {
-      return {
-        success: false,
-        count: 0,
-        totalAmount: 0,
-        message: res?.message || '財政部伺服器連線失敗，請檢查驗證碼或稍後再試。',
-      };
-    }
-
-    if (res.invoices && res.invoices.length > 0) {
-      const mergedInvoices = [...res.invoices, ...invoices.filter((inv) => !res.invoices.some((r) => r.invoiceNumber === inv.invoiceNumber))];
-      saveInvoices(mergedInvoices);
-    }
-
-    if (res.newTransactions && res.newTransactions.length > 0) {
-      const mergedTx = [...res.newTransactions, ...transactions.filter((t) => !res.newTransactions.some((r) => r.id === t.id))];
-      saveTx(mergedTx);
-    }
-
-    return {
-      success: true,
-      count: res.count,
-      totalAmount: res.totalAmount,
-      message: res.message,
-    };
-  };
+    _verificationCode?: string,
+    _appID?: string,
+    _force?: boolean
+  ) => ({
+    success: false,
+    count: 0,
+    totalAmount: 0,
+    message: '財政部雲端發票同步目前未開放。',
+  });
 
   const settleTransfer = (transfer: SettlementTransfer) => {
     addTransaction({

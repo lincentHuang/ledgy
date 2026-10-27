@@ -52,6 +52,8 @@ export interface Household {
   monthlyBudgets?: Record<string, import('./user').MonthlyBudgetRecord>; // Key: "YYYY-MM"
   dateNotes?: Record<string, string>; // Key: "YYYY-MM-DD" -> Value: 當日備忘/活動說明
   fixedCosts?: import('./user').FixedCost[]; // 群組共用的每月固定成本 (成員共見，任一人確認即入帳)
+  memberIds?: string[]; // Firestore 查詢用衍生欄位，由 FirestoreService 寫入時自動產生
+  pendingInviteeEmails?: string[]; // Firestore 查詢用衍生欄位 (待回覆邀請的 Email)
   createdAt: number;
   updatedAt: number;
 }

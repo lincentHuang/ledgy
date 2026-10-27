@@ -102,3 +102,4 @@ graph TD
 - **2026-10-23｜記帳一律跟隨目前帳本**：語音／快速記帳的入帳帳本預設等於頂部切換中的帳本，只有使用者明確說出「公帳／私帳」才覆寫；不再採用 AI 或本地引擎猜測的 ledgerType。原因：AI 猜測常把群組帳本中的消費誤記到個人帳，違反使用者對「切換帳本」的直覺。
 - **2026-10-23｜新增「每月固定成本」模組（App 內提醒）**：個人項目存於 `users.fixedCosts`，群組項目存於 `households.fixedCosts`（成員共見，任一人確認即入帳，避免重複記帳）；以 `paidMonths["YYYY-MM"]` 記錄每月已繳或略過。原因：重用既有 Firestore 同步路徑，不需新集合。系統推播（Local Notifications）需新增原生套件並重新打包 APK，列為後續項目。
 - **2026-10-23｜群組更新同步寫入 Firestore**：`updateHousehold` 除舊有 `/api` 外也呼叫 `FirestoreService.saveHousehold`。原因：靜態部署下 `/api` 不存在，群組的預算、標籤、日期備忘、固定成本先前只存在本機，無法跨成員同步。
+- **2026-10-28｜移除 /api 與 serverDb，Firestore 為唯一資料源**：刪除 6 個 Next.js API 路由、`serverDb.ts`、`cloudApiClient.ts`；群組邀請、加入審核、刪除群組改由 `FirestoreService` 以 runTransaction 直接操作，Household 新增 `memberIds`／`pendingInviteeEmails` 衍生欄位供查詢。原因：正式環境為靜態匯出，`/api` 不存在，群組建立、邀請、加入在正式環境實際上從未同步；兩套資料路徑也是資料不一致的根源。財政部雲端發票同步（`/api/mof`）一併停用。

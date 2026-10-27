@@ -10,6 +10,8 @@ import {
   onSnapshot,
   writeBatch,
   getDoc,
+  where,
+  runTransaction,
   Unsubscribe,
 } from 'firebase/firestore';
 import { getFirebaseServices } from './firebase';
@@ -20,7 +22,11 @@ import {
   UserProfile,
   LearningRule,
   TagItem,
+  GroupInvitation,
+  GroupJoinRequest,
 } from '@app/shared';
+
+type GroupActionResult = { success: boolean; message: string; household?: Household };
 
 /**
  * 遞迴過濾掉物件中的 undefined 欄位，以符合 Cloud Firestore 規範
@@ -41,6 +47,19 @@ const cleanForFirestore = <T extends Record<string, any>>(obj: T): Partial<T> =>
   }
   return result;
 };
+
+/**
+ * 補上供 Firestore 查詢用的衍生欄位：
+ * - memberIds：查詢「我所屬的群組」(array-contains)
+ * - pendingInviteeEmails：查詢「寄給我的待回覆邀請」(array-contains)
+ */
+const withQueryFields = (household: Household): Household => ({
+  ...household,
+  memberIds: Array.from(new Set([household.ownerId, ...household.members.map((m) => m.userId)])),
+  pendingInviteeEmails: (household.pendingInvitations || [])
+    .filter((inv) => inv.status === 'pending')
+    .map((inv) => inv.inviteeEmail.toLowerCase()),
+});
 
 export class FirestoreService {
   /**
@@ -152,12 +171,295 @@ export class FirestoreService {
 
     try {
       const ref = doc(db, 'households', household.id);
-      await setDoc(ref, cleanForFirestore(household), { merge: true });
+      await setDoc(ref, cleanForFirestore(withQueryFields(household)), { merge: true });
       return true;
     } catch (e) {
       console.error('Firestore saveHousehold error:', e);
       return false;
     }
+  }
+
+  /**
+   * 5.1 取得單一群組
+   */
+  public static async getHousehold(householdId: string): Promise<Household | null> {
+    const { db, isConfigured } = getFirebaseServices();
+    if (!db || !isConfigured) return null;
+
+    try {
+      const snap = await getDoc(doc(db, 'households', householdId));
+      return snap.exists() ? (snap.data() as Household) : null;
+    } catch (e) {
+      console.error('Firestore getHousehold error:', e);
+      return null;
+    }
+  }
+
+  /**
+   * 5.2 取得使用者所屬的所有群組 (成員或組長)
+   * 回傳 null 代表無法連線，呼叫端應保留本機資料
+   */
+  public static async getHouseholdsByUser(userId: string): Promise<Household[] | null> {
+    const { db, isConfigured } = getFirebaseServices();
+    if (!db || !isConfigured) return null;
+
+    try {
+      const [memberSnap, ownerSnap] = await Promise.all([
+        getDocs(query(collection(db, 'households'), where('memberIds', 'array-contains', userId))),
+        getDocs(query(collection(db, 'households'), where('ownerId', '==', userId))),
+      ]);
+      const map = new Map<string, Household>();
+      memberSnap.forEach((d) => map.set(d.id, d.data() as Household));
+      ownerSnap.forEach((d) => map.set(d.id, d.data() as Household));
+      return Array.from(map.values()).sort((a, b) => (b.createdAt || 0) - (a.createdAt || 0));
+    } catch (e) {
+      console.error('Firestore getHouseholdsByUser error:', e);
+      return null;
+    }
+  }
+
+  /**
+   * 5.3 刪除群組與其下所有公帳明細
+   */
+  public static async deleteHousehold(householdId: string): Promise<boolean> {
+    const { db, isConfigured } = getFirebaseServices();
+    if (!db || !isConfigured) return false;
+
+    try {
+      const txSnap = await getDocs(collection(db, 'households', householdId, 'transactions'));
+      const refs = [...txSnap.docs.map((d) => d.ref), doc(db, 'households', householdId)];
+      // writeBatch 單批上限 500 筆
+      for (let i = 0; i < refs.length; i += 450) {
+        const batch = writeBatch(db);
+        refs.slice(i, i + 450).forEach((r) => batch.delete(r));
+        await batch.commit();
+      }
+      return true;
+    } catch (e) {
+      console.error('Firestore deleteHousehold error:', e);
+      return false;
+    }
+  }
+
+  /**
+   * 5.4 在交易中讀取並修改群組 (避免多人同時操作互相覆蓋)
+   */
+  private static async mutateHousehold(
+    householdId: string,
+    mutate: (house: Household) => GroupActionResult & { changed?: boolean }
+  ): Promise<GroupActionResult> {
+    const { db, isConfigured } = getFirebaseServices();
+    if (!db || !isConfigured) return { success: false, message: '尚未連線至雲端資料庫' };
+
+    try {
+      return await runTransaction(db, async (t) => {
+        const ref = doc(db, 'households', householdId);
+        const snap = await t.get(ref);
+        if (!snap.exists()) return { success: false, message: '找不到指定的群組' };
+
+        const house = snap.data() as Household;
+        const { changed = true, ...result } = mutate(house);
+        if (result.success && changed) {
+          t.set(ref, cleanForFirestore(withQueryFields(house)));
+        }
+        return result;
+      });
+    } catch (e: any) {
+      console.error('Firestore mutateHousehold error:', e);
+      return { success: false, message: `操作失敗：${e?.message || '請稍後再試'}` };
+    }
+  }
+
+  /**
+   * 5.5 組長透過 Email 發送群組邀請
+   */
+  public static async inviteMemberByEmail(
+    householdId: string,
+    inviter: { uid: string; displayName: string },
+    inviteeEmail: string,
+    role: 'member' | 'admin' = 'member'
+  ): Promise<GroupActionResult> {
+    const emailClean = inviteeEmail.trim().toLowerCase();
+    if (!emailClean) return { success: false, message: '請輸入有效的 Email' };
+
+    return this.mutateHousehold(householdId, (house) => {
+      if (house.members.some((m) => m.email?.toLowerCase() === emailClean)) {
+        return { success: false, message: `Email ${emailClean} 已經在此群組中囉！` };
+      }
+      if (!house.pendingInvitations) house.pendingInvitations = [];
+      const existing = house.pendingInvitations.find(
+        (inv) => inv.inviteeEmail.toLowerCase() === emailClean && inv.status === 'pending'
+      );
+      if (existing) {
+        return { success: false, message: `已發送過邀請至 ${emailClean}，等待對方確認中！` };
+      }
+
+      const invitation: GroupInvitation = {
+        id: `inv_${Date.now()}_${Math.random().toString(36).substring(2, 6)}`,
+        householdId: house.id,
+        householdName: house.name,
+        inviterUserId: inviter.uid,
+        inviterName: inviter.displayName,
+        inviteeEmail: emailClean,
+        role,
+        status: 'pending',
+        createdAt: Date.now(),
+      };
+      house.pendingInvitations.push(invitation);
+      house.updatedAt = Date.now();
+      return { success: true, message: `已成功發送邀請至 ${emailClean}！`, household: house };
+    });
+  }
+
+  /**
+   * 5.6 取得特定 Email 收到的待回覆群組邀請
+   */
+  public static async getPendingInvitationsForEmail(email: string): Promise<GroupInvitation[] | null> {
+    const { db, isConfigured } = getFirebaseServices();
+    if (!db || !isConfigured || !email) return null;
+
+    const emailClean = email.trim().toLowerCase();
+    try {
+      const snap = await getDocs(
+        query(collection(db, 'households'), where('pendingInviteeEmails', 'array-contains', emailClean))
+      );
+      const list: GroupInvitation[] = [];
+      snap.forEach((d) => {
+        const house = d.data() as Household;
+        (house.pendingInvitations || []).forEach((inv) => {
+          if (inv.inviteeEmail.toLowerCase() === emailClean && inv.status === 'pending') list.push(inv);
+        });
+      });
+      return list;
+    } catch (e) {
+      console.error('Firestore getPendingInvitationsForEmail error:', e);
+      return null;
+    }
+  }
+
+  /**
+   * 5.7 被邀請者回覆邀請 (同意或拒絕)
+   */
+  public static async respondToInvitation(
+    invitation: GroupInvitation,
+    action: 'accept' | 'reject',
+    userProfile: UserProfile
+  ): Promise<GroupActionResult> {
+    return this.mutateHousehold(invitation.householdId, (house) => {
+      const invIndex = (house.pendingInvitations || []).findIndex((inv) => inv.id === invitation.id);
+      if (invIndex < 0) return { success: false, message: '找不到該邀請記錄。' };
+
+      const inv = house.pendingInvitations![invIndex];
+      if (action === 'accept') {
+        inv.status = 'accepted';
+        if (!house.members.some((m) => m.userId === userProfile.uid)) {
+          house.members.push({
+            userId: userProfile.uid,
+            displayName: userProfile.displayName || '新成員',
+            email: userProfile.email || inv.inviteeEmail,
+            avatarUrl: userProfile.photoURL,
+            role: inv.role || 'member',
+            carrierCode: userProfile.defaultCarrierCode,
+            joinedAt: Date.now(),
+          });
+        }
+        house.updatedAt = Date.now();
+        return { success: true, message: `🎉 成功加入群組「${house.name}」！`, household: house };
+      }
+
+      house.pendingInvitations!.splice(invIndex, 1);
+      return { success: true, message: `已婉拒「${house.name}」的邀請。` };
+    });
+  }
+
+  /**
+   * 5.8 透過邀請碼申請加入群組 (需組長審核)
+   */
+  public static async submitJoinRequest(inviteCode: string, applicant: UserProfile): Promise<GroupActionResult> {
+    const { db, isConfigured } = getFirebaseServices();
+    if (!db || !isConfigured) return { success: false, message: '尚未連線至雲端資料庫' };
+
+    const code = inviteCode.trim().toUpperCase();
+    let householdId: string | null = null;
+    try {
+      const snap = await getDocs(query(collection(db, 'households'), where('inviteCode', '==', code)));
+      householdId = snap.empty ? null : snap.docs[0].id;
+    } catch (e) {
+      console.error('Firestore submitJoinRequest lookup error:', e);
+      return { success: false, message: '查詢邀請碼失敗，請稍後再試。' };
+    }
+    if (!householdId) {
+      return { success: false, message: '找不到此邀請碼對應的群組，請確認代碼是否正確。' };
+    }
+
+    return this.mutateHousehold(householdId, (house) => {
+      if (house.members.some((m) => m.userId === applicant.uid)) {
+        return { success: false, message: `您已經是「${house.name}」的成員囉！` };
+      }
+      if (!house.pendingJoinRequests) house.pendingJoinRequests = [];
+      const existing = house.pendingJoinRequests.find(
+        (r) => r.applicantUserId === applicant.uid && r.status === 'pending'
+      );
+      if (existing) {
+        return {
+          success: true,
+          changed: false,
+          message: `您已送出加入「${house.name}」的申請，請等待組長審核！`,
+          household: house,
+        };
+      }
+
+      const request: GroupJoinRequest = {
+        id: `req_${Date.now()}_${Math.random().toString(36).substring(2, 6)}`,
+        householdId: house.id,
+        householdName: house.name,
+        applicantUserId: applicant.uid,
+        applicantName: applicant.displayName || '訪客',
+        applicantEmail: applicant.email,
+        applicantCarrierCode: applicant.defaultCarrierCode,
+        status: 'pending',
+        createdAt: Date.now(),
+      };
+      house.pendingJoinRequests.push(request);
+      return {
+        success: true,
+        message: `已送出加入「${house.name}」申請！請等待群組組長審核同意。`,
+        household: house,
+      };
+    });
+  }
+
+  /**
+   * 5.9 組長審核加入申請 (同意或拒絕)
+   */
+  public static async respondToJoinRequest(
+    householdId: string,
+    requestId: string,
+    action: 'approve' | 'reject'
+  ): Promise<GroupActionResult> {
+    return this.mutateHousehold(householdId, (house) => {
+      const reqIndex = (house.pendingJoinRequests || []).findIndex((r) => r.id === requestId);
+      if (reqIndex < 0) return { success: false, message: '找不到該筆申請' };
+
+      const joinReq = house.pendingJoinRequests![reqIndex];
+      house.pendingJoinRequests!.splice(reqIndex, 1);
+      house.updatedAt = Date.now();
+
+      if (action === 'approve') {
+        if (!house.members.some((m) => m.userId === joinReq.applicantUserId)) {
+          house.members.push({
+            userId: joinReq.applicantUserId,
+            displayName: joinReq.applicantName,
+            email: joinReq.applicantEmail,
+            role: 'member',
+            carrierCode: joinReq.applicantCarrierCode,
+            joinedAt: Date.now(),
+          });
+        }
+        return { success: true, message: `已同意「${joinReq.applicantName}」加入群組！`, household: house };
+      }
+      return { success: true, message: `已拒絕「${joinReq.applicantName}」的加入申請。`, household: house };
+    });
   }
 
   /**
