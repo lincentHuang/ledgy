@@ -12,6 +12,7 @@ import {
 } from 'lucide-react';
 import { TransactionGroupedList } from './TransactionGroupedList';
 import { DateNoteModal } from './DateNoteModal';
+import { DiaryDayBadge } from '@/blocks/diary/views/DiaryDayBadge';
 
 interface WeekViewProps {
   onEditTransaction: (tx: Transaction) => void;
@@ -40,6 +41,7 @@ export const WeekView: React.FC<WeekViewProps> = ({
     selectedSubDates,
     setSelectedSubDates,
     currentDateNotes,
+    diaryEntries,
   } = useAppStore();
 
   const [isWeekModalOpen, setIsWeekModalOpen] = useState(false);
@@ -378,6 +380,7 @@ export const WeekView: React.FC<WeekViewProps> = ({
                 const isExplicitlySingleOrMulti = selectedDates.includes(d.dateStr);
                 const isToday = d.dateStr === new Date().toISOString().split('T')[0];
                 const dayNote = currentDateNotes[d.dateStr];
+                const diary = diaryEntries[d.dateStr];
 
                 return (
                   <div
@@ -438,6 +441,14 @@ export const WeekView: React.FC<WeekViewProps> = ({
                     </span>
                     <span className="text-[9px] text-slate-500 font-mono pointer-events-none">{d.shortDate}</span>
 
+                    {/* 📔 日記心情：沒寫顯示淡色筆 */}
+                    <span
+                      className={`mt-1 leading-none h-4 pointer-events-none ${diary ? 'text-sm' : 'text-[10px] text-slate-600'}`}
+                      title={diary ? diary.content || '只記了心情' : '還沒寫日記'}
+                    >
+                      {diary ? diary.mood || '📔' : '✎'}
+                    </span>
+
                     {/* 當日備忘黃色圓點標記 */}
                     {dayNote && (
                       <span
@@ -456,6 +467,9 @@ export const WeekView: React.FC<WeekViewProps> = ({
                 );
               })}
             </div>
+
+            {/* 📔 單選日期的日記預覽 */}
+            {selectedDates.length === 1 && <DiaryDayBadge dateStr={selectedDates[0]} variant="row" />}
 
             {/* 單選日期當日備忘預覽與編輯快捷列 */}
             {selectedDates.length === 1 && (

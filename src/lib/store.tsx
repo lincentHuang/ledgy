@@ -22,6 +22,7 @@ import {
   KNOWN_SELLER_GUIS,
   calculateHouseholdBalances,
   FixedCost,
+  DiaryEntry,
 } from '@app/shared';
 import { getMonthKey, getFixedCostDueDate, listDueFixedCosts } from './shared/fixedCosts';
 import { AuthService, AuthUser } from './authService';
@@ -241,6 +242,11 @@ interface AppContextType {
   setDateNote: (dateStr: string, note: string) => void;
   deleteDateNote: (dateStr: string) => void;
 
+  // 📔 生活日記 (只屬於本人，一天一篇)
+  diaryEntries: Record<string, DiaryEntry>;
+  saveDiaryEntry: (date: string, data: { content: string; mood?: string }) => void;
+  deleteDiaryEntry: (date: string) => void;
+
   // 💸 每月固定成本 (到期提醒 + 確認後自動入帳)
   allFixedCosts: FixedCost[];
   dueFixedCosts: FixedCost[];
@@ -305,6 +311,7 @@ const STORAGE_KEYS = {
   TAG_ITEMS: 'ai_expense_tag_items_v6',
   VIEW_MODE: 'ai_expense_view_mode_v6',
   DATE_NOTES: 'ai_expense_date_notes_v6',
+  DIARY: 'ai_expense_diary_v1',
 };
 
 export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
@@ -315,6 +322,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     defaultCarrierCode: '',
   });
   const [guestDateNotes, setGuestDateNotes] = useState<Record<string, string>>({});
+  const [diaryEntries, setDiaryEntries] = useState<Record<string, DiaryEntry>>({});
   const [isAuthenticated, setIsAuthenticated] = useState<boolean>(false);
   const [isAuthReady, setIsAuthReady] = useState<boolean>(false);
 
@@ -569,6 +577,14 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         } catch {}
       }
 
+      // 載入生活日記 (雲端監聽到資料後會覆蓋)
+      const storedDiary = localStorage.getItem(STORAGE_KEYS.DIARY);
+      if (storedDiary) {
+        try {
+          setDiaryEntries(JSON.parse(storedDiary));
+        } catch {}
+      }
+
       // 載入帳本偏好：若無狀態或無群組，一律預設為「個人私帳」
       const storedLedger = localStorage.getItem(STORAGE_KEYS.ACTIVE_LEDGER);
       if (storedLedger === 'household' && parsedHouseholds.length > 0) {
@@ -659,9 +675,16 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       }
     });
 
+    // 3. 生活日記 (users/{uid}/diaries)
+    const unsubscribeDiary = FirestoreService.subscribeToDiaryEntries(user.uid, (entries) => {
+      setDiaryEntries(entries);
+      localStorage.setItem(STORAGE_KEYS.DIARY, JSON.stringify(entries));
+    });
+
     return () => {
       if (unsubscribeTx) unsubscribeTx();
       if (unsubscribeUser) unsubscribeUser();
+      if (unsubscribeDiary) unsubscribeDiary();
     };
   }, [isAuthReady, user.uid, activeHouseholdId]);
 
@@ -1421,6 +1444,39 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     }
   };
 
+  // 📔 生活日記：一律存在本人名下，不隨目前帳本切換
+  const saveDiaryEntry = (date: string, data: { content: string; mood?: string }) => {
+    const content = data.content.trim();
+    if (!content && !data.mood) {
+      deleteDiaryEntry(date);
+      return;
+    }
+    const now = Date.now();
+    const entry: DiaryEntry = {
+      date,
+      content,
+      mood: data.mood || undefined,
+      createdAt: diaryEntries[date]?.createdAt || now,
+      updatedAt: now,
+    };
+    setDiaryEntries((prev) => {
+      const next = { ...prev, [date]: entry };
+      localStorage.setItem(STORAGE_KEYS.DIARY, JSON.stringify(next));
+      return next;
+    });
+    if (user.uid) FirestoreService.saveDiaryEntry(user.uid, entry);
+  };
+
+  const deleteDiaryEntry = (date: string) => {
+    setDiaryEntries((prev) => {
+      const next = { ...prev };
+      delete next[date];
+      localStorage.setItem(STORAGE_KEYS.DIARY, JSON.stringify(next));
+      return next;
+    });
+    if (user.uid) FirestoreService.deleteDiaryEntry(user.uid, date);
+  };
+
   const deleteDateNote = (dateStr: string) => {
     setDateNote(dateStr, '');
   };
@@ -1602,6 +1658,8 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     setIncomingInvitations([]);
     setTransactions([]);
     setInvoices([]);
+    setDiaryEntries({});
+    localStorage.removeItem(STORAGE_KEYS.DIARY);
     localStorage.removeItem(STORAGE_KEYS.HOUSEHOLDS);
     localStorage.removeItem(STORAGE_KEYS.ACTIVE_HOUSEHOLD_ID);
     localStorage.removeItem(STORAGE_KEYS.TRANSACTIONS);
@@ -2126,6 +2184,9 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         settleMonthlyBudget,
         currentDateNotes,
         setDateNote,
+        diaryEntries,
+        saveDiaryEntry,
+        deleteDiaryEntry,
         deleteDateNote,
         allFixedCosts,
         dueFixedCosts,

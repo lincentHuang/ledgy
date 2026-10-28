@@ -24,6 +24,7 @@ import {
   TagItem,
   GroupInvitation,
   GroupJoinRequest,
+  DiaryEntry,
 } from '@app/shared';
 
 type GroupActionResult = { success: boolean; message: string; household?: Household };
@@ -725,6 +726,57 @@ export class FirestoreService {
     } catch (e) {
       console.error('Firestore saveLearningRule error:', e);
       return false;
+    }
+  }
+
+  /**
+   * 12. 生活日記：users/{userId}/diaries/{YYYY-MM-DD}
+   */
+  public static async saveDiaryEntry(userId: string, entry: DiaryEntry): Promise<boolean> {
+    const { db, isConfigured } = getFirebaseServices();
+    if (!db || !isConfigured || !userId || !entry?.date) return false;
+
+    try {
+      await setDoc(doc(db, 'users', userId, 'diaries', entry.date), cleanForFirestore(entry));
+      return true;
+    } catch (e) {
+      console.error('Firestore saveDiaryEntry error:', e);
+      return false;
+    }
+  }
+
+  public static async deleteDiaryEntry(userId: string, date: string): Promise<boolean> {
+    const { db, isConfigured } = getFirebaseServices();
+    if (!db || !isConfigured || !userId || !date) return false;
+
+    try {
+      await deleteDoc(doc(db, 'users', userId, 'diaries', date));
+      return true;
+    } catch (e) {
+      console.error('Firestore deleteDiaryEntry error:', e);
+      return false;
+    }
+  }
+
+  public static subscribeToDiaryEntries(
+    userId: string,
+    onData: (entries: Record<string, DiaryEntry>) => void
+  ): Unsubscribe | null {
+    const { db, isConfigured } = getFirebaseServices();
+    if (!db || !isConfigured) return null;
+
+    try {
+      return onSnapshot(collection(db, 'users', userId, 'diaries'), (snapshot) => {
+        const entries: Record<string, DiaryEntry> = {};
+        snapshot.forEach((d) => {
+          const entry = d.data() as DiaryEntry;
+          entries[entry.date || d.id] = { ...entry, date: entry.date || d.id };
+        });
+        onData(entries);
+      });
+    } catch (e) {
+      console.error('Failed to subscribe to diary entries:', e);
+      return null;
     }
   }
 }

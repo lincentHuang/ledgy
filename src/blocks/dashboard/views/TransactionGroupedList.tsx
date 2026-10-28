@@ -5,6 +5,7 @@ import { Transaction } from '@app/shared';
 import { useAppStore } from '@/lib/store';
 import { Calendar, Sparkles, StickyNote, Edit2 } from 'lucide-react';
 import { DateNoteModal } from './DateNoteModal';
+import { DiaryDayBadge } from '@/blocks/diary/views/DiaryDayBadge';
 
 export interface TransactionGroupedListProps {
   transactions: Transaction[];
@@ -208,6 +209,7 @@ export const TransactionGroupedList: React.FC<TransactionGroupedListProps> = ({
                 <span className="text-[10px] text-slate-500 font-bold bg-slate-800/80 px-1.5 py-0.5 rounded-md whitespace-nowrap shrink-0">
                   0 筆
                 </span>
+                <DiaryDayBadge dateStr={singleDate} onOpenQuickInput={onOpenQuickInput} />
                 {!singleDateNote && (
                   <button
                     type="button"
@@ -321,6 +323,7 @@ export const TransactionGroupedList: React.FC<TransactionGroupedListProps> = ({
                 <span className="text-[10px] text-slate-500 font-bold bg-slate-800/80 px-1.5 py-0.5 rounded-md whitespace-nowrap shrink-0">
                   {dayTransactions.length} 筆
                 </span>
+                <DiaryDayBadge dateStr={dateStr.slice(0, 10)} onOpenQuickInput={onOpenQuickInput} />
                 {!dateNote && (
                   <button
                     type="button"

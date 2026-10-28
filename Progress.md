@@ -14,3 +14,5 @@
 - 2026-10-28：以 Firestore 模擬器跑 14 組規則情境（建立群組、Email 邀請與接受、邀請碼申請與審核、非成員讀寫被拒、舊群組相容、刪除群組），全數通過
 - 2026-10-28：Firestore 規則測試收進專案，新增 yarn test:rules（模擬器跑 14 組情境，全數通過）（tests/firestore.rules.test.mjs、package.json、firebase.json）
 - 2026-10-28：資料層改寫合併進 dev／main；修正 CI 部署（同步 yarn.lock、Node 升 22），但 repo 缺 FIREBASE_SERVICE_ACCOUNT secret，自動部署仍失敗，網站尚未更新（.github/workflows/deploy.yml、yarn.lock）
+- 2026-10-28：新增「生活日記」：一天一篇（心情＋內容），每日卡片並列當天記帳筆數與支出、標示未記帳日、本月記帳／日記天數與連續天數；首頁今日小卡、側欄入口，雲端存於 users/{uid}/diaries（src/blocks/diary/、src/lib/shared/diary.ts、store.tsx、firestoreService.ts、page.tsx、Sidebar.tsx）
+- 2026-10-28：月曆、週曆與明細日期標頭顯示當天日記心情／有沒有寫，選取單日可直接開日記（DiaryDayBadge.tsx、MonthCalendarView.tsx、WeekView.tsx、TransactionGroupedList.tsx）

@@ -12,6 +12,7 @@ import {
 } from 'lucide-react';
 import { TransactionGroupedList } from './TransactionGroupedList';
 import { DateNoteModal } from './DateNoteModal';
+import { DiaryDayBadge } from '@/blocks/diary/views/DiaryDayBadge';
 
 interface MonthCalendarViewProps {
   onEditTransaction: (tx: Transaction) => void;
@@ -42,6 +43,7 @@ export const MonthCalendarView: React.FC<MonthCalendarViewProps> = ({
     selectedSubDates,
     setSelectedSubDates,
     currentDateNotes,
+    diaryEntries,
   } = useAppStore();
 
   const [isMonthModalOpen, setIsMonthModalOpen] = useState(false);
@@ -434,7 +436,7 @@ export const MonthCalendarView: React.FC<MonthCalendarViewProps> = ({
             >
               {/* 前置空白格 */}
               {Array.from({ length: firstDayOfWeek }).map((_, i) => (
-                <div key={`empty-${i}`} className="h-10 sm:h-11 rounded-xl bg-slate-950/20" />
+                <div key={`empty-${i}`} className="h-12 sm:h-14 rounded-xl bg-slate-950/20" />
               ))}
 
               {/* 各日期格子 */}
@@ -448,6 +450,7 @@ export const MonthCalendarView: React.FC<MonthCalendarViewProps> = ({
                 const dayTxs = dailyTransactionsMap[dateStr] || [];
                 const daySum = dayTxs.reduce((acc, cur) => acc + (cur.amount || 0), 0);
                 const dayNote = currentDateNotes[dateStr];
+                const diary = diaryEntries[dateStr];
 
                 return (
                   <div
@@ -457,7 +460,7 @@ export const MonthCalendarView: React.FC<MonthCalendarViewProps> = ({
                     onMouseDown={() => handleDayMouseDown(index)}
                     onMouseEnter={() => handleDayMouseEnter(index)}
                     onTouchStart={() => handleDayMouseDown(index)}
-                    className={`h-10 sm:h-11 min-w-0 overflow-hidden p-0.5 sm:p-1 rounded-xl border flex flex-col justify-between items-center transition relative cursor-pointer group select-none ${
+                    className={`h-12 sm:h-14 min-w-0 overflow-hidden p-0.5 sm:p-1 rounded-xl border flex flex-col justify-between items-center transition relative cursor-pointer group select-none ${
                       isDragging && isSelected
                         ? 'border-emerald-400 bg-emerald-950/90 shadow ring-1 ring-emerald-400/50'
                         : isExplicitlySingleOrMulti
@@ -493,6 +496,11 @@ export const MonthCalendarView: React.FC<MonthCalendarViewProps> = ({
                       <span className="h-1.5 pointer-events-none" />
                     )}
 
+                    {/* 📔 日記心情 (寫了日記但沒選心情顯示書本) */}
+                    <span className="text-[10px] sm:text-xs leading-none h-3 pointer-events-none">
+                      {diary ? diary.mood || '📔' : ''}
+                    </span>
+
                     {/* 當日活動備忘黃色圓點標記 */}
                     {dayNote && (
                       <span
@@ -509,6 +517,12 @@ export const MonthCalendarView: React.FC<MonthCalendarViewProps> = ({
                 );
               })}
             </div>
+
+            {/* 圖例 */}
+            <p className="text-[10px] text-slate-500 text-center">😄 當天日記心情 · 📔 有寫日記 · 🟡 活動備註</p>
+
+            {/* 📔 單選日期的日記預覽 */}
+            {selectedDates.length === 1 && <DiaryDayBadge dateStr={selectedDates[0]} variant="row" />}
 
             {/* 單選日期當日備忘預覽與編輯快捷列 */}
             {selectedDates.length === 1 && (

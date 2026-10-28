@@ -13,6 +13,7 @@ import { FinancialChatModal, FinancialReportView } from '@/blocks/ai-consultant'
 import { UserProfileModal, WelcomeView, OnboardingWizardModal } from '@/blocks/auth';
 import { VoiceInputModal } from '@/blocks/voice-input';
 import { FixedCostsView, FixedCostReminder } from '@/blocks/fixed-costs';
+import { DiaryView, DiaryTodayCard } from '@/blocks/diary';
 
 // 🚀 延遲載入含重型相機/二維碼解碼庫 (html5-qrcode) 的彈窗，極速瘦身首屏與 APK 啟動耗時
 const InvoiceScannerModal = dynamic(
@@ -100,6 +101,8 @@ export default function Home() {
         setCurrentTab('overview');
       } else if (action === 'budget' || action === 'budget-board') {
         setCurrentTab('budget-board');
+      } else if (action === 'diary') {
+        setCurrentTab('diary');
       }
     };
 
@@ -182,8 +185,21 @@ export default function Home() {
               <>
                 {/* 💸 固定成本到期提醒 (確認後自動入帳) */}
                 <FixedCostReminder onManage={() => setCurrentTab('fixed-costs')} />
+                {/* 📔 今天記帳與日記狀態 */}
+                <DiaryTodayCard
+                  onOpenDiary={() => setCurrentTab('diary')}
+                  onOpenQuickInput={() => setIsQuickInputOpen(true)}
+                />
                 <TransactionList onOpenQuickInput={() => setIsQuickInputOpen(true)} />
               </>
+            )}
+
+            {/* 📔 生活日記 (記帳與日記並列) */}
+            {currentTab === 'diary' && (
+              <DiaryView
+                onBack={() => setCurrentTab('overview')}
+                onOpenQuickInput={() => setIsQuickInputOpen(true)}
+              />
             )}
 
             {/* 💸 每月固定成本管理 */}

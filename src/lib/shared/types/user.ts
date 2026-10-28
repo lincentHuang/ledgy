@@ -55,6 +55,15 @@ export interface FixedCost {
   updatedAt: number;
 }
 
+/** 生活日記：一天一篇，只屬於本人 (不隨群組帳本分享)，存於 users/{uid}/diaries/{date} */
+export interface DiaryEntry {
+  date: string; // "YYYY-MM-DD"，同時是文件 ID
+  content: string;
+  mood?: string; // 心情 emoji，例如 "😊"
+  createdAt: number;
+  updatedAt: number;
+}
+
 export interface LearningRule {
   id: string;
   userId: string;

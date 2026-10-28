@@ -3,7 +3,7 @@
 import { LayoutDashboard, Plus, Settings, Mic, Menu, Barcode, BarChart3 } from 'lucide-react';
 import { Button } from '@/components';
 
-export type MainTabType = 'overview' | 'invoices' | 'family' | 'settings' | 'personal-settings' | 'group-settings' | 'reports' | 'budget-board' | 'fixed-costs';
+export type MainTabType = 'overview' | 'invoices' | 'family' | 'settings' | 'personal-settings' | 'group-settings' | 'reports' | 'budget-board' | 'fixed-costs' | 'diary';
 
 interface BottomNavProps {
   currentTab: MainTabType;

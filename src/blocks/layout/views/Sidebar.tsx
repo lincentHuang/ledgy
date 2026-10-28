@@ -2,6 +2,7 @@
 
 import React from 'react';
 import { useAppStore } from '@/lib/store';
+import { toDateKey } from '@/lib/shared/diary';
 import {
   X,
   LayoutDashboard,
@@ -28,6 +29,7 @@ import {
   BarChart3,
   PieChart,
   CalendarClock,
+  BookHeart,
 } from 'lucide-react';
 import { MainTabType } from './BottomNav';
 import { PersonalTabType, GroupTabType } from '@/blocks/settings';
@@ -73,7 +75,9 @@ export const Sidebar: React.FC<SidebarProps> = ({
     setActiveLedger,
     logout,
     dueFixedCosts,
+    diaryEntries,
   } = useAppStore();
+  const todayKey = toDateKey();
 
   const handleNav = (tab: MainTabType) => {
     onChangeTab(tab);
@@ -264,6 +268,27 @@ export const Sidebar: React.FC<SidebarProps> = ({
               <span className="shrink-0 text-[10px] bg-slate-800 text-emerald-300 px-2 py-0.5 rounded-full border border-slate-700">
                 {1 + households.length} 本
               </span>
+            </button>
+
+            {/* 📔 生活日記 */}
+            <button
+              onClick={() => handleNav('diary')}
+              className={`w-full flex items-center justify-between px-3 py-2.5 rounded-2xl transition font-medium border ${currentTab === 'diary'
+                  ? 'bg-emerald-600/20 text-emerald-400 font-bold border-emerald-500/30'
+                  : 'border-transparent hover:bg-slate-800 text-slate-300'
+                }`}
+            >
+              <div className="flex items-center gap-2.5 min-w-0 [&>span]:truncate [&>svg]:shrink-0">
+                <BookHeart className="w-4 h-4 text-emerald-400" />
+                <span>生活日記</span>
+              </div>
+              {diaryEntries[todayKey] ? (
+                <ChevronRight className="w-3.5 h-3.5 opacity-60 shrink-0" />
+              ) : (
+                <span className="shrink-0 text-[10px] bg-slate-800 text-emerald-300 px-2 py-0.5 rounded-full border border-slate-700 whitespace-nowrap">
+                  今天還沒寫
+                </span>
+              )}
             </button>
 
             {/* 💸 每月固定成本 */}
